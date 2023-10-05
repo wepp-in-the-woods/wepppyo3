@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "cli_revision",
+    "raster",
+    "raster_characteristics",
+]
+resolver = "2"

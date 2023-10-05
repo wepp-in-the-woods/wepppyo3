@@ -1,0 +1,13 @@
+[package]
+name = "raster_characteristics_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.15", features = ["extension-module"] }
+gdal = "0.11"
+proj = "0.27.2"
+raster = { path = "../raster" }

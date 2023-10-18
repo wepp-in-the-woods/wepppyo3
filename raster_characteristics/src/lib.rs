@@ -57,11 +57,12 @@ fn identify_mode_single_raster_key(
     key_fn: &str, 
     parameter_fn: &str, 
     ignore_channels: bool,
-    mut ignore_keys: HashSet<i32>
+    mut ignore_keys: HashSet<i32>,
+    band_indx: isize
 ) -> PyResult<HashMap<String, i32>> {
 
     let key_map: Raster<i32> = Raster::<i32>::read(key_fn).unwrap();
-    let parameter_map: Raster<i32> = Raster::<i32>::read(parameter_fn).unwrap();
+    let parameter_map: Raster<i32> = Raster::<i32>::read_band(parameter_fn, band_indx).unwrap();
 
     if let Some(no_data_value) = key_map.no_data {
         ignore_keys.insert(no_data_value);
@@ -155,12 +156,13 @@ fn identify_mode_intersecting_raster_keys(
     parameter_fn: &str,
     ignore_channels: bool,
     mut ignore_keys: HashSet<i32>,
-    mut ignore_keys2: HashSet<i32>
+    mut ignore_keys2: HashSet<i32>,
+    band_indx: isize
 ) -> PyResult<HashMap<String, HashMap<String, i32>>> {
 
     let key_map: Raster<i32> = Raster::<i32>::read(key_fn).unwrap();
     let key2_map: Raster<i32> = Raster::<i32>::read(key2_fn).unwrap();
-    let parameter_map: Raster<i32> = Raster::<i32>::read(parameter_fn).unwrap();
+    let parameter_map: Raster<i32> = Raster::<i32>::read_band(parameter_fn, band_indx).unwrap();
     
     // Handle no_data values for key_map and key2_map
     if let Some(no_data_value) = key_map.no_data {
@@ -263,10 +265,11 @@ fn identify_median_single_raster_key(
     key_fn: &str,
     parameter_fn: &str,
     ignore_channels: bool,
-    mut ignore_keys: HashSet<i32>
+    mut ignore_keys: HashSet<i32>,
+    band_indx: isize
 ) -> PyResult<HashMap<String, f64>> {
     let key_map: Raster<i32> = Raster::<i32>::read(key_fn).unwrap();
-    let parameter_map: Raster<f64> = Raster::<f64>::read(parameter_fn).unwrap();
+    let parameter_map: Raster<f64> = Raster::<f64>::read_band(parameter_fn, band_indx).unwrap();
 
     if let Some(no_data_value) = key_map.no_data {
         ignore_keys.insert(no_data_value);
@@ -359,11 +362,12 @@ fn identify_median_intersecting_raster_keys(
     parameter_fn: &str,
     ignore_channels: bool,
     mut ignore_keys: HashSet<i32>,
-    mut ignore_keys2: HashSet<i32>
+    mut ignore_keys2: HashSet<i32>,
+    band_indx: isize
 ) -> PyResult<HashMap<String, HashMap<String, f64>>> {
     let key_map: Raster<i32> = Raster::<i32>::read(key_fn).unwrap();
     let key2_map: Raster<i32> = Raster::<i32>::read(key2_fn).unwrap();
-    let parameter_map: Raster<f64> = Raster::<f64>::read(parameter_fn).unwrap();
+    let parameter_map: Raster<f64> = Raster::<f64>::read_band(parameter_fn, band_indx).unwrap();
 
     if let Some(no_data_value) = key_map.no_data {
         ignore_keys.insert(no_data_value);

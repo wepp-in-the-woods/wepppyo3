@@ -61,9 +61,12 @@ def identify_mode_intersecting_raster_keys(
     parameter_fn: str,
     ignore_channels: bool = True,
     ignore_keys: Optional[Set[int]] = None,
+    ignore_keys2: Optional[Set[int]] = None,
     band_indx: int = 1
 ) -> Dict[str, int]:
     ignore_keys = _handle_common_args(ignore_keys, band_indx)
+
+    ignore_keys2 = set() if ignore_keys2 is None else ignore_keys2
 
     return _identify_mode_intersecting_raster_keys(
         key_fn=key_fn, 
@@ -71,6 +74,7 @@ def identify_mode_intersecting_raster_keys(
         parameter_fn=parameter_fn,
         ignore_channels=ignore_channels,
         ignore_keys=ignore_keys,
+        ignore_keys2=ignore_keys2,
         band_indx=band_indx
     )
     
@@ -83,9 +87,12 @@ def identify_median_intersecting_raster_keys(
     parameter_fn: str,
     ignore_channels: bool = True,
     ignore_keys: Optional[Set[int]] = None,
+    ignore_keys2: Optional[Set[int]] = None,
     band_indx: int = 1
 ) -> Dict[str, float]:
     ignore_keys = _handle_common_args(ignore_keys, band_indx)
+
+    ignore_keys2 = set() if ignore_keys2 is None else ignore_keys2
 
     return _identify_median_intersecting_raster_keys(
         key_fn=key_fn, 
@@ -93,6 +100,7 @@ def identify_median_intersecting_raster_keys(
         parameter_fn=parameter_fn,
         ignore_channels=ignore_channels,
         ignore_keys=ignore_keys,
+        ignore_keys2=ignore_keys2,
         band_indx=band_indx
     )
     

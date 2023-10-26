@@ -284,6 +284,53 @@ impl<T: GdalType + Default + Copy + FromF64> Raster<T> {
             map_type,
         ))
     }
+
+    #[allow(dead_code)]
+    pub fn read_band(path: &str, band_indx: isize) -> Result<Raster<T>, GdalError> {
+        let dataset = gdal::Dataset::open(path)?;
+        let (width, height) = dataset.raster_size();
+        let geo_transform = dataset.geo_transform()?;
+        let cellsize = geo_transform[1];
+
+        let wkt = dataset.projection();
+        let spatial_ref = SpatialRef::from_wkt(&wkt).unwrap();
+        let proj4 = spatial_ref.to_proj4().ok();
+
+        //let spatial_ref_result = dataset.spatial_ref();
+        //let proj4 = match spatial_ref_result {
+        //    Ok(sr) => sr.to_proj4().ok(),
+        //    Err(_) => None,
+        //};
+
+        let band = dataset.rasterband(band_indx)?;
+        let buffer = band.read_as::<T>((0, 0), (width, height), (width, height), None)?;
+        let data = buffer.data;
+
+        let no_data_value: Option<f64> = band.no_data_value();
+        let no_data = no_data_value.map(|v| T::from_f64(v));
+
+        // find the name by spliting the path and removing the extension from the filename of the file
+        let name = path.split("/").last().unwrap().split(".").next().unwrap().to_string();
+
+        // find the map type from the name using from_str
+        let map_type = MapType::from_str(&name).unwrap();
+
+        // refactor to use Raster::new
+
+        Ok(Raster::new(
+            width,
+            height,
+            cellsize,
+            data,
+            no_data,
+            geo_transform,
+            proj4,
+            path.to_string(),
+            name,
+            map_type,
+        ))
+    }
+
 }
 
 // method to transform usize index to x,y coordinates

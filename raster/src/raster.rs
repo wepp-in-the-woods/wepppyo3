@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use core::any::Any;
 
+use gdal::raster::Buffer;
 use gdal::errors::GdalError;
 use gdal::raster::GdalType;
 use gdal::spatial_ref::SpatialRef;
@@ -147,7 +148,7 @@ impl<T> Raster<T> {
                 // lon = ll_wgs.0 + x * (ur_wgs.0 - ll_wgs.0) / width
                 // lat = ur_wgs.1 - y * (ur_wgs.1 - ll_wgs.1) / height
                 [ll_wgs.0, ur_wgs.1, (ur_wgs.0 - ll_wgs.0) / width as f64, (ur_wgs.1 - ll_wgs.1) / height as f64]
-        
+
             },
             None => [0.0, 0.0, 0.0, 0.0],
         };
@@ -175,6 +176,24 @@ impl<T: Clone> Clone for Raster<T> {
             height: self.height,
             cellsize: self.cellsize,
             data: self.data.clone(),
+            no_data: self.no_data.clone(),
+            geo_transform: self.geo_transform,
+            proj4: self.proj4.clone(),
+            path: self.path.clone(),
+            name: self.name.clone(),
+            map_type: self.map_type.clone(),
+            wgs_transform: self.wgs_transform.clone(),
+        }
+    }
+}
+
+impl<T: Default + Clone> Raster<T> {
+    pub fn empty_clone(&self) -> Self {
+        Raster {
+            width: self.width,
+            height: self.height,
+            cellsize: self.cellsize,
+            data: vec![T::default(); self.width * self.height],
             no_data: self.no_data.clone(),
             geo_transform: self.geo_transform,
             proj4: self.proj4.clone(),
@@ -332,6 +351,36 @@ impl<T: GdalType + Default + Copy + FromF64> Raster<T> {
     }
 
 }
+
+impl<T: GdalType + Default + Copy  + ToF64> Raster<T> {
+    pub fn write(&self, path: &str) -> Result<(), GdalError> {
+        // Create a new GDAL dataset
+        let driver = gdal::Driver::get("GTiff")?;
+        let mut dataset = driver.create_with_band_type::<T, &str>(path, self.width as isize, self.height as isize, 1)?;
+
+        // Set the geotransform and projection
+        dataset.set_geo_transform(&self.geo_transform)?;
+        if let Some(proj) = &self.proj4 {
+            let spatial_ref = SpatialRef::from_proj4(&proj)?;
+            let wkt = spatial_ref.to_wkt()?;
+            dataset.set_projection(&wkt)?;
+        }
+
+        // Write the raster data
+        let mut band = dataset.rasterband(1)?;
+        let buffer = Buffer::new((self.width, self.height), self.data.clone());
+        band.write((0, 0), (self.width, self.height), &buffer)?;
+
+        // Set the NoData value if it exists
+        if let Some(no_data_val) = self.no_data {
+            let no_data_f64: f64 = no_data_val.to_f64();
+            band.set_no_data_value(no_data_f64)?;
+        }
+
+        Ok(())
+    }
+}
+
 
 // method to transform usize index to x,y coordinates
 impl<T> Raster<T> {

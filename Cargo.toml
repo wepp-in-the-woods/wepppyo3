@@ -3,5 +3,6 @@ members = [
     "cli_revision",
     "raster",
     "raster_characteristics",
+    "wepp_viz",
 ]
 resolver = "2"

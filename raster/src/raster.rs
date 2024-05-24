@@ -355,7 +355,7 @@ impl<T: GdalType + Default + Copy + FromF64> Raster<T> {
 impl<T: GdalType + Default + Copy  + ToF64> Raster<T> {
     pub fn write(&self, path: &str) -> Result<(), GdalError> {
         // Create a new GDAL dataset
-        let driver = gdal::Driver::get("GTiff")?;
+        let driver = gdal::DriverManager::get_driver_by_name("GTiff")?;
         let mut dataset = driver.create_with_band_type::<T, &str>(path, self.width as isize, self.height as isize, 1)?;
 
         // Set the geotransform and projection
@@ -374,7 +374,7 @@ impl<T: GdalType + Default + Copy  + ToF64> Raster<T> {
         // Set the NoData value if it exists
         if let Some(no_data_val) = self.no_data {
             let no_data_f64: f64 = no_data_val.to_f64();
-            band.set_no_data_value(no_data_f64)?;
+            band.set_no_data_value(Some(no_data_f64))?;
         }
 
         Ok(())

@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.15", features = ["extension-module"] }
-gdal = "0.16"
+pyo3 = { version = "0.23", features = ["extension-module"] }
+gdal = { version = "0.16", features = ["bindgen"]}
 proj = "0.27.2"
 raster = { path = "../raster" }

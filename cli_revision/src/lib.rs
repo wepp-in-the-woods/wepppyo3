@@ -1,3 +1,4 @@
+
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::fs::File;
@@ -129,8 +130,7 @@ fn cli_revision(
 /// A PyO3 module
 /// This module is a container for the Python-callable functions we define
 #[pymodule]
-fn cli_revision_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn cli_revision_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cli_revision, m)?)?;
     Ok(())
 }
-

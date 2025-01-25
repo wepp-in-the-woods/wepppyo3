@@ -426,7 +426,7 @@ fn calculate_median(mut values: Vec<f64>) -> f64 {
 /// A PyO3 module
 /// This module is a container for the Python-callable functions we define
 #[pymodule]
-fn raster_characteristics_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(identify_mode_single_raster_key, m)?)?;
     m.add_function(wrap_pyfunction!(identify_mode_intersecting_raster_keys, m)?)?;
     m.add_function(wrap_pyfunction!(identify_median_single_raster_key, m)?)?;

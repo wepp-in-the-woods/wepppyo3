@@ -158,7 +158,7 @@ fn make_soil_loss_grid(
 /// A PyO3 module
 /// This module is a container for the Python-callable functions we define
 #[pymodule]
-fn wepp_viz_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn wepp_viz_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(make_soil_loss_grid, m)?)?;
     Ok(())
 }

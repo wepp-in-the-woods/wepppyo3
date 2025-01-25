@@ -14,3 +14,8 @@ sudo rsync -av --progress /workdir/wepppyo3/release/linux/py310/wepppyo3/  /usr/
 ```
 
 
+## deployment 3.12 (24.04)
+```
+sudo rsync -av --progress /workdir/wepppyo3/release/linux/py312/wepppyo3/  /usr/local/lib/python3.12/dist-packages/wepppyo3/
+```
+

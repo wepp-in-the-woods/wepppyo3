@@ -1,10 +1,51 @@
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
+use std::io::{self, BufRead, BufReader};
+use std::path::{Path, PathBuf};
 use raster::raster::Raster;
+use std::error::Error;
+use glob::glob;
 
+fn read_2023_slope_meta(file_path: &str) -> Result<(Vec<usize>, Vec<f64>, f64, f64), Box<dyn Error>> {
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let mut indices: Vec<usize> = Vec::new();
+    let mut distances_norm: Vec<f64> = Vec::new();
+    let mut cell_size: f64 = 0.0;
+    let mut length: f64 = 0.0;
+
+    for (i, line) in reader.lines().enumerate() {
+        let line = line?;
+        if i == 0 {
+            // Read indices
+            indices = line
+                .trim_start_matches("# [")
+                .trim_end_matches(']')
+                .split(", ")
+                .map(|s| s.parse::<usize>())
+                .collect::<Result<Vec<usize>, _>>()?;
+        } else if i == 1 {
+            // Read distances_norm
+            distances_norm = line
+                .trim_start_matches("# [")
+                .trim_end_matches(']')
+                .split(", ")
+                .map(|s| s.parse::<f64>())
+                .collect::<Result<Vec<f64>, _>>()?;
+        } else if i == 4 {
+            let values: Vec<&str> = line.split_whitespace().collect();
+            cell_size = values[1].parse::<f64>().unwrap();
+        } else if i == 5 {
+            let values2: Vec<&str> = line.split_whitespace().collect();
+            length = values2[1].parse::<f64>().unwrap();
+            break;
+        }
+    }
+
+    Ok((indices, distances_norm, cell_size, length))
+}
 
 fn read_plot_fn(plot_fn: &Path) -> Result<(Vec<f64>, f64), io::Error> {
 
@@ -81,6 +122,89 @@ impl From<gdal::errors::GdalError> for SoilLossError {
     }
 }
 
+fn replace_extension(path: &Path, from_ext: &str, to_ext: &str) -> Option<PathBuf> {
+    let path_str = path.to_str()?;
+    if path_str.ends_with(from_ext) {
+        let new_path_str = path_str.trim_end_matches(from_ext).to_string() + to_ext;
+        Some(PathBuf::from(new_path_str))
+    } else {
+        None
+    }
+}
+
+fn make_soil_loss_grid_fps_rs(
+    discha_fn: &str,
+    fp_runs_dir: &str,
+    loss_fn: &str
+) -> Result<(), Box<dyn Error>>  {
+
+    let discha: Raster<f64> = Raster::<f64>::read(discha_fn).unwrap();
+
+    let mut soil_loss_grid = discha.empty_clone();
+    let mut counts_grid = discha.empty_clone();
+
+    let pattern = format!("{}/{}.plot.dat", fp_runs_dir, "*");
+
+    for entry in glob(&pattern).expect("Failed to read glob pattern") {
+        match entry {
+            Ok(plot_fn) => {
+                if let Some(slp_path) = replace_extension(&plot_fn, "plot.dat", "slp") {
+                    let slp_path_str = slp_path.to_str().ok_or("Invalid UTF-8 sequence")?.to_string();
+                    
+                    println!("Plot file: {:?}", plot_fn);
+                    println!("SLP file: {:?}", slp_path_str);
+                    
+                    let (soil_loss, dx) = read_plot_fn(&Path::new(&plot_fn))?;
+                    let (indices, distances_norm, cell_size, length) =
+                        read_2023_slope_meta(&slp_path_str)?;
+
+                    let slope_segment_m = length / (soil_loss.len() as f64);
+
+                    let mut distance_norm_0: f64;
+                    let mut distance_norm_1: f64;
+                    for (i, indx) in indices.iter().enumerate() {
+                        if i == 0
+                        {
+                            distance_norm_0 = distances_norm[i];
+                            distance_norm_1 = (distances_norm[i] + distances_norm[i + 1]) / 2.0;
+                        } else if i == indices.len() - 1 {
+                            distance_norm_0 = (distances_norm[i - 1] + distances_norm[i]) / 2.0;
+                            distance_norm_1 = distances_norm[i];
+                        } else {
+                            distance_norm_0 = (distances_norm[i - 1] + distances_norm[i]) / 2.0;
+                            distance_norm_1 = (distances_norm[i] + distances_norm[i + 1]) / 2.0;
+                        }
+
+                        for (j, _soil_loss) in soil_loss.iter().enumerate() {
+                            let _distance_norm = j as f64 * dx;
+                            // continue if _distance_norm is outside the range for indx
+                            if _distance_norm < distance_norm_0 || _distance_norm > distance_norm_1 {
+                                continue;
+                            }
+
+                            // compute soil loss
+                            let loss_kg = _soil_loss * slope_segment_m * cell_size;
+                            soil_loss_grid.data[*indx] += loss_kg;
+                        }
+
+                        counts_grid.data[*indx] += 1.0;
+                    }
+                }
+            }
+            Err(e) => println!("{:?}", e),
+        }
+    }
+
+    for (i, loss) in soil_loss_grid.data.iter_mut().enumerate() {
+        if counts_grid.data[i] > 0.0 {
+            *loss /= counts_grid.data[i] as f64;
+        }
+    }
+    
+    soil_loss_grid.write(loss_fn)?;
+
+    Ok(())
+}
 
 fn make_soil_loss_grid_rs(
     subwta_fn: &str,
@@ -154,12 +278,22 @@ fn make_soil_loss_grid(
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{:?}", e)))
 }
 
+#[pyfunction]
+fn make_soil_loss_grid_fps(
+    discha_fn: &str,
+    fp_runs_dir: &str,
+    loss_fn: &str
+) -> PyResult<()> {
+    make_soil_loss_grid_fps_rs(discha_fn, fp_runs_dir, loss_fn)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{:?}", e)))
+}
 
 /// A PyO3 module
 /// This module is a container for the Python-callable functions we define
 #[pymodule]
 fn wepp_viz_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(make_soil_loss_grid, m)?)?;
+    m.add_function(wrap_pyfunction!(make_soil_loss_grid_fps, m)?)?;
     Ok(())
 }
 
@@ -168,20 +302,32 @@ fn wepp_viz_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 mod tests {
 
     use crate::make_soil_loss_grid_rs;
+    use crate::make_soil_loss_grid_fps_rs;
 
     #[test]
     fn test_make_soil_loss_grid() {
 
         let result = make_soil_loss_grid_rs(
-    "/geodata/weppcloud_runs/mdobre-womanly-ascot/dem/topaz/SUBWTA.ARC",
-    "/geodata/weppcloud_runs/mdobre-womanly-ascot/dem/topaz/DISCHA.ARC", 
-    "/geodata/weppcloud_runs/mdobre-womanly-ascot/wepp/output",
-    "/home/roger/loss.tif");
-
+    "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/dem/topaz/SUBWTA.ARC",
+    "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/dem/topaz/DISCHA.ARC", 
+    "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/wepp/output",
+    "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/wepp/plots/loss.tif");
 
         let result = 165;
         // Assert conditions on the result
         assert_eq!(result, 165); // replace ... with the expected value
+    }
+
+    #[test]
+    fn test_make_soil_loss_grid_fps() {
+
+        let result = make_soil_loss_grid_fps_rs(
+    "/geodata/weppcloud_runs/falling-validity/dem/topaz/DISCHA.ARC",
+    "/media/ramdisk/falling-validity",
+    "/geodata/weppcloud_runs/falling-validity/wepp/plots/loss_fps.tif");
+    
+            // Assert conditions on the result
+            assert_eq!(result.is_ok(), true); // replace ... with the expected value
     }
 }
 

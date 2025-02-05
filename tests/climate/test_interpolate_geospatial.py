@@ -59,6 +59,41 @@ class TestInterpolateGeospatial(unittest.TestCase):
                          [[2.0], [4.0]]])
         result = interpolate_geospatial(0.5, 0.5, self.eastings, self.northings, data, "linear", a_max=2.0)
         self.assertAlmostEqual(result[0], 2.0, places=5)
+        
+    def test_bilinear_reversed_eastings(self):
+        """
+        Same 2x2 single-date data, but eastings are reversed: [1.0, 0.0].
+        We still expect the interpolated value at (0.5, 0.5) to be 2.5.
+        """
+        reversed_eastings = np.array([1.0, 0.0])
+        northings = np.array([0.0, 1.0])
+        data = np.array([[[1.0], [3.0]],
+                         [[2.0], [4.0]]])  # shape (2,2,1)
+        result = interpolate_geospatial(0.5, 0.5, reversed_eastings, northings, data, "linear")
+        self.assertAlmostEqual(result[0], 2.5, places=5)
+
+    def test_bilinear_reversed_northings(self):
+        """
+        Same data, but northings are reversed: [1.0, 0.0].
+        We still expect 2.5 at (0.5, 0.5).
+        """
+        eastings = np.array([0.0, 1.0])
+        reversed_northings = np.array([1.0, 0.0])
+        data = np.array([[[1.0], [3.0]],
+                         [[2.0], [4.0]]])  # shape (2,2,1)
+        result = interpolate_geospatial(0.5, 0.5, eastings, reversed_northings, data, "linear")
+        self.assertAlmostEqual(result[0], 2.5, places=5)
+
+    def test_bilinear_reversed_both_axes(self):
+        """
+        Reverse both eastings and northings and verify interpolation is still correct.
+        """
+        reversed_eastings = np.array([1.0, 0.0])
+        reversed_northings = np.array([1.0, 0.0])
+        data = np.array([[[1.0], [3.0]],
+                         [[2.0], [4.0]]])  # shape (2,2,1)
+        result = interpolate_geospatial(0.5, 0.5, reversed_eastings, reversed_northings, data, "linear")
+        self.assertAlmostEqual(result[0], 2.5, places=5)
 
 if __name__ == "__main__":
     unittest.main()

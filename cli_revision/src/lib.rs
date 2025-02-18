@@ -1,10 +1,10 @@
-
+#[macro_use]
+extern crate pyo3;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write, BufRead, Result};
 use numpy::{PyReadonlyArray1, PyReadonlyArray3};
-use numpy::ndarray::{Array, Array3, Axis};
 use numpy::PyUntypedArrayMethods;
 use numpy::PyArrayMethods;
 
@@ -277,6 +277,7 @@ fn interpolate_geospatial(
 const HEADER_LINES: usize = 15;
 const EXPECTED_TOKENS: usize = 13;
 
+#[pyfunction]
 pub fn rust_cli_revision(src_fn: &str, dst_fn: &str, 
     ws_ppts: [f64; 12], ws_tmaxs: [f64; 12], ws_tmins:  [f64; 12],
     hill_ppts: [f64; 12], hill_tmaxs: [f64; 12], hill_tmins:  [f64; 12],
@@ -329,6 +330,323 @@ pub fn rust_cli_revision(src_fn: &str, dst_fn: &str,
     }
     Ok(())
 }
+
+
+#[pyfunction]
+pub fn rust_cli_p_scale_monthlies(src_fn: &str, dst_fn: &str, p_mults: [f64; 12]
+) -> Result<()> {
+    let src_f = File::open(src_fn)?;
+    let mut src_r = BufReader::new(src_f);
+
+    let dst_f = File::create(dst_fn)?;
+    let mut dst_w = BufWriter::new(dst_f);
+
+    let mut line = String::new();
+    for _ in 0..HEADER_LINES {
+        src_r.read_line(&mut line)?;
+        dst_w.write_all(line.as_bytes())?;
+        line.clear();
+    }
+
+    while src_r.read_line(&mut line)? > 0 {
+        let tokens: Vec<&str> = line.split_whitespace().collect();
+        if tokens.len() == EXPECTED_TOKENS {
+            let da = tokens[0];
+            let mo: i32 = tokens[1].parse().unwrap();
+            let year = tokens[2];
+            let mut prcp_f: f64 = tokens[3].parse().unwrap();
+            let dur = tokens[4];
+            let tp = tokens[5];
+            let ip = tokens[6];
+            let tmax = tokens[7];
+            let tmin = tokens[8];
+            let rad = tokens[9];
+            let w_vl = tokens[10];
+            let w_dir = tokens[11];
+            let tdew = tokens[12];
+        
+            let indx = (mo - 1) as usize;
+            prcp_f = prcp_f * p_mults[indx];
+
+            let prcp = format!("{:.1}", prcp_f);
+
+            dst_w.write_all(format!(
+                "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
+                da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
+            ).as_bytes())?;
+        }
+        line.clear();
+    }
+    Ok(())
+}
+
+
+#[pyfunction]
+pub fn rust_cli_p_scale(src_fn: &str, dst_fn: &str, p_mult: f64
+) -> Result<()> {
+    let src_f = File::open(src_fn)?;
+    let mut src_r = BufReader::new(src_f);
+
+    let dst_f = File::create(dst_fn)?;
+    let mut dst_w = BufWriter::new(dst_f);
+
+    let mut line = String::new();
+    for _ in 0..HEADER_LINES {
+        src_r.read_line(&mut line)?;
+        dst_w.write_all(line.as_bytes())?;
+        line.clear();
+    }
+
+    while src_r.read_line(&mut line)? > 0 {
+        let tokens: Vec<&str> = line.split_whitespace().collect();
+        if tokens.len() == EXPECTED_TOKENS {
+            let da = tokens[0];
+            let mo = tokens[1];
+            let year = tokens[2];
+            let mut prcp_f: f64 = tokens[3].parse().unwrap();
+            let dur = tokens[4];
+            let tp = tokens[5];
+            let ip = tokens[6];
+            let tmax = tokens[7];
+            let tmin = tokens[8];
+            let rad = tokens[9];
+            let w_vl = tokens[10];
+            let w_dir = tokens[11];
+            let tdew = tokens[12];
+        
+            prcp_f = prcp_f * p_mult;
+            let prcp = format!("{:.1}", prcp_f);
+
+            dst_w.write_all(format!(
+                "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
+                da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
+            ).as_bytes())?;
+        }
+        line.clear();
+    }
+    Ok(())
+}
+
+
+#[pyfunction]
+pub fn rust_cli_calculate_p_annual_monthlies_from_lists(
+    months: PyReadonlyArray1<i32>,
+    precips: PyReadonlyArray1<f64>,
+) -> PyResult<Vec<f64>> {
+
+    let mut out: Vec<f64> = Vec::new();
+
+    let mut mo_last: i32 = 0;
+    let mut indx: i32 = 0;
+
+    let mut prcp_sum: f64 = 0.0;
+    let mut n_days: i32 = 0;
+
+    for (i, &mo) in months.as_slice()?.iter().enumerate() {
+        let prcp_f = precips.as_slice()?[i];
+
+        if indx == 0 {
+            mo_last = mo;
+        }
+
+        if mo != mo_last {
+            out.push(prcp_sum / n_days as f64);
+            mo_last = mo;
+            prcp_sum = 0.0;
+            n_days = 0;
+        }
+
+        prcp_sum += prcp_f;
+        n_days += 1;
+        indx += 1;
+    }
+    
+    out.push(prcp_sum / n_days as f64);
+    
+    Ok(out)
+}
+
+
+#[pyfunction]
+pub fn rust_cli_calculate_p_annual_monthlies(src_fn: &str
+) -> PyResult<Vec<f64>> {
+    let src_f = File::open(src_fn)?;
+    let mut src_r = BufReader::new(src_f);
+
+    let mut line = String::new();
+    for _ in 0..HEADER_LINES {
+        src_r.read_line(&mut line)?;
+        line.clear();
+    }
+
+    let mut out: Vec<f64> = Vec::new();
+
+    let mut mo_last: i32 = 0;
+    let mut indx: i32 = 0;
+
+    let mut prcp_sum: f64 = 0.0;
+    let mut n_days: i32 = 0;
+    while src_r.read_line(&mut line)? > 0 {
+        let tokens: Vec<&str> = line.split_whitespace().collect();
+    
+        if tokens.len() == EXPECTED_TOKENS {
+            let mo: i32 = tokens[1].parse().unwrap();
+
+            if indx == 0 {
+                mo_last = mo;
+            }
+    
+            if mo != mo_last {
+                out.push(prcp_sum / n_days as f64);
+                mo_last = mo;
+                prcp_sum = 0.0;
+                n_days = 0;
+            }
+    
+            let prcp_f: f64 = tokens[3].parse().unwrap();
+            prcp_sum += prcp_f;
+            n_days += 1;
+            indx += 1;
+        }
+        line.clear();
+    }
+    
+    out.push(prcp_sum / n_days as f64);
+    
+    Ok(out)
+}
+
+
+pub fn c_to_f(c: f64) -> f64 {
+    c * 9.0 / 5.0 + 32.0
+}
+
+#[pyfunction]
+pub fn rust_cli_calculate_monthlies(src_fn: &str
+) -> PyResult<[[f64; 12]; 4]> {
+    let src_f = File::open(src_fn)?;
+    let mut src_r = BufReader::new(src_f);
+
+    let mut line = String::new();
+    for _ in 0..HEADER_LINES {
+        src_r.read_line(&mut line)?;
+        line.clear();
+    }
+
+    let mut out: [[f64; 12]; 4] = [[0.0; 12]; 4];
+
+    let mut yr_last: i32 = -1;
+    let mut n_years: f64 = 0.0;
+
+    while src_r.read_line(&mut line)? > 0 {
+        let tokens: Vec<&str> = line.split_whitespace().collect();
+    
+        if tokens.len() == EXPECTED_TOKENS {
+            let mo: usize = tokens[1].parse().unwrap();
+            let year: i32 = tokens[2].parse().unwrap();
+            let prcp_f: f64 = tokens[3].parse().unwrap();
+            let tmax_f: f64 = tokens[7].parse().unwrap();
+            let tmin_f: f64 = tokens[8].parse().unwrap();
+
+            if year != yr_last {
+                n_years += 1.0;
+            }
+    
+            out[0][mo - 1] += prcp_f;
+            out[1][mo - 1] += tmax_f;
+            out[2][mo - 1] += tmin_f;
+
+            if prcp_f > 0.0 {
+                out[3][mo - 1] += 1.0; // nwds
+            }
+
+            yr_last = year;
+
+        }
+        line.clear();
+    }
+    
+    let days_in_mo: [f64; 12] = [31.0, 28.25, 31.0, 30.0, 31.0, 30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0];
+
+    for i in 0..12 {
+        out[0][i] /= n_years;
+        out[0][i] *= 0.0393701;  // convert to inches/month
+
+        out[1][i] /= n_years * days_in_mo[i];
+        out[1][i] = c_to_f(out[1][i]);
+
+        out[2][i] /= n_years * days_in_mo[i];
+        out[2][i] = c_to_f(out[2][i]);
+
+        out[3][i] /= n_years;
+    }
+    
+    Ok(out)
+}
+
+#[pyfunction]
+pub fn rust_cli_p_scale_annual_monthlies(src_fn: &str, dst_fn: &str, p_mults: Vec<f64>
+) -> Result<()> {
+    let src_f = File::open(src_fn)?;
+    let mut src_r = BufReader::new(src_f);
+
+    let dst_f = File::create(dst_fn)?;
+    let mut dst_w = BufWriter::new(dst_f);
+
+    let mut line = String::new();
+    for _ in 0..HEADER_LINES {
+        src_r.read_line(&mut line)?;
+        dst_w.write_all(line.as_bytes())?;
+        line.clear();
+    }
+
+    let mut mo_last: i32 = 0;
+    let mut indx: i32 = 0;
+    let mut month_index: usize = 0;
+
+    while src_r.read_line(&mut line)? > 0 {
+        let tokens: Vec<&str> = line.split_whitespace().collect();
+
+        if tokens.len() == EXPECTED_TOKENS {
+            let da = tokens[0];
+            let mo: i32 = tokens[1].parse().unwrap();
+            let year = tokens[2];
+            let mut prcp_f: f64 = tokens[3].parse().unwrap();
+            let dur = tokens[4];
+            let tp = tokens[5];
+            let ip = tokens[6];
+            let tmax = tokens[7];
+            let tmin = tokens[8];
+            let rad = tokens[9];
+            let w_vl = tokens[10];
+            let w_dir = tokens[11];
+            let tdew = tokens[12];
+
+            if indx == 0 {
+                mo_last = mo;
+            }
+
+            if mo != mo_last {
+                month_index += 1;
+            }
+        
+            prcp_f = prcp_f * p_mults[month_index];
+
+            let prcp = format!("{:.1}", prcp_f);
+
+            dst_w.write_all(format!(
+                "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
+                da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
+            ).as_bytes())?;
+
+            mo_last = mo;
+            indx += 1;
+        }
+        line.clear();
+    }
+    Ok(())
+}
+
 
 
 /// spatializes climate file by biasing between precip, tmin, and tmax values 
@@ -402,5 +720,11 @@ fn cli_revision(
 fn cli_revision_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cli_revision, m)?)?;
     m.add_function(wrap_pyfunction!(interpolate_geospatial, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_cli_p_scale_monthlies, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_cli_p_scale, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_cli_calculate_monthlies, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_cli_calculate_p_annual_monthlies_from_lists, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_cli_calculate_p_annual_monthlies, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_cli_p_scale_annual_monthlies, m)?)?;
     Ok(())
 }

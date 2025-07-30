@@ -1,4 +1,4 @@
-# wepppyo3
+# wepppyo3 Installation
 wepppy PyO3 routines (rust)
 
 ## deployment 3.6 (18.04)
@@ -19,6 +19,14 @@ sudo rsync -av --progress /workdir/wepppyo3/release/linux/py312/wepppyo3/  /usr/
 ## deployment 3.13 (wepppy-env on forest.local)
 ```
 sudo rsync -av --progress /workdir/wepppyo3/release/linux/py312/wepppyo3/  /workdir/miniconda3/envs/wepppy-env/lib/python3.13/site-packages/wepppyo3/
+```
+
+# Linux Build
+
+```sh
+conda activate wepppy310-env
+cd /workdir/wepppyo3/
+./linux_wepppy310-env_build.sh 
 ```
 
 

@@ -74,25 +74,27 @@ impl FromStr for MapType {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "BOUND" => Ok(MapType::BOUND),
-            "CHNJNT" => Ok(MapType::CHNJNT),
-            "DISCHA" => Ok(MapType::DISCHA),
-            "DISOUT" => Ok(MapType::DISOUT),
-            "ELDCHA" => Ok(MapType::ELDCHA),
-            "ELDOUT" => Ok(MapType::ELDOUT),
-            "FLOPAT" => Ok(MapType::FLOPAT),
-            "FLOVEC" => Ok(MapType::FLOVEC),
-            "FVSLOP" => Ok(MapType::FVSLOP),
-            "NETFUL" => Ok(MapType::NETFUL),
-            "NETW" => Ok(MapType::NETW),
-            "NETWE" => Ok(MapType::NETWE),
-            "RELIEF" => Ok(MapType::RELIEF),
-            "SUBWTA" => Ok(MapType::SUBWTA),
-            "TASPEC" => Ok(MapType::TASPEC),
-            "UPAREA" => Ok(MapType::UPAREA),
-            _ => Ok(MapType::OTHER),
-        }
+        // ASCII-only, locale-invariant uppercase so “subwta”, “SubWta” … all match.
+        let s = s.to_ascii_uppercase();
+
+        // Order longest/most-specific tokens first so partial overlaps don’t mis-fire.
+        if      s.contains("SUBWTA") { Ok(MapType::SUBWTA) }
+        else if s.contains("TASPEC") { Ok(MapType::TASPEC) }
+        else if s.contains("CHNJNT") { Ok(MapType::CHNJNT) }
+        else if s.contains("DISOUT") { Ok(MapType::DISOUT) }
+        else if s.contains("DISCHA") { Ok(MapType::DISCHA) }
+        else if s.contains("ELDOUT") { Ok(MapType::ELDOUT) }
+        else if s.contains("ELDCHA") { Ok(MapType::ELDCHA) }
+        else if s.contains("FLOPAT") { Ok(MapType::FLOPAT) }
+        else if s.contains("FLOVEC") { Ok(MapType::FLOVEC) }
+        else if s.contains("FVSLOP") { Ok(MapType::FVSLOP) }
+        else if s.contains("NETFUL") { Ok(MapType::NETFUL) }
+        else if s.contains("NETWE")  { Ok(MapType::NETWE)  }  // check longer token before NETW
+        else if s.contains("NETW")   { Ok(MapType::NETW)   }
+        else if s.contains("RELIEF") { Ok(MapType::RELIEF) }
+        else if s.contains("UPAREA") { Ok(MapType::UPAREA) }
+        else if s.contains("BOUND")  { Ok(MapType::BOUND)  }
+        else                         { Ok(MapType::OTHER)  }
     }
 }
 

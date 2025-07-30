@@ -68,6 +68,10 @@ fn identify_mode_single_raster_key(
         ignore_keys.insert(no_data_value);
     }
 
+    ignore_keys.insert(i32::MIN); // Ensure we ignore the minimum i32 value
+    ignore_keys.insert(i32::MAX); // Ensure we ignore the maximum i32 value
+
+
     let mut count_d: HashMap<i32, HashMap<i32, usize>> = HashMap::new();
 
     for (key, val) in key_map.data.iter().zip(parameter_map.data.iter()) {
@@ -168,9 +172,16 @@ fn identify_mode_intersecting_raster_keys(
     if let Some(no_data_value) = key_map.no_data {
         ignore_keys.insert(no_data_value);
     }
+    
+    ignore_keys.insert(i32::MIN); // Ensure we ignore the minimum i32 value
+    ignore_keys.insert(i32::MAX); // Ensure we ignore the maximum i32 value
+
     if let Some(no_data_value) = key2_map.no_data {
         ignore_keys2.insert(no_data_value);
     }
+    
+    ignore_keys2.insert(i32::MIN); // Ensure we ignore the minimum i32 value
+    ignore_keys2.insert(i32::MAX); // Ensure we ignore the maximum i32 value
     
     // Nested HashMap to store count information: key -> key2 -> parameter_value -> count
     let mut count_d: HashMap<i32, HashMap<i32, HashMap<i32, usize>>> = HashMap::new();
@@ -275,6 +286,9 @@ fn identify_median_single_raster_key(
         ignore_keys.insert(no_data_value);
     }
 
+    ignore_keys.insert(i32::MIN); // Ensure we ignore the minimum i32 value
+    ignore_keys.insert(i32::MAX); // Ensure we ignore the maximum i32 value
+
     let mut values_d: HashMap<i32, Vec<f64>> = HashMap::new();
 
     for (key, &val) in key_map.data.iter().zip(parameter_map.data.iter()) {
@@ -372,9 +386,16 @@ fn identify_median_intersecting_raster_keys(
     if let Some(no_data_value) = key_map.no_data {
         ignore_keys.insert(no_data_value);
     }
+    
+    ignore_keys.insert(i32::MIN); // Ensure we ignore the minimum i32 value
+    ignore_keys.insert(i32::MAX); // Ensure we ignore the maximum i32 value
+
     if let Some(no_data_value) = key2_map.no_data {
         ignore_keys2.insert(no_data_value);
     }
+    
+    ignore_keys2.insert(i32::MIN); // Ensure we ignore the minimum i32 value
+    ignore_keys2.insert(i32::MAX); // Ensure we ignore the maximum i32 value
 
     // Nested HashMap to store value information: key -> key2 -> parameter_values
     let mut values_d: HashMap<i32, HashMap<i32, Vec<f64>>> = HashMap::new();

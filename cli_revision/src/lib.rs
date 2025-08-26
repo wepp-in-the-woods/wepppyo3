@@ -276,12 +276,17 @@ fn interpolate_geospatial(
 
 const HEADER_LINES: usize = 15;
 const EXPECTED_TOKENS: usize = 13;
-
 #[pyfunction]
 pub fn rust_cli_revision(src_fn: &str, dst_fn: &str, 
-    ws_ppts: [f64; 12], ws_tmaxs: [f64; 12], ws_tmins:  [f64; 12],
-    hill_ppts: [f64; 12], hill_tmaxs: [f64; 12], hill_tmins:  [f64; 12],
+    mut ws_ppts: [f64; 12], mut ws_tmaxs: [f64; 12], ws_tmins:  [f64; 12],
+    mut hill_ppts: [f64; 12], hill_tmaxs: [f64; 12], hill_tmins:  [f64; 12],
 ) -> Result<()> {
+    // Clip ws_ppts and hill_ppts to minimum of 0.01
+    for i in 0..12 {
+        ws_ppts[i] = ws_ppts[i].max(0.01);
+        hill_ppts[i] = hill_ppts[i].max(0.01);
+    }
+
     let src_f = File::open(src_fn)?;
     let mut src_r = BufReader::new(src_f);
 
@@ -302,7 +307,7 @@ pub fn rust_cli_revision(src_fn: &str, dst_fn: &str,
             let mo: i32 = tokens[1].parse().unwrap();
             let year = tokens[2];
             let mut prcp_f: f64 = tokens[3].parse().unwrap();
-            let dur = tokens[4];
+            let mut dur_f: f64 = tokens[4].parse().unwrap();
             let tp = tokens[5];
             let ip = tokens[6];
             let mut tmax_f: f64 = tokens[7].parse().unwrap();
@@ -317,7 +322,13 @@ pub fn rust_cli_revision(src_fn: &str, dst_fn: &str,
             tmax_f = tmax_f - ws_tmaxs[indx] + hill_tmaxs[indx];
             tmin_f = tmin_f - ws_tmins[indx] + hill_tmins[indx];
 
+            // Ensure duration > 0.0 when prcp > 0
+            if prcp_f > 0.0 && dur_f == 0.0 {
+                dur_f = 0.05;
+            }
+
             let prcp = format!("{:.1}", prcp_f);
+            let dur = format!("{:.2}", dur_f);
             let tmax = format!("{:.1}", tmax_f);
             let tmin = format!("{:.1}", tmin_f);
 
@@ -330,7 +341,6 @@ pub fn rust_cli_revision(src_fn: &str, dst_fn: &str,
     }
     Ok(())
 }
-
 
 #[pyfunction]
 pub fn rust_cli_p_scale_monthlies(src_fn: &str, dst_fn: &str, p_mults: [f64; 12]

@@ -45,3 +45,8 @@ def calculate_monthlies(src_fn) -> dict:
     """
     monthlies =  rust_cli_calculate_monthlies(src_fn)
     return dict(ppts=monthlies[0], tmaxs=monthlies[1], tmins=monthlies[2], nwds=monthlies[3])
+
+__all__ = [
+    'calculate_p_annual_monthlies',
+    'calculate_monthlies'
+]

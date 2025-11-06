@@ -276,6 +276,132 @@ fn interpolate_geospatial(
 
 const HEADER_LINES: usize = 15;
 const EXPECTED_TOKENS: usize = 13;
+
+fn format_storm_value(value: f64) -> String {
+    let mut s = format!("{:.6}", value);
+    if let Some(pos) = s.find('.') {
+        while s.len() > pos + 1 && s.ends_with('0') {
+            s.pop();
+        }
+        if s.ends_with('.') {
+            s.push('0');
+        }
+    }
+    s
+}
+
+pub fn rust_make_rhem_storm_file(src_fn: &str, dst_fn: &str) -> Result<()> {
+    let src_f = File::open(src_fn)?;
+    let src_r = BufReader::new(src_f);
+
+    let mut events: Vec<(i32, i32, i32, f64, f64, f64, f64)> = Vec::new();
+    let mut min_year: Option<i32> = None;
+
+    let mut header_found = false;
+    let mut units_skipped = false;
+
+    for line_result in src_r.lines() {
+        let line = line_result?;
+        let trimmed = line.trim();
+
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        if !header_found {
+            if trimmed.to_ascii_lowercase().starts_with("da") {
+                header_found = true;
+            }
+            continue;
+        }
+
+        if !units_skipped {
+            units_skipped = true;
+            continue;
+        }
+
+        if trimmed.starts_with('#') {
+            continue;
+        }
+
+        let tokens: Vec<&str> = trimmed.split_whitespace().collect();
+        if tokens.len() < 7 {
+            continue;
+        }
+
+        let day = match tokens[0].parse::<i32>() {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        let month = match tokens[1].parse::<i32>() {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        let year = match tokens[2].parse::<i32>() {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        let prcp = match tokens[3].parse::<f64>() {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        if prcp <= 0.0 {
+            continue;
+        }
+        let dur = tokens.get(4).and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0);
+        let tp = tokens.get(5).and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0);
+        let ip = tokens.get(6).and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0);
+
+        if let Some(current_min) = min_year {
+            if year < current_min {
+                min_year = Some(year);
+            }
+        } else {
+            min_year = Some(year);
+        }
+
+        events.push((day, month, year, prcp, dur, tp, ip));
+    }
+
+    let min_year = min_year.unwrap_or(0);
+    let dst_f = File::create(dst_fn)?;
+    let mut dst_w = BufWriter::new(dst_f);
+
+    writeln!(dst_w, "{} # The number of rain events", events.len())?;
+    writeln!(dst_w, "0 # Breakpoint data? (0 for no, 1 for yes)")?;
+    writeln!(dst_w, "#  id     day  month  year  Rain   Dur    Tp     Ip")?;
+    writeln!(dst_w, "#                           (mm)   (h)")?;
+
+    for (idx, (day, month, year, prcp, dur, tp, ip)) in events.iter().enumerate() {
+        let relative_year = year - min_year + 1;
+        let prcp_str = format_storm_value(*prcp);
+        let dur_str = format_storm_value(*dur);
+        let tp_str = format_storm_value(*tp);
+        let ip_str = format_storm_value(*ip);
+
+        writeln!(
+            dst_w,
+            "{:<8}{:<6}{:<6}{:<6}{:<7}{:<7}{:<7}{:<7}",
+            idx + 1,
+            day,
+            month,
+            relative_year,
+            prcp_str,
+            dur_str,
+            tp_str,
+            ip_str
+        )?;
+    }
+
+    Ok(())
+}
+
+#[pyfunction]
+fn make_rhem_storm_file(src_fn: &str, dst_fn: &str) -> PyResult<()> {
+    rust_make_rhem_storm_file(src_fn, dst_fn)
+        .map_err(|e| pyo3::exceptions::PyOSError::new_err(format!("{}", e)))
+}
+
 #[pyfunction]
 pub fn rust_cli_revision(src_fn: &str, dst_fn: &str, 
     mut ws_ppts: [f64; 12], mut ws_tmaxs: [f64; 12], ws_tmins:  [f64; 12],
@@ -729,6 +855,7 @@ fn cli_revision(
 #[pymodule]
 fn cli_revision_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cli_revision, m)?)?;
+    m.add_function(wrap_pyfunction!(make_rhem_storm_file, m)?)?;
     m.add_function(wrap_pyfunction!(interpolate_geospatial, m)?)?;
     m.add_function(wrap_pyfunction!(rust_cli_p_scale_monthlies, m)?)?;
     m.add_function(wrap_pyfunction!(rust_cli_p_scale, m)?)?;

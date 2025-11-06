@@ -8,7 +8,8 @@ from .cli_revision_rust import (
     rust_cli_calculate_monthlies, 
     rust_cli_calculate_p_annual_monthlies_from_lists,
     rust_cli_calculate_p_annual_monthlies, 
-    rust_cli_p_scale_annual_monthlies
+    rust_cli_p_scale_annual_monthlies,
+    make_rhem_storm_file,
 )
 
 def calculate_p_annual_monthlies(src_fn=None, months=None, ppts=None) -> list:
@@ -48,5 +49,6 @@ def calculate_monthlies(src_fn) -> dict:
 
 __all__ = [
     'calculate_p_annual_monthlies',
-    'calculate_monthlies'
+    'calculate_monthlies',
+    'make_rhem_storm_file',
 ]

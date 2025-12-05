@@ -73,6 +73,7 @@ fn identify_mode_single_raster_key(
 
 
     let mut count_d: HashMap<i32, HashMap<i32, usize>> = HashMap::new();
+    let mut global_val_counts: HashMap<i32, usize> = HashMap::new();
 
     for (key, val) in key_map.data.iter().zip(parameter_map.data.iter()) {
         if ignore_channels && key % 10 == 4 {
@@ -91,11 +92,26 @@ fn identify_mode_single_raster_key(
         }
 
         *count_d.entry(*key).or_insert_with(HashMap::new).entry(*val).or_insert(0) += 1;
+        *global_val_counts.entry(*val).or_insert(0) += 1;
     }
 
     let mut result: HashMap<String, i32> = HashMap::new();
     for (key, sub_map) in &count_d {
-        if let Some((&val, &_count)) = sub_map.iter().max_by_key(|&(_, count)| count) {
+        if let Some((&val, &_count)) = sub_map
+            .iter()
+            .max_by(|(val_a, count_a), (val_b, count_b)| {
+                count_a
+                    .cmp(count_b)
+                    .then(
+                        global_val_counts
+                            .get(val_a)
+                            .copied()
+                            .unwrap_or(0)
+                            .cmp(&global_val_counts.get(val_b).copied().unwrap_or(0)),
+                    )
+                    .then(val_a.cmp(val_b)) // stable tie-breaker on value
+            })
+        {
             result.insert(key.to_string(), val);
         }
     }
@@ -185,6 +201,7 @@ fn identify_mode_intersecting_raster_keys(
     
     // Nested HashMap to store count information: key -> key2 -> parameter_value -> count
     let mut count_d: HashMap<i32, HashMap<i32, HashMap<i32, usize>>> = HashMap::new();
+    let mut global_val_counts: HashMap<i32, usize> = HashMap::new();
     
     // Iterate through corresponding entries in the three rasters
     for ((key, key2), val) in key_map.data.iter().zip(key2_map.data.iter()).zip(parameter_map.data.iter()) {
@@ -206,6 +223,7 @@ fn identify_mode_intersecting_raster_keys(
         *count_d.entry(*key).or_insert_with(HashMap::new)
             .entry(*key2).or_insert_with(HashMap::new)
             .entry(*val).or_insert(0) += 1;
+        *global_val_counts.entry(*val).or_insert(0) += 1;
     }
     
     // Determine the mode value for each key, key2 pair
@@ -213,7 +231,21 @@ fn identify_mode_intersecting_raster_keys(
     for (key, sub_map) in &count_d {
         let mut key2_mode_map: HashMap<String, i32> = HashMap::new();
         for (key2, val_count_map) in sub_map {
-            if let Some((&val, &_count)) = val_count_map.iter().max_by_key(|&(_, count)| count) {
+            if let Some((&val, &_count)) = val_count_map
+                .iter()
+                .max_by(|(val_a, count_a), (val_b, count_b)| {
+                    count_a
+                        .cmp(count_b)
+                        .then(
+                            global_val_counts
+                                .get(val_a)
+                                .copied()
+                                .unwrap_or(0)
+                                .cmp(&global_val_counts.get(val_b).copied().unwrap_or(0)),
+                        )
+                        .then(val_a.cmp(val_b))
+                })
+            {
                 key2_mode_map.insert(key2.to_string(), val);
             }
         }
@@ -454,4 +486,3 @@ fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(identify_median_intersecting_raster_keys, m)?)?;
     Ok(())
 }
-

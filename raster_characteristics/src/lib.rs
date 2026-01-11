@@ -10,7 +10,8 @@ use raster::raster::Raster;
 /// iterates through each corresponding pair of data points. It keeps count of the occurrence 
 /// of each unique value (`val`) per unique key (`key`) encountered, ignoring specified keys 
 /// and/or the designated "no data" value. The mode value is then determined for each key 
-/// based on these counts.
+/// based on these counts. If a key has no valid parameter values, the mode
+/// of the full raster (after ignores) is used as a fallback.
 ///
 /// # Arguments
 /// 
@@ -74,12 +75,18 @@ fn identify_mode_single_raster_key(
 
     let mut count_d: HashMap<i32, HashMap<i32, usize>> = HashMap::new();
     let mut global_val_counts: HashMap<i32, usize> = HashMap::new();
+    let mut all_keys: HashSet<i32> = HashSet::new();
 
     for (key, val) in key_map.data.iter().zip(parameter_map.data.iter()) {
         if ignore_channels && key % 10 == 4 {
             continue;
         }
 
+        if ignore_keys.contains(key) {
+            continue;
+        }
+
+        all_keys.insert(*key);
 
         if let Some(no_data_value) = parameter_map.no_data {
             if no_data_value == *val {
@@ -87,32 +94,43 @@ fn identify_mode_single_raster_key(
             }
         }
 
-        if ignore_keys.contains(key) {
-            continue;
-        }
-
         *count_d.entry(*key).or_insert_with(HashMap::new).entry(*val).or_insert(0) += 1;
         *global_val_counts.entry(*val).or_insert(0) += 1;
     }
 
+    let global_mode = global_val_counts
+        .iter()
+        .max_by(|(val_a, count_a), (val_b, count_b)| {
+            count_a.cmp(count_b).then(val_a.cmp(val_b))
+        })
+        .map(|(&val, _)| val);
+    let fallback_val = global_mode.or(parameter_map.no_data);
+
     let mut result: HashMap<String, i32> = HashMap::new();
-    for (key, sub_map) in &count_d {
-        if let Some((&val, &_count)) = sub_map
-            .iter()
-            .max_by(|(val_a, count_a), (val_b, count_b)| {
-                count_a
-                    .cmp(count_b)
-                    .then(
-                        global_val_counts
-                            .get(val_a)
-                            .copied()
-                            .unwrap_or(0)
-                            .cmp(&global_val_counts.get(val_b).copied().unwrap_or(0)),
-                    )
-                    .then(val_a.cmp(val_b)) // stable tie-breaker on value
-            })
-        {
-            result.insert(key.to_string(), val);
+    for key in all_keys {
+        if let Some(sub_map) = count_d.get(&key) {
+            if let Some((&val, &_count)) = sub_map
+                .iter()
+                .max_by(|(val_a, count_a), (val_b, count_b)| {
+                    count_a
+                        .cmp(count_b)
+                        .then(
+                            global_val_counts
+                                .get(val_a)
+                                .copied()
+                                .unwrap_or(0)
+                                .cmp(&global_val_counts.get(val_b).copied().unwrap_or(0)),
+                        )
+                        .then(val_a.cmp(val_b)) // stable tie-breaker on value
+                })
+            {
+                result.insert(key.to_string(), val);
+                continue;
+            }
+        }
+
+        if let Some(fallback_val) = fallback_val {
+            result.insert(key.to_string(), fallback_val);
         }
     }
 
@@ -126,7 +144,9 @@ fn identify_mode_single_raster_key(
 /// and `key2_fn`), it determines the mode (most common) value from `parameter_fn`, excluding specified 
 /// keys and/or designated "no data" values. The resulting mode values are returned in a nested 
 /// HashMap where each entry associates a key from `key_fn` with a HashMap. This inner HashMap, in turn, 
-/// associates keys from `key2_fn` with their respective mode values.
+/// associates keys from `key2_fn` with their respective mode values. If a key
+/// pair has no valid parameter values, the mode of the full raster (after
+/// ignores) is used as a fallback.
 ///
 /// # Arguments
 /// 
@@ -202,6 +222,7 @@ fn identify_mode_intersecting_raster_keys(
     // Nested HashMap to store count information: key -> key2 -> parameter_value -> count
     let mut count_d: HashMap<i32, HashMap<i32, HashMap<i32, usize>>> = HashMap::new();
     let mut global_val_counts: HashMap<i32, usize> = HashMap::new();
+    let mut key2s_by_key: HashMap<i32, HashSet<i32>> = HashMap::new();
     
     // Iterate through corresponding entries in the three rasters
     for ((key, key2), val) in key_map.data.iter().zip(key2_map.data.iter()).zip(parameter_map.data.iter()) {
@@ -209,14 +230,19 @@ fn identify_mode_intersecting_raster_keys(
             continue;
         }
         
+        if ignore_keys.contains(key) || ignore_keys2.contains(key2) {
+            continue;
+        }
+
+        key2s_by_key
+            .entry(*key)
+            .or_insert_with(HashSet::new)
+            .insert(*key2);
+
         if let Some(no_data_value) = parameter_map.no_data {
             if no_data_value == *val {
                 continue;
             }
-        }
-        
-        if ignore_keys.contains(key) || ignore_keys2.contains(key2) {
-            continue;
         }
         
         // Increment the count for the current key, key2, and parameter value
@@ -225,28 +251,43 @@ fn identify_mode_intersecting_raster_keys(
             .entry(*val).or_insert(0) += 1;
         *global_val_counts.entry(*val).or_insert(0) += 1;
     }
+
+    let global_mode = global_val_counts
+        .iter()
+        .max_by(|(val_a, count_a), (val_b, count_b)| {
+            count_a.cmp(count_b).then(val_a.cmp(val_b))
+        })
+        .map(|(&val, _)| val);
+    let fallback_val = global_mode.or(parameter_map.no_data);
     
     // Determine the mode value for each key, key2 pair
     let mut result: HashMap<String, HashMap<String, i32>> = HashMap::new();
-    for (key, sub_map) in &count_d {
+    for (key, key2_set) in key2s_by_key {
         let mut key2_mode_map: HashMap<String, i32> = HashMap::new();
-        for (key2, val_count_map) in sub_map {
-            if let Some((&val, &_count)) = val_count_map
-                .iter()
-                .max_by(|(val_a, count_a), (val_b, count_b)| {
-                    count_a
-                        .cmp(count_b)
-                        .then(
-                            global_val_counts
-                                .get(val_a)
-                                .copied()
-                                .unwrap_or(0)
-                                .cmp(&global_val_counts.get(val_b).copied().unwrap_or(0)),
-                        )
-                        .then(val_a.cmp(val_b))
-                })
-            {
-                key2_mode_map.insert(key2.to_string(), val);
+        for key2 in key2_set {
+            if let Some(val_count_map) = count_d.get(&key).and_then(|m| m.get(&key2)) {
+                if let Some((&val, &_count)) = val_count_map
+                    .iter()
+                    .max_by(|(val_a, count_a), (val_b, count_b)| {
+                        count_a
+                            .cmp(count_b)
+                            .then(
+                                global_val_counts
+                                    .get(val_a)
+                                    .copied()
+                                    .unwrap_or(0)
+                                    .cmp(&global_val_counts.get(val_b).copied().unwrap_or(0)),
+                            )
+                            .then(val_a.cmp(val_b))
+                    })
+                {
+                    key2_mode_map.insert(key2.to_string(), val);
+                    continue;
+                }
+            }
+
+            if let Some(fallback_val) = fallback_val {
+                key2_mode_map.insert(key2.to_string(), fallback_val);
             }
         }
         result.insert(key.to_string(), key2_mode_map);

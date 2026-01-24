@@ -3,6 +3,7 @@ members = [
     "cli_revision",
     "raster",
     "raster_characteristics",
+    "sbs_map",
     "wepp_viz",
 ]
 resolver = "2"

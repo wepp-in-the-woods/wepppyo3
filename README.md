@@ -25,6 +25,15 @@ Rust/PyO3 extension modules for wepppy.
 - `identify_median_single_raster_key(...)`: median parameter value per key.
 - `identify_median_intersecting_raster_keys(...)`: median parameter value per key/key2 intersection.
 
+### wepppyo3.sbs_map
+
+- `summarize_sbs_raster(path, *, color_map_path=None)`: single-pass SBS raster summary for sanity checks and fixtures.
+- `read_color_table(path, *, color_map_path=None)`: read the raster color table and map entries to SBS severities.
+- `unique_values(path)`: return sorted unique raster values (ints where possible).
+- `summarize_color_table(path, *, color_map_path=None)`: summarize color table severities without scanning pixels.
+- `reclassify_sbs_raster(path, *, breaks=None, ct=None, nodata=None, offset=0, color_map_path=None)`: reclassify SBS raster values to 4 classes (returns a uint8 NumPy array).
+- `export_sbs_4class(path, dst_path, *, breaks=None, ct=None, nodata=None, color_map_path=None)`: write a 4-class GeoTIFF with palette + nodata.
+
 ### wepppyo3.wepp_viz
 
 - `make_soil_loss_grid(...)`: builds a soil-loss grid from subwta IDs, discha, and WEPP plot outputs.
@@ -43,6 +52,7 @@ release/linux/py312/wepppyo3/
   __init__.py
   climate/cli_revision_rust.so
   raster_characteristics/raster_characteristics_rust.so
+  sbs_map/sbs_map_rust.so
   wepp_viz/wepp_viz_rust.so
 ```
 
@@ -78,6 +88,8 @@ cp target/release/libcli_revision_rust.so \
   release/linux/py312/wepppyo3/climate/cli_revision_rust.so
 cp target/release/libwepp_viz_rust.so \
   release/linux/py312/wepppyo3/wepp_viz/wepp_viz_rust.so
+cp target/release/libsbs_map_rust.so \
+  release/linux/py312/wepppyo3/sbs_map/sbs_map_rust.so
 ```
 
 If you only need one crate, build with `-p` and copy the corresponding `.so`:

@@ -25,6 +25,7 @@ mod parquet;
 mod pass;
 mod schema;
 mod soil;
+mod swat_utils;
 
 use crate::errors::InterchangeError;
 use crate::schema::VersionInfo;
@@ -423,6 +424,50 @@ fn hillslope_wat_to_columns(
 }
 
 #[pyfunction]
+#[pyo3(signature = (wepp_output_dir, swat_recall_dir, version_major, version_minor, cli_calendar_path=None, filename_template="hill_{wepp_id:05d}.rec", include_subsurface=true, include_tile=true, ncpu=None, write_manifest=false))]
+fn hillslope_pass_dir_to_swat_recall(
+    wepp_output_dir: String,
+    swat_recall_dir: String,
+    version_major: u32,
+    version_minor: u32,
+    cli_calendar_path: Option<String>,
+    filename_template: &str,
+    include_subsurface: bool,
+    include_tile: bool,
+    ncpu: Option<usize>,
+    write_manifest: bool,
+) -> PyResult<PyObject> {
+    let version = VersionInfo::new(version_major, version_minor);
+    let wepp_output_dir = PathBuf::from(wepp_output_dir);
+    let swat_recall_dir = PathBuf::from(swat_recall_dir);
+    let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
+
+    let manifest = swat_utils::hillslope_pass_dir_to_swat_recall(
+        &wepp_output_dir,
+        &swat_recall_dir,
+        cli_calendar_path.as_deref(),
+        &version,
+        filename_template,
+        include_subsurface,
+        include_tile,
+        ncpu,
+        write_manifest,
+    )
+    .map_err(to_py_err)?;
+
+    match manifest {
+        Some(entries) => Ok(Python::with_gil(|py| {
+            let items = entries
+                .into_iter()
+                .map(|entry| entry.into_pydict(py))
+                .collect::<Vec<_>>();
+            items.into_py(py)
+        })),
+        None => Ok(Python::with_gil(|py| py.None())),
+    }
+}
+
+#[pyfunction]
 #[pyo3(signature = (base_path))]
 fn catalog_scan(base_path: String) -> PyResult<PyObject> {
     let base_path = PathBuf::from(base_path);
@@ -445,6 +490,7 @@ fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hillslope_loss_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_soil_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_wat_to_columns, m)?)?;
+    m.add_function(wrap_pyfunction!(hillslope_pass_dir_to_swat_recall, m)?)?;
     m.add_function(wrap_pyfunction!(catalog_scan, m)?)?;
     Ok(())
 }

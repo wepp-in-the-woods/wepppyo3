@@ -89,6 +89,54 @@ impl PassColumns {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.year.len()
+    }
+
+    pub fn year(&self) -> &[i16] {
+        &self.year
+    }
+
+    pub fn julian(&self) -> &[i16] {
+        &self.julian
+    }
+
+    pub fn sim_day_index(&self) -> &[i32] {
+        &self.sim_day_index
+    }
+
+    pub fn runvol(&self) -> &[f64] {
+        &self.runvol
+    }
+
+    pub fn sbrunv(&self) -> &[f64] {
+        &self.sbrunv
+    }
+
+    pub fn drrunv(&self) -> &[f64] {
+        &self.drrunv
+    }
+
+    pub fn sedcon_1(&self) -> &[f64] {
+        &self.sedcon_1
+    }
+
+    pub fn sedcon_2(&self) -> &[f64] {
+        &self.sedcon_2
+    }
+
+    pub fn sedcon_3(&self) -> &[f64] {
+        &self.sedcon_3
+    }
+
+    pub fn sedcon_4(&self) -> &[f64] {
+        &self.sedcon_4
+    }
+
+    pub fn sedcon_5(&self) -> &[f64] {
+        &self.sedcon_5
+    }
+
     pub fn into_pydict(self, py: Python<'_>) -> PyObject {
         let dict = PyDict::new_bound(py);
         dict.set_item("wepp_id", self.wepp_id).unwrap();

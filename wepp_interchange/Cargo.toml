@@ -1,0 +1,17 @@
+[package]
+name = "wepp_interchange_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"] }
+arrow2 = { version = "0.18", features = ["io_parquet"] }
+parquet2 = "0.17"
+fast-float = "0.2"
+memchr = "2"
+flate2 = "1"
+thiserror = "1"
+time = { version = "0.3", features = ["formatting"] }

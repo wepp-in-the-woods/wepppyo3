@@ -5,5 +5,6 @@ members = [
     "raster_characteristics",
     "sbs_map",
     "wepp_viz",
+    "wepp_interchange",
 ]
 resolver = "2"

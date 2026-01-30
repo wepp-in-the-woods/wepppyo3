@@ -186,41 +186,10 @@ pub fn hillslope_ebe_to_columns(
 
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
     let reader = BufReader::new(file);
-    let lines: Vec<String> = reader
-        .lines()
-        .collect::<Result<_, _>>()
-        .map_err(|err| InterchangeError::io(path, err))?;
-
-    let stripped: Vec<String> = lines.into_iter().filter(|line| !line.trim().is_empty()).collect();
-    if stripped.len() < 3 {
-        return Ok(EbeColumns::new());
-    }
-
-    let header_tokens: Vec<&str> = stripped[1].split_whitespace().collect();
-    let unit_tokens: Vec<&str> = stripped[2].split_whitespace().collect();
-
-    let (column_names, layout) = normalize_column_names(&header_tokens, &unit_tokens, path)?;
-    let measurement_columns: Vec<String> = column_names[3..].to_vec();
-    let expected: Vec<&str> = if layout == "standard" {
-        MEASUREMENT_COLUMNS_STANDARD.to_vec()
-    } else {
-        MEASUREMENT_COLUMNS_REVEG.to_vec()
-    };
-    if measurement_columns.iter().map(|s| s.as_str()).collect::<Vec<_>>() != expected {
-        return Err(InterchangeError::parse(
-            path,
-            None,
-            format!("Unexpected EBE measurement columns for layout '{layout}'"),
-            Some(measurement_columns.join(" ")),
-        ));
-    }
-
+    let mut non_empty_count = 0usize;
+    let mut header_tokens: Option<Vec<String>> = None;
+    let mut measurement_columns: Vec<String> = Vec::new();
     let mut mapping: HashMap<String, usize> = HashMap::new();
-    for (idx, name) in MEASUREMENT_FIELD_NAMES.iter().enumerate() {
-        mapping.insert(name.to_string(), idx);
-    }
-
-    let mut out = EbeColumns::new();
 
     let calendar_start_year = lookup
         .as_ref()
@@ -229,9 +198,53 @@ pub fn hillslope_ebe_to_columns(
     let normalize_sim_years = resolved_start_year.is_some();
     let mut sim_start_year = resolved_start_year;
 
-    for raw_line in stripped.iter().skip(3) {
+    let mut out = EbeColumns::new();
+
+    for line in reader.lines() {
+        let raw_line = line.map_err(|err| InterchangeError::io(path, err))?;
+        if raw_line.trim().is_empty() {
+            continue;
+        }
+        non_empty_count += 1;
+        if non_empty_count == 1 {
+            continue;
+        }
+        if non_empty_count == 2 {
+            header_tokens = Some(raw_line.split_whitespace().map(|token| token.to_string()).collect());
+            continue;
+        }
+        if non_empty_count == 3 {
+            let unit_tokens: Vec<String> =
+                raw_line.split_whitespace().map(|token| token.to_string()).collect();
+            let header_tokens_ref = header_tokens.as_ref().ok_or_else(|| {
+                InterchangeError::parse(path, None, "Missing EBE header row", None)
+            })?;
+            let header_refs: Vec<&str> = header_tokens_ref.iter().map(|s| s.as_str()).collect();
+            let unit_refs: Vec<&str> = unit_tokens.iter().map(|s| s.as_str()).collect();
+            let (column_names, layout) = normalize_column_names(&header_refs, &unit_refs, path)?;
+            measurement_columns = column_names[3..].to_vec();
+            let expected: Vec<&str> = if layout == "standard" {
+                MEASUREMENT_COLUMNS_STANDARD.to_vec()
+            } else {
+                MEASUREMENT_COLUMNS_REVEG.to_vec()
+            };
+            if measurement_columns.iter().map(|s| s.as_str()).collect::<Vec<_>>() != expected {
+                return Err(InterchangeError::parse(
+                    path,
+                    None,
+                    format!("Unexpected EBE measurement columns for layout '{layout}'"),
+                    Some(measurement_columns.join(" ")),
+                ));
+            }
+            for (idx, name) in MEASUREMENT_FIELD_NAMES.iter().enumerate() {
+                mapping.insert(name.to_string(), idx);
+            }
+            continue;
+        }
+
         let tokens: Vec<&str> = raw_line.split_whitespace().collect();
-        if tokens.len() != column_names.len() {
+        let header_len = header_tokens.as_ref().map(|tokens| tokens.len()).unwrap_or(0);
+        if tokens.len() != header_len {
             continue;
         }
         let day_of_month: i32 = tokens[0].parse().map_err(|_| {
@@ -266,11 +279,11 @@ pub fn hillslope_ebe_to_columns(
         for (column_name, token) in measurement_columns.iter().zip(tokens.iter().skip(3)) {
             let target_name = column_aliases(column_name);
             if let Some(index) = mapping.get(target_name) {
-                let value = parse_required_float(token).map_err(|msg| {
-                    InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
-                })?;
-                row_measurements[*index] = Some(value);
-            }
+            let value = parse_required_float(token).map_err(|msg| {
+                InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
+            })?;
+            row_measurements[*index] = Some(value);
+        }
         }
 
         out.wepp_id.push(wepp_id);

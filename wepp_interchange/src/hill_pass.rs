@@ -140,12 +140,17 @@ pub fn hillslope_pass_to_columns(
 
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
     let reader = BufReader::new(file);
-    let lines: Vec<String> = reader
-        .lines()
-        .collect::<Result<_, _>>()
-        .map_err(|err| InterchangeError::io(path, err))?;
+    let mut header_lines: Vec<String> = Vec::new();
+    let mut line_iter = reader.lines();
+    while header_lines.len() < 5 {
+        match line_iter.next() {
+            Some(Ok(line)) => header_lines.push(line),
+            Some(Err(err)) => return Err(InterchangeError::io(path, err)),
+            None => break,
+        }
+    }
 
-    if lines.len() < 2 {
+    if header_lines.len() < 2 {
         return Err(InterchangeError::parse(
             path,
             None,
@@ -153,13 +158,14 @@ pub fn hillslope_pass_to_columns(
             None,
         ));
     }
-    let header_tokens: Vec<&str> = lines[1].split_whitespace().collect();
+
+    let header_tokens: Vec<&str> = header_lines[1].split_whitespace().collect();
     if header_tokens.is_empty() {
         return Err(InterchangeError::parse(
             path,
             Some(2),
             "Unable to determine simulation start year from PASS header",
-            Some(lines[1].clone()),
+            Some(header_lines[1].clone()),
         ));
     }
     let begin_year = header_tokens
@@ -170,28 +176,62 @@ pub fn hillslope_pass_to_columns(
                 path,
                 Some(2),
                 "PASS header does not contain a valid start year",
-                Some(lines[1].clone()),
+                Some(header_lines[1].clone()),
             )
         })?;
-
-    let data_lines = if lines.len() > 5 { &lines[5..] } else { &[] };
     let mut out = PassColumns::new();
 
-    let mut idx = 0usize;
-    while idx < data_lines.len() {
-        let raw_line = &data_lines[idx];
-        let label = raw_line.get(0..8).unwrap_or(raw_line).trim().to_ascii_uppercase();
+    if header_lines.len() < 5 {
+        return Ok(out);
+    }
+
+    let mut pending_line: Option<String> = None;
+    loop {
+        let raw_line = if let Some(line) = pending_line.take() {
+            line
+        } else {
+            match line_iter.next() {
+                Some(Ok(line)) => line,
+                Some(Err(err)) => return Err(InterchangeError::io(path, err)),
+                None => break,
+            }
+        };
+        let label = raw_line
+            .get(0..8)
+            .unwrap_or(raw_line.as_str())
+            .trim()
+            .to_ascii_uppercase();
         if label.is_empty() || !EVENT_LABELS.contains(&label.as_str()) {
-            idx += 1;
             continue;
         }
 
-        let (tokens, next_idx) = if label == "EVENT" {
-            event_tokens(data_lines, idx)
+        let (tokens, buffered_line) = if label == "EVENT" {
+            let mut tokens: Vec<String> = line_tokens(&raw_line);
+            let expected = 2 + EVENT_FLOAT_COUNT;
+            let mut buffer: Option<String> = None;
+            while tokens.len() < expected {
+                let next_line = match line_iter.next() {
+                    Some(Ok(line)) => line,
+                    Some(Err(err)) => return Err(InterchangeError::io(path, err)),
+                    None => break,
+                };
+                let candidate_label = next_line.get(0..8).unwrap_or(&next_line).trim();
+                if !candidate_label.is_empty() {
+                    let upper = candidate_label.to_ascii_uppercase();
+                    if EVENT_LABELS.contains(&upper.as_str()) {
+                        buffer = Some(next_line);
+                        break;
+                    }
+                }
+                tokens.extend(next_line.split_whitespace().map(|token| token.to_string()));
+            }
+            (tokens, buffer)
         } else {
-            (line_tokens(raw_line), idx + 1)
+            (line_tokens(&raw_line), None)
         };
-        idx = next_idx;
+        if let Some(buffered) = buffered_line {
+            pending_line = Some(buffered);
+        }
 
         if tokens.len() < 2 {
             continue;
@@ -235,7 +275,7 @@ pub fn hillslope_pass_to_columns(
                     Some(raw_line.clone()),
                 ));
             }
-            row.fill_event(values, path, raw_line)?;
+            row.fill_event(values, path, &raw_line)?;
         } else if label == "SUBEVENT" {
             let values = &tokens[2..];
             if values.len() != SUBEVENT_FLOAT_COUNT {
@@ -246,7 +286,7 @@ pub fn hillslope_pass_to_columns(
                     Some(raw_line.clone()),
                 ));
             }
-            row.fill_subevent(values, path, raw_line)?;
+            row.fill_subevent(values, path, &raw_line)?;
         } else {
             let values = &tokens[2..];
             if values.len() != NOEVENT_FLOAT_COUNT {
@@ -257,7 +297,7 @@ pub fn hillslope_pass_to_columns(
                     Some(raw_line.clone()),
                 ));
             }
-            row.fill_noevent(values, path, raw_line)?;
+            row.fill_noevent(values, path, &raw_line)?;
         }
 
         row.push_into(&mut out, wepp_id);
@@ -425,25 +465,6 @@ fn parse_token(token: Option<&String>, path: &Path, raw_line: &str) -> Result<f6
         InterchangeError::parse(path, None, "Missing numeric token", Some(raw_line.to_string()))
     })?;
     parse_required_float(token).map_err(|msg| InterchangeError::parse(path, None, msg, Some(raw_line.to_string())))
-}
-
-fn event_tokens(lines: &[String], start_idx: usize) -> (Vec<String>, usize) {
-    let mut tokens: Vec<String> = line_tokens(&lines[start_idx]);
-    let expected = 2 + EVENT_FLOAT_COUNT;
-    let mut idx = start_idx + 1;
-    while tokens.len() < expected && idx < lines.len() {
-        let candidate = &lines[idx];
-        let label = candidate.get(0..8).unwrap_or(candidate).trim();
-        if !label.is_empty() {
-            let upper = label.to_ascii_uppercase();
-            if EVENT_LABELS.contains(&upper.as_str()) {
-                break;
-            }
-        }
-        tokens.extend(candidate.split_whitespace().map(|t| t.to_string()));
-        idx += 1;
-    }
-    (tokens, idx)
 }
 
 fn line_tokens(line: &str) -> Vec<String> {

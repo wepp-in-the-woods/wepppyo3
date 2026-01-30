@@ -148,21 +148,23 @@ pub fn hillslope_element_to_columns(
     let wepp_id = extract_wepp_id(path)?;
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
     let reader = BufReader::new(file);
-    let raw_lines: Vec<String> = reader
-        .lines()
-        .collect::<Result<_, _>>()
-        .map_err(|err| InterchangeError::io(path, err))?;
-    let trimmed: Vec<String> = raw_lines.into_iter().filter(|line| !line.trim().is_empty()).collect();
-    if trimmed.len() < 3 {
-        return Ok(ElementColumns::new());
-    }
-
-    let data_lines = &trimmed[2..];
     let mut out = ElementColumns::new();
     let mut previous: Vec<f64> = vec![0.0; ELEMENT_COLUMN_NAMES.len() - 4];
+    let mut non_empty_count = 0usize;
+    let mut data_index = 0usize;
 
-    for (idx, raw_line) in data_lines.iter().enumerate() {
-        let tokens = split_fixed_width_line(raw_line, path)?;
+    for line in reader.lines() {
+        let raw_line = line.map_err(|err| InterchangeError::io(path, err))?;
+        if raw_line.trim().is_empty() {
+            continue;
+        }
+        non_empty_count += 1;
+        if non_empty_count <= 2 {
+            continue;
+        }
+        let idx = data_index;
+        data_index += 1;
+        let tokens = split_fixed_width_line(&raw_line, path)?;
         let ofe: i32 = tokens[0].parse().map_err(|_| {
             InterchangeError::parse(path, None, "Invalid OFE token", Some(raw_line.clone()))
         })?;

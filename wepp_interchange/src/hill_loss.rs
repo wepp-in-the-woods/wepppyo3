@@ -84,20 +84,31 @@ pub fn hillslope_loss_to_columns(
     let wepp_id = extract_wepp_id(path)?;
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
     let reader = BufReader::new(file);
-    let lines: Vec<String> = reader
-        .lines()
-        .collect::<Result<_, _>>()
-        .map_err(|err| InterchangeError::io(path, err))?;
-
-    let table_anchor = locate_class_table(&lines);
-    if table_anchor.is_none() {
-        return Ok(LossColumns::new());
-    }
-
-    let data_start = table_anchor.unwrap() + 6;
     let mut out = LossColumns::new();
+    let mut skip_remaining: Option<usize> = None;
+    let mut in_table = false;
+    let target = "sediment particle information leaving profile";
 
-    for raw_line in lines.iter().skip(data_start) {
+    for line in reader.lines() {
+        let raw_line = line.map_err(|err| InterchangeError::io(path, err))?;
+        if !in_table {
+            let lower = raw_line.to_lowercase();
+            if lower.contains(target) {
+                skip_remaining = Some(5);
+                continue;
+            }
+            if let Some(remaining) = skip_remaining {
+                if remaining > 0 {
+                    skip_remaining = Some(remaining - 1);
+                    continue;
+                }
+                skip_remaining = None;
+                in_table = true;
+            } else {
+                continue;
+            }
+        }
+
         let stripped = raw_line.trim();
         if stripped.is_empty() || stripped.chars().all(|c| c == '-') {
             break;
@@ -135,17 +146,6 @@ pub fn hillslope_loss_to_columns(
     }
 
     Ok(out)
-}
-
-fn locate_class_table(lines: &[String]) -> Option<usize> {
-    let target = "sediment particle information leaving profile";
-    let mut start_idx: Option<usize> = None;
-    for (idx, line) in lines.iter().enumerate() {
-        if line.to_lowercase().contains(target) {
-            start_idx = Some(idx);
-        }
-    }
-    start_idx
 }
 
 fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {

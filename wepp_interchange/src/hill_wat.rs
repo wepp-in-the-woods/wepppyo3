@@ -172,102 +172,125 @@ pub fn hillslope_wat_to_columns(
 
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
     let reader = BufReader::new(file);
-    let lines: Vec<String> = reader
-        .lines()
-        .collect::<Result<_, _>>()
-        .map_err(|err| InterchangeError::io(path, err))?;
-
-    let (header, data_start) = extract_header(&lines, path)?;
-    let column_positions: HashMap<&str, usize> = header
-        .iter()
-        .enumerate()
-        .map(|(idx, name)| (name.as_str(), idx))
-        .collect();
-
+    let mut header_rows: Vec<Vec<String>> = Vec::new();
+    let mut header: Option<Vec<String>> = None;
+    let mut column_positions: HashMap<String, usize> = HashMap::new();
     let mut out = WatColumns::new();
+    let mut data_line_index: usize = 0;
 
-    for (idx, raw_line) in lines.iter().skip(data_start).enumerate() {
-        if raw_line.trim().is_empty() {
-            continue;
-        }
-        let tokens: Vec<&str> = raw_line.split_whitespace().collect();
-        if tokens.len() != header.len() {
-            continue;
-        }
+    enum ParseState {
+        SeekingHeaderStart,
+        InHeader,
+        SkipAfterHeader(usize),
+        Data,
+    }
 
-        let julian_val: i32 = tokens[*column_positions.get("J").unwrap()].parse().map_err(|_| {
-            InterchangeError::parse(path, None, "Invalid julian token", Some(raw_line.clone()))
-        })?;
-        let year_val: i32 = tokens[*column_positions.get("Y").unwrap()].parse().map_err(|_| {
-            InterchangeError::parse(path, None, "Invalid year token", Some(raw_line.clone()))
-        })?;
-        let (month, day_of_month) = julian_to_calendar(year_val, julian_val, lookup.as_ref());
-        let water_year = determine_wateryear(year_val, julian_val);
-        let ofe_val: i32 = tokens[*column_positions.get("OFE").unwrap()].parse().map_err(|_| {
-            InterchangeError::parse(path, None, "Invalid OFE token", Some(raw_line.clone()))
-        })?;
+    let mut state = ParseState::SeekingHeaderStart;
 
-        out.wepp_id.push(wepp_id);
-        out.ofe_id.push(ofe_val as i16);
-        out.year.push(year_val as i16);
-        out.sim_day_index.push((idx + 1) as i32);
-        out.julian.push(julian_val as i16);
-        out.month.push(month as i8);
-        out.day_of_month.push(day_of_month as i8);
-        out.water_year.push(water_year as i16);
-        out.ofe.push(ofe_val as i16);
+    for line in reader.lines() {
+        let raw_line = line.map_err(|err| InterchangeError::io(path, err))?;
+        let stripped = raw_line.trim();
+        match state {
+            ParseState::SeekingHeaderStart => {
+                if stripped.is_empty() {
+                    continue;
+                }
+                if stripped.starts_with('-') {
+                    state = ParseState::InHeader;
+                }
+            }
+            ParseState::InHeader => {
+                if stripped.is_empty() {
+                    continue;
+                }
+                if stripped.starts_with('-') {
+                    let parsed_header = build_header_from_rows(&header_rows, path)?;
+                    column_positions = parsed_header
+                        .iter()
+                        .enumerate()
+                        .map(|(idx, name)| (name.clone(), idx))
+                        .collect();
+                    header = Some(parsed_header);
+                    state = ParseState::SkipAfterHeader(1);
+                } else {
+                    header_rows.push(raw_line.split_whitespace().map(|s| s.to_string()).collect());
+                }
+            }
+            ParseState::SkipAfterHeader(skip) => {
+                if skip > 1 {
+                    state = ParseState::SkipAfterHeader(skip - 1);
+                } else {
+                    state = ParseState::Data;
+                }
+            }
+            ParseState::Data => {
+                let current_index = data_line_index;
+                data_line_index += 1;
 
-        for name in WAT_COLUMN_NAMES.iter().skip(3) {
-            let token = tokens[*column_positions.get(*name).unwrap()];
-            let value = parse_required_float(token).map_err(|msg| {
-                InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
-            })?;
-            match *name {
-                "P" => out.p.push(value),
-                "RM" => out.rm.push(value),
-                "Q" => out.q.push(value),
-                "Ep" => out.ep.push(value),
-                "Es" => out.es.push(value),
-                "Er" => out.er.push(value),
-                "Dp" => out.dp.push(value),
-                "UpStrmQ" => out.upstrmq.push(value),
-                "SubRIn" => out.subrin.push(value),
-                "latqcc" => out.latqcc.push(value),
-                "Total-Soil Water" => out.total_soil_water.push(value),
-                "frozwt" => out.frozwt.push(value),
-                "Snow-Water" => out.snow_water.push(value),
-                "QOFE" => out.qofe.push(value),
-                "Tile" => out.tile.push(value),
-                "Irr" => out.irr.push(value),
-                "Area" => out.area.push(value),
-                _ => {}
+                if stripped.is_empty() {
+                    continue;
+                }
+                let header = header.as_ref().ok_or_else(|| {
+                    InterchangeError::parse(path, None, "Missing WAT header rows", None)
+                })?;
+                let tokens: Vec<&str> = raw_line.split_whitespace().collect();
+                if tokens.len() != header.len() {
+                    continue;
+                }
+
+                let julian_val: i32 = tokens[*column_positions.get("J").unwrap()].parse().map_err(|_| {
+                    InterchangeError::parse(path, None, "Invalid julian token", Some(raw_line.clone()))
+                })?;
+                let year_val: i32 = tokens[*column_positions.get("Y").unwrap()].parse().map_err(|_| {
+                    InterchangeError::parse(path, None, "Invalid year token", Some(raw_line.clone()))
+                })?;
+                let (month, day_of_month) = julian_to_calendar(year_val, julian_val, lookup.as_ref());
+                let water_year = determine_wateryear(year_val, julian_val);
+                let ofe_val: i32 = tokens[*column_positions.get("OFE").unwrap()].parse().map_err(|_| {
+                    InterchangeError::parse(path, None, "Invalid OFE token", Some(raw_line.clone()))
+                })?;
+
+                out.wepp_id.push(wepp_id);
+                out.ofe_id.push(ofe_val as i16);
+                out.year.push(year_val as i16);
+                out.sim_day_index.push((current_index + 1) as i32);
+                out.julian.push(julian_val as i16);
+                out.month.push(month as i8);
+                out.day_of_month.push(day_of_month as i8);
+                out.water_year.push(water_year as i16);
+                out.ofe.push(ofe_val as i16);
+
+                for name in WAT_COLUMN_NAMES.iter().skip(3) {
+                    let token = tokens[*column_positions.get(*name).unwrap()];
+                    let value = parse_required_float(token).map_err(|msg| {
+                        InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
+                    })?;
+                    match *name {
+                        "P" => out.p.push(value),
+                        "RM" => out.rm.push(value),
+                        "Q" => out.q.push(value),
+                        "Ep" => out.ep.push(value),
+                        "Es" => out.es.push(value),
+                        "Er" => out.er.push(value),
+                        "Dp" => out.dp.push(value),
+                        "UpStrmQ" => out.upstrmq.push(value),
+                        "SubRIn" => out.subrin.push(value),
+                        "latqcc" => out.latqcc.push(value),
+                        "Total-Soil Water" => out.total_soil_water.push(value),
+                        "frozwt" => out.frozwt.push(value),
+                        "Snow-Water" => out.snow_water.push(value),
+                        "QOFE" => out.qofe.push(value),
+                        "Tile" => out.tile.push(value),
+                        "Irr" => out.irr.push(value),
+                        "Area" => out.area.push(value),
+                        _ => {}
+                    }
+                }
             }
         }
     }
 
-    Ok(out)
-}
-
-fn extract_header(lines: &[String], path: &Path) -> Result<(Vec<String>, usize), InterchangeError> {
-    let mut header_start: Option<usize> = None;
-    let mut header_end: Option<usize> = None;
-
-    for (idx, line) in lines.iter().enumerate() {
-        let stripped = line.trim();
-        if stripped.is_empty() {
-            continue;
-        }
-        if stripped.starts_with('-') {
-            if header_start.is_none() {
-                header_start = Some(idx);
-            } else if header_end.is_none() {
-                header_end = Some(idx);
-                break;
-            }
-        }
-    }
-
-    if header_start.is_none() || header_end.is_none() {
+    if header.is_none() {
         return Err(InterchangeError::parse(
             path,
             None,
@@ -276,11 +299,13 @@ fn extract_header(lines: &[String], path: &Path) -> Result<(Vec<String>, usize),
         ));
     }
 
-    let raw_header_rows: Vec<Vec<String>> = lines[(header_start.unwrap() + 1)..header_end.unwrap()]
-        .iter()
-        .map(|line| line.split_whitespace().map(|s| s.to_string()).collect())
-        .collect();
+    Ok(out)
+}
 
+fn build_header_from_rows(
+    raw_header_rows: &[Vec<String>],
+    path: &Path,
+) -> Result<Vec<String>, InterchangeError> {
     let mut header: Vec<String> = Vec::new();
     let min_len = raw_header_rows.iter().map(|row| row.len()).min().unwrap_or(0);
     for col_idx in 0..min_len {
@@ -310,7 +335,7 @@ fn extract_header(lines: &[String], path: &Path) -> Result<(Vec<String>, usize),
         ));
     }
 
-    Ok((canonical_header, header_end.unwrap() + 2))
+    Ok(canonical_header)
 }
 
 fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {

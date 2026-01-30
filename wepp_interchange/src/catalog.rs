@@ -183,8 +183,6 @@ impl CatalogEntry {
         dict.set_item("modified", self.modified).unwrap();
         if let Some(schema) = self.schema {
             dict.set_item("schema", schema.into_pydict(py)).unwrap();
-        } else {
-            dict.set_item("schema", py.None()).unwrap();
         }
         dict.into_py(py)
     }

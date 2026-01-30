@@ -114,7 +114,7 @@ pub fn watershed_chan_peak_to_parquet(
     chunk_rows: Option<usize>,
 ) -> Result<WriteSummary, InterchangeError> {
     let calendar_lookup = match cli_calendar_path {
-        Some(path) => load_cli_calendar(path).ok(),
+        Some(path) => Some(load_cli_calendar(path)?),
         None => None,
     };
 

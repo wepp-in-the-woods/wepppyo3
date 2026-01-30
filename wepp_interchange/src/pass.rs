@@ -530,7 +530,7 @@ pub fn watershed_pass_to_parquet(
     let meta = parse_metadata(&header_lines, pass_path)?;
 
     let calendar_lookup = match cli_calendar_path {
-        Some(path) => load_cli_calendar(path).ok(),
+        Some(path) => Some(load_cli_calendar(path)?),
         None => None,
     };
 

@@ -1,24 +1,34 @@
 # WEPP Hillslope Pass -> SWAT+ Recall Specification (wepppyo3)
 
 ## Purpose
-Define a new `swat_utils` module in `wepppyo3` that converts WEPP hillslope pass files in a `wepp_output_dir` into SWAT+ recall daily files in a `swat_recall_dir`. The conversion is file-based, deterministic, and uses the existing Rust hillslope pass parser (`wepp_interchange/src/hill_pass.rs`).
+Define a new `swat_utils` module in `wepppyo3` that converts WEPP hillslope pass files in a `wepp_output_dir` into SWAT+ recall daily files inside `swat_txtinout_dir`. The conversion is file-based, deterministic, and uses the existing Rust hillslope pass parser (`wepp_interchange/src/hill_pass.rs`).
 
 ## Scope
 - Input: WEPP hillslope pass files in `wepp_output_dir` named `H<wepp_id>.pass.dat` (case-sensitive).
-- Output: One SWAT+ daily recall file per hillslope (`hill_{wepp_id:05d}.rec` by default) in `swat_recall_dir`.
+- Output: One SWAT+ daily recall file per hillslope (`hill_{wepp_id:05d}.rec` by default) in `swat_txtinout_dir/<recall_subdir>/`.
 - Optional: return a manifest mapping `wepp_id -> recall file path`, plus basic stats for validation.
-- Non-goals: generating `recall.rec` and `recall.con` (can be added later if requested).
+- Write `recall.rec` into `swat_txtinout_dir` and write `recall.con` when enough connectivity metadata is provided.
 
 ## Inputs and Outputs
 
 ### Inputs
 - `wepp_output_dir` (path): directory containing WEPP hillslope pass files named `H<wepp_id>.pass.dat`.
-- `swat_recall_dir` (path): directory to write SWAT+ recall files (one per hillslope).
+- `swat_txtinout_dir` (path): SWAT+ project root (TxtInOut) where `recall.rec`/`recall.con` live and where recall files are written.
+- `recall_subdir` (optional, default `recall`): subdirectory under `swat_txtinout_dir` that stores the per-hillslope recall files.
+- `recall_connections` (optional): mapping of `wepp_id -> downstream channel index` for writing `recall.con`.
+- `recall_wst` (optional, default `wea1`): SWAT weather station reference written to `recall.con`.
+- `recall_object_type` (optional, default `sdc`): SWAT-DEG output object type for `recall.con` connections.
 - `cli_calendar_path` (optional path): calendar file for non-Gregorian calendars (as used by `hill_pass.rs`).
 
 ### Output files
 For each hillslope pass file `wepp_output_dir/H<wepp_id>.pass.dat`:
-- `swat_recall_dir/hill_{wepp_id:05d}.rec` (default naming; configurable).
+- `swat_txtinout_dir/<recall_subdir>/hill_{wepp_id:05d}.rec` (default naming; configurable).
+
+Always:
+- `swat_txtinout_dir/recall.rec`
+
+If `recall_connections` is provided:
+- `swat_txtinout_dir/recall.con`
 
 Recall file format: SWAT+ daily recall flat file (space-delimited), one dataset per file.
 
@@ -35,16 +45,20 @@ Recall file format: SWAT+ daily recall flat file (space-delimited), one dataset 
 
 ### Proposed Python signature
 ```python
-hillslope_pass_dir_to_swat_recall(
+wepp_hillslope_pass_to_swat_recall(
     wepp_output_dir: str,
-    swat_recall_dir: str,
+    swat_txtinout_dir: str,
     version_major: int,
     version_minor: int,
     *,
+    recall_subdir: str = "recall",
     cli_calendar_path: Optional[str] = None,
     filename_template: str = "hill_{wepp_id:05d}.rec",
     include_subsurface: bool = True,
     include_tile: bool = True,
+    recall_connections: Optional[List[Tuple[int, int]]] = None,
+    recall_wst: str = "wea1",
+    recall_object_type: str = "sdc",
     ncpu: Optional[int] = None,
     write_manifest: bool = False,
 ) -> Optional[List[Dict[str, Any]]]
@@ -55,6 +69,8 @@ hillslope_pass_dir_to_swat_recall(
 - Extract `wepp_id` from the filename digits between `H` and `.pass.dat`.
 - Skip non-matching files silently (treat as a glob).
 - For each file, call `hill_pass::hillslope_pass_to_columns(path, cli_calendar_path, &VersionInfo)` and produce a daily recall time series.
+- Always write `recall.rec` into `swat_txtinout_dir`; write `recall.con` when `recall_connections` is provided.
+- Use `recall_wst` for the `WST` column and `recall_object_type` for `OBTYP_OUT1` when writing `recall.con`.
 - Parallelization: if `ncpu` is provided and > 1, process hillslopes in parallel; default is to use the host CPU count.
 
 ## Parsing and Data Mapping
@@ -120,14 +136,17 @@ Populate fields as follows:
 - `san/sil/cla/sag/lag/grv` (metric tons): sediment classes (`grv=0`).
 - All nutrient, pesticide, bacteria, metals, and temperature fields are written as `0` until explicitly supported.
 
-Reference: `wepp-forest/docs/wepp-swat-spec.md` (Recall data files section, citing `inputs_swatplus.pdf`). The converted `swatplus/doc/inputs_swatplus.md` does not include the daily row schema.
+Reference: `wepppy/nodb/mods/swat/wepp-swat-spec.md` (Recall data files section, citing `inputs_swatplus.pdf`). The converted `swatplus/doc/inputs_swatplus.md` does not include the daily row schema.
 
 ## File Organization and Naming
 
 - Input hillslope pass files:
   - `wepp_output_dir/H<wepp_id>.pass.dat`
 - Output recall files:
-  - `swat_recall_dir/hill_{wepp_id:05d}.rec` (default)
+  - `swat_txtinout_dir/<recall_subdir>/hill_{wepp_id:05d}.rec` (default)
+- Output recall master/connect files:
+  - `swat_txtinout_dir/recall.rec`
+  - `swat_txtinout_dir/recall.con` (only when `recall_connections` is provided)
 
 The filename template should be configurable to allow other naming schemes.
 
@@ -143,7 +162,9 @@ Cross-file:
 - Only count files matching `H<wepp_id>.pass.dat`.
 - Skip non-matching files silently.
 - If a matching file is skipped (empty/invalid), include `status=skipped` + `skip_reason` in the manifest and warn.
-- Provide a manifest for downstream creation of `recall.rec` and `recall.con`.
+- Always write `recall.rec` to `swat_txtinout_dir`.
+- If `recall_connections` is provided, also write `recall.con`.
+- Otherwise, provide a manifest so downstream code can build `recall.con`.
 
 ## Error Handling
 
@@ -171,7 +192,7 @@ Cross-file:
 
 ## References
 
-- SWAT+ recall input format (master + daily recall): `wepp-forest/docs/wepp-swat-spec.md`
+- SWAT+ recall input format (master + daily recall): `wepppy/nodb/mods/swat/wepp-swat-spec.md`
 - SWAT+ IO PDF (recall.rec and recall_day.rec): `inputs_swatplus.pdf` (converted copy: `swatplus/doc/inputs_swatplus.md`)
 - WEPP hillslope pass parser: `wepp_interchange/src/hill_pass.rs`
 
@@ -179,7 +200,7 @@ Cross-file:
 
 ### Phase 0: Preflight + alignment
 - [x] Confirm SWAT+ recall daily schema (field order + units) in `inputs_swatplus.pdf` and document any deviations.
-  - Findings: the daily row schema is summarized in `wepp-forest/docs/wepp-swat-spec.md` (Recall data files section, citing `inputs_swatplus.pdf`). The converted `swatplus/doc/inputs_swatplus.md` lists `recall.rec`/`recall.con` in `file.cio` but does not include the daily recall row layout.
+  - Findings: the daily row schema is summarized in `wepppy/nodb/mods/swat/wepp-swat-spec.md` (Recall data files section, citing `inputs_swatplus.pdf`). The converted `swatplus/doc/inputs_swatplus.md` lists `recall.rec`/`recall.con` in `file.cio` but does not include the daily recall row layout.
 - [x] Review `wepp_interchange/src/hill_pass.rs` for the real signature (`hillslope_pass_to_columns(path, cli_calendar_path, &VersionInfo)`) and available columns:
   - `event`, `year`, `julian`, `sim_day_index`, `month`, `day_of_month`, `water_year`
   - `runvol`, `sbrunv`, `drrunv`, `sedcon_1..5`, plus `clot/slot/saot/laot/sdot`, `gwbfv/gwdsv`
@@ -190,7 +211,7 @@ Cross-file:
 - [x] Add `wepp_interchange/src/swat_utils.rs` with:
   - `struct RecallRow { year, julian, flo, sed, cla, sil, sag, lag, san, grv }` (types to match existing patterns).
   - `struct RecallManifestEntry { wepp_id, pass_file, recall_file, days_written, start_year, end_year, status, skip_reason }`.
-  - Public `hillslope_pass_dir_to_swat_recall(...) -> Result<Option<Vec<RecallManifestEntry>>, InterchangeError>`.
+  - Public `wepp_hillslope_pass_to_swat_recall(...) -> Result<Option<Vec<RecallManifestEntry>>, InterchangeError>`.
 - [x] For output naming, re-implement the private `extract_wepp_id` rule (leading `H` + digits) so output naming stays consistent even when a PASS file returns zero rows.
 - [x] Update `wepp_interchange/src/lib.rs` to export the new function (and add `mod swat_utils;`) using the same pyo3 signature conventions as other exports.
 - [x] Use `InterchangeError::io` and `InterchangeError::parse` for new errors; avoid new variants unless needed.

@@ -14,12 +14,17 @@ use crate::hill_pass;
 use crate::schema::VersionInfo;
 
 const RECALL_DAY_HEADER: &str =
-    "IYR ISTEP flo sed orgn sedp no3 solp psol psor chla nh3 C no2 cbod dox bacp bacpl met1 met2 met3 san sil cla sag lag grv temp";
+    "jday mo day_mo iyr ob_typ ob_name flo sed orgn sedp no3 solp chla nh3 no2 cbod dox san sil cla sag lag grv temp";
+const RECALL_REC_HEADER: &str = "NUMB NAME TYP FILENAME";
+const RECALL_CON_HEADER: &str =
+    "      NUMB    NAME    GIS_ID    AREA_HA      LAT     LONG       ELEV    RECALL     WST   CONSTIT  OVERFLOW  RULESET OUT_TOT OBTYP_OUT1 HTYPNO_OUT1  HTYP_OUT1  FRAC_OUT1";
 
 #[derive(Debug, Clone)]
 pub struct RecallRow {
     pub year: i16,
     pub julian: i16,
+    pub month: i16,
+    pub day_mo: i16,
     pub flo: f64,
     pub sed: f64,
     pub cla: f64,
@@ -92,7 +97,11 @@ struct PassTask {
 
 #[derive(Debug, Clone)]
 struct RecallConfig {
+    swat_txtinout_dir: PathBuf,
     swat_recall_dir: PathBuf,
+    recall_subdir: String,
+    recall_wst: String,
+    recall_object_type: String,
     cli_calendar_path: Option<PathBuf>,
     version: VersionInfo,
     filename_template: String,
@@ -100,14 +109,18 @@ struct RecallConfig {
     include_tile: bool,
 }
 
-pub fn hillslope_pass_dir_to_swat_recall(
+pub fn wepp_hillslope_pass_to_swat_recall(
     wepp_output_dir: &Path,
-    swat_recall_dir: &Path,
+    swat_txtinout_dir: &Path,
+    recall_subdir: &str,
     cli_calendar_path: Option<&Path>,
     version: &VersionInfo,
     filename_template: &str,
     include_subsurface: bool,
     include_tile: bool,
+    recall_connections: Option<&[(i32, i32)]>,
+    recall_wst: &str,
+    recall_object_type: &str,
     ncpu: Option<usize>,
     write_manifest: bool,
 ) -> Result<Option<Vec<RecallManifestEntry>>, InterchangeError> {
@@ -134,8 +147,13 @@ pub fn hillslope_pass_dir_to_swat_recall(
         return if write_manifest { Ok(Some(Vec::new())) } else { Ok(None) };
     }
 
+    let recall_dir = swat_txtinout_dir.join(recall_subdir);
     let config = RecallConfig {
-        swat_recall_dir: swat_recall_dir.to_path_buf(),
+        swat_txtinout_dir: swat_txtinout_dir.to_path_buf(),
+        swat_recall_dir: recall_dir,
+        recall_subdir: recall_subdir.to_string(),
+        recall_wst: recall_wst.to_string(),
+        recall_object_type: recall_object_type.to_string(),
         cli_calendar_path: cli_calendar_path.map(PathBuf::from),
         version: version.clone(),
         filename_template: filename_template.to_string(),
@@ -143,6 +161,8 @@ pub fn hillslope_pass_dir_to_swat_recall(
         include_tile,
     };
 
+    fs::create_dir_all(&config.swat_txtinout_dir)
+        .map_err(|err| InterchangeError::io(&config.swat_txtinout_dir, err))?;
     fs::create_dir_all(&config.swat_recall_dir)
         .map_err(|err| InterchangeError::io(&config.swat_recall_dir, err))?;
 
@@ -159,8 +179,10 @@ pub fn hillslope_pass_dir_to_swat_recall(
         }
         results
     } else {
-        run_parallel(tasks, config, worker_count)?
+        run_parallel(tasks, config.clone(), worker_count)?
     };
+
+    write_recall_master_files(&results, &config, recall_connections)?;
 
     if write_manifest {
         let mut entries = results;
@@ -348,6 +370,7 @@ fn process_pass_task(task: &PassTask, config: &RecallConfig) -> Result<RecallMan
             &aggregated,
             (min_year, min_julian),
             (max_year, max_julian),
+            lookup.as_ref(),
         )
     };
 
@@ -402,10 +425,13 @@ fn process_pass_task(task: &PassTask, config: &RecallConfig) -> Result<RecallMan
     let days_written = rows.len();
     let mut start_year = rows.first().map(|row| row.year).unwrap_or(0);
     let mut end_year = rows.last().map(|row| row.year).unwrap_or(0);
+    let ob_name = format_recall_label(&config.filename_template, task.wepp_id);
+    let ob_typ = config.recall_object_type.as_str();
     for row in rows {
         start_year = start_year.min(row.year);
         end_year = end_year.max(row.year);
-        write_recall_row(&mut writer, &row).map_err(|err| InterchangeError::io(&recall_path, err))?;
+        write_recall_row(&mut writer, &row, ob_typ, &ob_name)
+            .map_err(|err| InterchangeError::io(&recall_path, err))?;
     }
 
     Ok(RecallManifestEntry {
@@ -420,10 +446,138 @@ fn process_pass_task(task: &PassTask, config: &RecallConfig) -> Result<RecallMan
     })
 }
 
+fn write_recall_master_files(
+    entries: &[RecallManifestEntry],
+    config: &RecallConfig,
+    recall_connections: Option<&[(i32, i32)]>,
+) -> Result<(), InterchangeError> {
+    let mut written: Vec<&RecallManifestEntry> = entries
+        .iter()
+        .filter(|entry| entry.status == "written")
+        .collect();
+    if written.is_empty() {
+        return Ok(());
+    }
+    written.sort_by_key(|entry| entry.wepp_id);
+
+    write_recall_rec(&written, config)?;
+
+    if let Some(connections) = recall_connections {
+        let mut connection_map = HashMap::new();
+        for (wepp_id, chn_enum) in connections {
+            connection_map.insert(*wepp_id, *chn_enum);
+        }
+
+        for entry in &written {
+            if !connection_map.contains_key(&entry.wepp_id) {
+                return Err(InterchangeError::parse(
+                    &config.swat_txtinout_dir,
+                    None,
+                    format!(
+                        "Missing recall connection for wepp_id {}",
+                        entry.wepp_id
+                    ),
+                    None,
+                ));
+            }
+        }
+
+        write_recall_con(&written, config, &connection_map)?;
+    }
+    Ok(())
+}
+
+fn write_recall_rec(
+    entries: &[&RecallManifestEntry],
+    config: &RecallConfig,
+) -> Result<(), InterchangeError> {
+    let recall_rec_path = config.swat_txtinout_dir.join("recall.rec");
+    let mut writer = BufWriter::new(
+        fs::File::create(&recall_rec_path)
+            .map_err(|err| InterchangeError::io(&recall_rec_path, err))?,
+    );
+    writeln!(writer, "recall.rec")
+        .map_err(|err| InterchangeError::io(&recall_rec_path, err))?;
+    writeln!(writer, "{RECALL_REC_HEADER}")
+        .map_err(|err| InterchangeError::io(&recall_rec_path, err))?;
+
+    for (idx, entry) in entries.iter().enumerate() {
+        let numb = (idx + 1) as i32;
+        let name = format_recall_label(&config.filename_template, entry.wepp_id);
+        let filename = format_recall_filename(&config.filename_template, entry.wepp_id);
+        let recall_path = if config.recall_subdir.is_empty() {
+            filename
+        } else {
+            format!("{}/{}", config.recall_subdir, filename)
+        };
+        writeln!(writer, "{:>6} {:>12} {:>4} {}", numb, name, 1, recall_path)
+            .map_err(|err| InterchangeError::io(&recall_rec_path, err))?;
+    }
+    Ok(())
+}
+
+fn write_recall_con(
+    entries: &[&RecallManifestEntry],
+    config: &RecallConfig,
+    recall_connections: &HashMap<i32, i32>,
+) -> Result<(), InterchangeError> {
+    let recall_con_path = config.swat_txtinout_dir.join("recall.con");
+    let mut writer = BufWriter::new(
+        fs::File::create(&recall_con_path)
+            .map_err(|err| InterchangeError::io(&recall_con_path, err))?,
+    );
+    writeln!(writer, "recall.con (2-stage)")
+        .map_err(|err| InterchangeError::io(&recall_con_path, err))?;
+    writeln!(writer, "{RECALL_CON_HEADER}")
+        .map_err(|err| InterchangeError::io(&recall_con_path, err))?;
+
+    for (idx, entry) in entries.iter().enumerate() {
+        let numb = (idx + 1) as i32;
+        let name = format_recall_label(&config.filename_template, entry.wepp_id);
+        let chn_enum = *recall_connections
+            .get(&entry.wepp_id)
+            .ok_or_else(|| {
+                InterchangeError::parse(
+                    &config.swat_txtinout_dir,
+                    None,
+                    format!(
+                        "Missing recall connection for wepp_id {}",
+                        entry.wepp_id
+                    ),
+                    None,
+                )
+            })?;
+        writeln!(
+            writer,
+            "{:>10} {:>12} {:>8} {:>10.3} {:>8.3} {:>8.3} {:>9.3} {:>8} {:>6} {:>9} {:>9} {:>8} {:>7} {:>9} {:>11} {:>9} {:>9.4}",
+            numb,
+            name,
+            entry.wepp_id,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            numb,
+            config.recall_wst.as_str(),
+            0,
+            0,
+            0,
+            1,
+            config.recall_object_type.as_str(),
+            chn_enum,
+            "tot",
+            1.0
+        )
+        .map_err(|err| InterchangeError::io(&recall_con_path, err))?;
+    }
+    Ok(())
+}
+
 fn build_rows_from_dates(
     aggregated: &HashMap<Key, DailyAggregate>,
     min_date: (i32, i32),
     max_date: (i32, i32),
+    lookup: Option<&crate::calendar::CalendarLookup>,
 ) -> Result<Vec<RecallRow>, InterchangeError> {
     let mut rows: Vec<RecallRow> = Vec::new();
     let mut year = min_date.0;
@@ -434,9 +588,12 @@ fn build_rows_from_dates(
             .cloned()
             .unwrap_or_default();
         let sed = agg.sed();
+        let (month, day_mo) = crate::calendar::julian_to_calendar(year, julian, lookup);
         rows.push(RecallRow {
             year: year as i16,
             julian: julian as i16,
+            month: month as i16,
+            day_mo: day_mo as i16,
             flo: clean_float(agg.flo),
             sed: clean_float(sed),
             cla: clean_float(agg.cla),
@@ -476,6 +633,7 @@ fn build_rows_from_sim_index(
     let mut rows: Vec<RecallRow> = Vec::new();
     for sim_index in min_index..=max_index {
         let (year, julian) = sim_day_index_to_date(sim_index, start_year, lookup);
+        let (month, day_mo) = crate::calendar::julian_to_calendar(year, julian, lookup);
         let agg = aggregated
             .get(&Key::Sim(sim_index))
             .cloned()
@@ -484,6 +642,8 @@ fn build_rows_from_sim_index(
         rows.push(RecallRow {
             year: year as i16,
             julian: julian as i16,
+            month: month as i16,
+            day_mo: day_mo as i16,
             flo: clean_float(agg.flo),
             sed: clean_float(sed),
             cla: clean_float(agg.cla),
@@ -574,12 +734,21 @@ fn clean_float(value: f64) -> f64 {
     }
 }
 
-fn write_recall_row(writer: &mut BufWriter<fs::File>, row: &RecallRow) -> std::io::Result<()> {
+fn write_recall_row(
+    writer: &mut BufWriter<fs::File>,
+    row: &RecallRow,
+    ob_typ: &str,
+    ob_name: &str,
+) -> std::io::Result<()> {
     writeln!(
         writer,
-        "{} {} {:.6} {:.6} 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 {:.6} {:.6} {:.6} {:.6} {:.6} {:.6} 0",
-        row.year,
+        "{} {} {} {} {} {} {:.6} {:.6} 0 0 0 0 0 0 0 0 0 {:.6} {:.6} {:.6} {:.6} {:.6} {:.6} 0",
         row.julian,
+        row.month,
+        row.day_mo,
+        row.year,
+        ob_typ,
+        ob_name,
         row.flo,
         row.sed,
         row.san,
@@ -599,6 +768,15 @@ fn format_recall_filename(template: &str, wepp_id: i32) -> String {
     } else {
         template.to_string()
     }
+}
+
+fn format_recall_label(template: &str, wepp_id: i32) -> String {
+    let filename = format_recall_filename(template, wepp_id);
+    Path::new(&filename)
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .unwrap_or(&filename)
+        .to_string()
 }
 
 fn parse_pass_filename(name: &str) -> Option<i32> {
@@ -733,7 +911,8 @@ mod tests {
     fn swat_recall_basic_event() {
         let base = make_temp_dir("basic_event");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H1.pass.dat");
@@ -741,14 +920,18 @@ mod tests {
         write_pass_file(&pass_path, 2000, &[line]);
 
         let version = VersionInfo::new(3, 0);
-        let manifest = hillslope_pass_dir_to_swat_recall(
+        let manifest = wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -761,13 +944,13 @@ mod tests {
         let rows = read_recall_rows(&recall_path);
         assert_eq!(rows.len(), 1);
         let row = &rows[0];
-        let flo: f64 = row[2].parse().unwrap();
-        let sed: f64 = row[3].parse().unwrap();
-        let san: f64 = row[22].parse().unwrap();
-        let sil: f64 = row[23].parse().unwrap();
-        let cla: f64 = row[24].parse().unwrap();
-        let sag: f64 = row[25].parse().unwrap();
-        let lag: f64 = row[26].parse().unwrap();
+        let flo: f64 = row[6].parse().unwrap();
+        let sed: f64 = row[7].parse().unwrap();
+        let san: f64 = row[17].parse().unwrap();
+        let sil: f64 = row[18].parse().unwrap();
+        let cla: f64 = row[19].parse().unwrap();
+        let sag: f64 = row[20].parse().unwrap();
+        let lag: f64 = row[21].parse().unwrap();
         assert!((flo - 15.0).abs() < 1e-6);
         assert!((sed - 0.15).abs() < 1e-6);
         assert!((cla - 0.01).abs() < 1e-6);
@@ -781,7 +964,8 @@ mod tests {
     fn swat_recall_missing_days_fill() {
         let base = make_temp_dir("missing_days");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H2.pass.dat");
@@ -790,14 +974,18 @@ mod tests {
         write_pass_file(&pass_path, 2001, &[line1, line3]);
 
         let version = VersionInfo::new(3, 0);
-        let manifest = hillslope_pass_dir_to_swat_recall(
+        let manifest = wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -809,8 +997,8 @@ mod tests {
         let rows = read_recall_rows(&recall_path);
         assert_eq!(rows.len(), 3);
         let middle = &rows[1];
-        let flo: f64 = middle[2].parse().unwrap();
-        let sed: f64 = middle[3].parse().unwrap();
+        let flo: f64 = middle[6].parse().unwrap();
+        let sed: f64 = middle[7].parse().unwrap();
         assert_eq!(flo, 0.0);
         assert_eq!(sed, 0.0);
     }
@@ -819,7 +1007,8 @@ mod tests {
     fn swat_recall_duplicate_day_sums_mass() {
         let base = make_temp_dir("duplicate_day");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H3.pass.dat");
@@ -828,14 +1017,18 @@ mod tests {
         write_pass_file(&pass_path, 2002, &[line1, line2]);
 
         let version = VersionInfo::new(3, 0);
-        hillslope_pass_dir_to_swat_recall(
+        wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             false,
             false,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -845,8 +1038,8 @@ mod tests {
         let recall_path = swat_recall.join("hill_00003.rec");
         let rows = read_recall_rows(&recall_path);
         assert_eq!(rows.len(), 1);
-        let cla: f64 = rows[0][24].parse().unwrap();
-        let sed: f64 = rows[0][3].parse().unwrap();
+        let cla: f64 = rows[0][19].parse().unwrap();
+        let sed: f64 = rows[0][7].parse().unwrap();
         assert!((cla - 0.05).abs() < 1e-6);
         assert!((sed - 0.05).abs() < 1e-6);
     }
@@ -855,7 +1048,8 @@ mod tests {
     fn swat_recall_subevent_flow_flags() {
         let base = make_temp_dir("subevent_flow");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H4.pass.dat");
@@ -863,14 +1057,18 @@ mod tests {
         write_pass_file(&pass_path, 2003, &[line]);
 
         let version = VersionInfo::new(3, 0);
-        hillslope_pass_dir_to_swat_recall(
+        wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             false,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -879,7 +1077,7 @@ mod tests {
 
         let recall_path = swat_recall.join("hill_00004.rec");
         let rows = read_recall_rows(&recall_path);
-        let flo: f64 = rows[0][2].parse().unwrap();
+        let flo: f64 = rows[0][6].parse().unwrap();
         assert!((flo - 2.0).abs() < 1e-6);
     }
 
@@ -887,21 +1085,26 @@ mod tests {
     fn swat_recall_empty_pass_skips() {
         let base = make_temp_dir("empty_pass");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H5.pass.dat");
         write_pass_file(&pass_path, 2004, &[]);
 
         let version = VersionInfo::new(3, 0);
-        let manifest = hillslope_pass_dir_to_swat_recall(
+        let manifest = wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -918,7 +1121,8 @@ mod tests {
     fn swat_recall_header_and_nbyr() {
         let base = make_temp_dir("header_nbyr");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H6.pass.dat");
@@ -927,14 +1131,18 @@ mod tests {
         write_pass_file(&pass_path, 2000, &[line1, line2]);
 
         let version = VersionInfo::new(3, 0);
-        hillslope_pass_dir_to_swat_recall(
+        wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -953,7 +1161,8 @@ mod tests {
     fn swat_recall_leap_year_fill() {
         let base = make_temp_dir("leap_year");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H7.pass.dat");
@@ -962,14 +1171,18 @@ mod tests {
         write_pass_file(&pass_path, 2000, &[line1, line2]);
 
         let version = VersionInfo::new(3, 0);
-        hillslope_pass_dir_to_swat_recall(
+        wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -979,15 +1192,16 @@ mod tests {
         let recall_path = swat_recall.join("hill_00007.rec");
         let rows = read_recall_rows(&recall_path);
         assert_eq!(rows.len(), 3);
-        assert_eq!(rows[1][0], "2000");
-        assert_eq!(rows[1][1], "366");
+        assert_eq!(rows[1][0], "366");
+        assert_eq!(rows[1][3], "2000");
     }
 
     #[test]
     fn swat_recall_calendar_lookup_path() {
         let base = make_temp_dir("calendar_lookup");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let calendar_path = base.join("cli_calendar.parquet");
@@ -1000,14 +1214,18 @@ mod tests {
         write_pass_file(&pass_path, 1, &[line1, line2]);
 
         let version = VersionInfo::new(3, 0);
-        hillslope_pass_dir_to_swat_recall(
+        wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             Some(&calendar_path),
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -1018,18 +1236,19 @@ mod tests {
         let rows = read_recall_rows(&recall_path);
         assert_eq!(rows.len(), 4);
         assert_eq!(rows[0][0], "1");
-        assert_eq!(rows[0][1], "1");
-        assert_eq!(rows[2][0], "1");
-        assert_eq!(rows[2][1], "3");
-        assert_eq!(rows[3][0], "2");
-        assert_eq!(rows[3][1], "1");
+        assert_eq!(rows[0][3], "1");
+        assert_eq!(rows[2][0], "3");
+        assert_eq!(rows[2][3], "1");
+        assert_eq!(rows[3][0], "1");
+        assert_eq!(rows[3][3], "2");
     }
 
     #[test]
     fn swat_recall_include_flags_matrix() {
         let base = make_temp_dir("include_flags");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H9.pass.dat");
@@ -1037,14 +1256,18 @@ mod tests {
         write_pass_file(&pass_path, 2005, &[line]);
 
         let version = VersionInfo::new(3, 0);
-        hillslope_pass_dir_to_swat_recall(
+        wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             false,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -1052,25 +1275,29 @@ mod tests {
         .expect("manifest");
         let recall_path = swat_recall.join("hill_00009.rec");
         let rows = read_recall_rows(&recall_path);
-        let flo: f64 = rows[0][2].parse().unwrap();
+        let flo: f64 = rows[0][6].parse().unwrap();
         assert!((flo - 13.0).abs() < 1e-6);
 
         fs::remove_file(&recall_path).unwrap();
-        hillslope_pass_dir_to_swat_recall(
+        wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             false,
             false,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
         .expect("run recall")
         .expect("manifest");
         let rows = read_recall_rows(&recall_path);
-        let flo: f64 = rows[0][2].parse().unwrap();
+        let flo: f64 = rows[0][6].parse().unwrap();
         assert!((flo - 10.0).abs() < 1e-6);
     }
 
@@ -1078,7 +1305,8 @@ mod tests {
     fn swat_recall_event_and_subevent_same_day() {
         let base = make_temp_dir("event_subevent_mix");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H10.pass.dat");
@@ -1087,14 +1315,18 @@ mod tests {
         write_pass_file(&pass_path, 2006, &[line1, line2]);
 
         let version = VersionInfo::new(3, 0);
-        hillslope_pass_dir_to_swat_recall(
+        wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -1103,8 +1335,8 @@ mod tests {
 
         let recall_path = swat_recall.join("hill_00010.rec");
         let rows = read_recall_rows(&recall_path);
-        let flo: f64 = rows[0][2].parse().unwrap();
-        let sed: f64 = rows[0][3].parse().unwrap();
+        let flo: f64 = rows[0][6].parse().unwrap();
+        let sed: f64 = rows[0][7].parse().unwrap();
         assert!((flo - 12.0).abs() < 1e-6);
         assert!((sed - 0.005).abs() < 1e-6);
     }
@@ -1113,7 +1345,8 @@ mod tests {
     fn swat_recall_manifest_fields_multi_year() {
         let base = make_temp_dir("manifest_fields");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let pass_path = wepp_output.join("H11.pass.dat");
@@ -1122,14 +1355,18 @@ mod tests {
         write_pass_file(&pass_path, 1999, &[line1, line2]);
 
         let version = VersionInfo::new(3, 0);
-        let manifest = hillslope_pass_dir_to_swat_recall(
+        let manifest = wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -1156,32 +1393,41 @@ mod tests {
     fn swat_recall_error_and_empty_dir() {
         let base = make_temp_dir("error_and_empty");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         let version = VersionInfo::new(3, 0);
-        let manifest = hillslope_pass_dir_to_swat_recall(
+        let manifest = wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
         .expect("empty dir");
         assert_eq!(manifest.unwrap().len(), 0);
 
-        let none = hillslope_pass_dir_to_swat_recall(
+        let none = wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             false,
         )
@@ -1191,14 +1437,18 @@ mod tests {
         let bad_path = wepp_output.join("H12.pass.dat");
         let mut file = File::create(&bad_path).unwrap();
         writeln!(file, "bad header").unwrap();
-        let err = hillslope_pass_dir_to_swat_recall(
+        let err = wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(1),
             true,
         )
@@ -1211,7 +1461,8 @@ mod tests {
     fn swat_recall_parallel_path() {
         let base = make_temp_dir("parallel_path");
         let wepp_output = base.join("wepp_output");
-        let swat_recall = base.join("swat_recall");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
         fs::create_dir_all(&wepp_output).unwrap();
 
         for idx in 1..=4 {
@@ -1221,14 +1472,18 @@ mod tests {
         }
 
         let version = VersionInfo::new(3, 0);
-        let manifest = hillslope_pass_dir_to_swat_recall(
+        let manifest = wepp_hillslope_pass_to_swat_recall(
             &wepp_output,
-            &swat_recall,
+            &swat_txtinout,
+            "recall",
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            None,
+            "wea1",
+            "sdc",
             Some(2),
             true,
         )

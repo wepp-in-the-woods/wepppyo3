@@ -135,6 +135,19 @@ fn registry_specs() -> Vec<SwatTableSpec> {
         table_description: Some("SWAT+ checker output".to_string()),
     });
 
+    specs.push(SwatTableSpec {
+        pattern: "files_out.out",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: None,
+        header_merge: false,
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT output manifest".to_string()),
+    });
+
     let mut lu_change_types = HashMap::new();
     lu_change_types.insert("hru".to_string(), ColumnType::Int32);
     lu_change_types.insert("year".to_string(), ColumnType::Int32);
@@ -164,6 +177,32 @@ fn registry_specs() -> Vec<SwatTableSpec> {
         units_overrides: HashMap::new(),
         sentinel_overrides: HashMap::new(),
         table_description: Some("SWAT+ land use change operations".to_string()),
+    });
+
+    specs.push(SwatTableSpec {
+        pattern: "crop_yld_*.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ crop yield outputs".to_string()),
+    });
+
+    specs.push(SwatTableSpec {
+        pattern: "recall_aa.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ recall annual averages".to_string()),
     });
 
     specs

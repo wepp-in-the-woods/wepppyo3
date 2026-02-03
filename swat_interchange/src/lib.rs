@@ -325,6 +325,8 @@ fn swat_outputs_to_parquet(
                         &mut had_error_class,
                         &mut version,
                         &version_path,
+                        files_written,
+                        include_missing.len(),
                     )?;
                     if fail_fast {
                         return Err(PyRuntimeError::new_err("conversion failed"));
@@ -392,6 +394,8 @@ fn swat_outputs_to_parquet(
                         &mut had_error_class,
                         &mut version,
                         &version_path,
+                        files_written,
+                        include_missing.len(),
                     )?;
                 }
             }
@@ -1370,6 +1374,10 @@ fn set_skip(skipped_by_order: &mut Vec<Option<SkipEntry>>, index: usize, entry: 
     }
 }
 
+fn count_skipped(skipped_by_order: &Vec<Option<SkipEntry>>, include_missing_len: usize) -> usize {
+    skipped_by_order.iter().filter(|entry| entry.is_some()).count() + include_missing_len
+}
+
 fn collect_skipped(
     skipped_by_order: Vec<Option<SkipEntry>>,
     include_missing: Vec<String>,
@@ -1416,6 +1424,8 @@ fn handle_file_error(
     had_error_class: &mut bool,
     version: &mut InterchangeVersion,
     version_path: &Path,
+    files_written: usize,
+    include_missing_len: usize,
 ) -> PyResult<()> {
     let reason = err.reason();
     set_skip(
@@ -1435,6 +1445,8 @@ fn handle_file_error(
     });
     if fail_fast {
         version.status = "failed".to_string();
+        version.files_written = Some(files_written);
+        version.files_skipped = Some(count_skipped(skipped_by_order, include_missing_len));
         version.errors = Some(errors.clone());
         if let Err(err) = write_version(version_path, version) {
             return Err(PyRuntimeError::new_err(err.display_message()));

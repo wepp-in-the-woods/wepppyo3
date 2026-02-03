@@ -17,7 +17,6 @@ use crate::registry::{ColumnType, SwatTableSpec};
 const DEFAULT_NUMERIC_SENTINELS: [&str; 3] = ["-9999", "-999", "-99"];
 const DEFAULT_TEXT_SENTINELS: [&str; 4] = ["na", "n/a", "null", "---"];
 const MAX_INFERENCE_SAMPLES: usize = 10_000;
-const MAX_INFERENCE_ROWS: usize = 100_000;
 
 #[derive(Debug, Clone)]
 pub struct ColumnInfo {
@@ -196,7 +195,6 @@ fn infer_column_types(
         .map(|col| col.sentinels.clone())
         .collect::<Vec<_>>();
     let mut idx = 0usize;
-    let mut rows_scanned = 0usize;
     let mut line = String::new();
     loop {
         line.clear();
@@ -215,7 +213,6 @@ fn infer_column_types(
         if line.trim().is_empty() {
             continue;
         }
-        rows_scanned += 1;
         if overflow_non_whitespace(&line, header.header_len) {
             return Err(SwatError::column_mismatch(
                 path,
@@ -242,9 +239,6 @@ fn infer_column_types(
             break;
         }
         if samples.iter().all(|count| *count >= MAX_INFERENCE_SAMPLES) {
-            break;
-        }
-        if rows_scanned >= MAX_INFERENCE_ROWS {
             break;
         }
     }

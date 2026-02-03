@@ -564,20 +564,9 @@ fn generate_interchange_documentation(interchange_dir: String, to_readme_md: boo
     md.push_str("# Interchange Documentation\n\n");
     if let Some(version) = version.as_ref() {
         md.push_str(&format!(
-            "_Interchange Version: {} (generator {})_",
+            "_Interchange Version: {} (generator {})_\n\n",
             version.spec, version.generator_version
         ));
-        md.push('\n');
-        md.push_str(&format!("_Run Output Dir: {}_", version.run_output_dir));
-        md.push('\n');
-        if let Some(run_id) = version.run_id.as_ref() {
-            md.push_str(&format!("_Run ID: {}_", run_id));
-            md.push('\n');
-        }
-        md.push_str(&format!("_Status: {}_", version.status));
-        md.push('\n');
-        md.push_str(&format!("_Created UTC: {}_", version.created_utc));
-        md.push_str("\n\n");
     } else {
         md.push_str(&format!(
             "_Interchange Version: {} (manifest missing)_\n\n",

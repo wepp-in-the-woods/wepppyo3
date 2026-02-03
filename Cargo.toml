@@ -4,6 +4,7 @@ members = [
     "raster",
     "raster_characteristics",
     "sbs_map",
+    "swat_utils",
     "wepp_viz",
     "wepp_interchange",
 ]

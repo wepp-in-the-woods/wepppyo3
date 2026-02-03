@@ -107,6 +107,7 @@ struct RecallConfig {
     filename_template: String,
     include_subsurface: bool,
     include_tile: bool,
+    include_baseflow: bool,
 }
 
 pub fn wepp_hillslope_pass_to_swat_recall(
@@ -118,6 +119,7 @@ pub fn wepp_hillslope_pass_to_swat_recall(
     filename_template: &str,
     include_subsurface: bool,
     include_tile: bool,
+    include_baseflow: bool,
     recall_connections: Option<&[(i32, i32)]>,
     recall_wst: &str,
     recall_object_type: &str,
@@ -147,7 +149,7 @@ pub fn wepp_hillslope_pass_to_swat_recall(
         return if write_manifest { Ok(Some(Vec::new())) } else { Ok(None) };
     }
 
-    let recall_dir = swat_txtinout_dir.join(recall_subdir);
+    let recall_dir = swat_txtinout_dir.to_path_buf();
     let config = RecallConfig {
         swat_txtinout_dir: swat_txtinout_dir.to_path_buf(),
         swat_recall_dir: recall_dir,
@@ -159,6 +161,7 @@ pub fn wepp_hillslope_pass_to_swat_recall(
         filename_template: filename_template.to_string(),
         include_subsurface,
         include_tile,
+        include_baseflow,
     };
 
     fs::create_dir_all(&config.swat_txtinout_dir)
@@ -299,10 +302,12 @@ fn process_pass_task(task: &PassTask, config: &RecallConfig) -> Result<RecallMan
         let runvol = columns.runvol()[idx];
         let sbrunv = columns.sbrunv()[idx];
         let drrunv = columns.drrunv()[idx];
+        let gwbfv = columns.gwbfv()[idx];
 
         let flo = runvol
             + if config.include_subsurface { sbrunv } else { 0.0 }
-            + if config.include_tile { drrunv } else { 0.0 };
+            + if config.include_tile { drrunv } else { 0.0 }
+            + if config.include_baseflow { gwbfv } else { 0.0 };
         let cla = (columns.sedcon_1()[idx] * runvol) / 1000.0;
         let sil = (columns.sedcon_2()[idx] * runvol) / 1000.0;
         let sag = (columns.sedcon_3()[idx] * runvol) / 1000.0;
@@ -505,11 +510,7 @@ fn write_recall_rec(
         let numb = (idx + 1) as i32;
         let name = format_recall_label(&config.filename_template, entry.wepp_id);
         let filename = format_recall_filename(&config.filename_template, entry.wepp_id);
-        let recall_path = if config.recall_subdir.is_empty() {
-            filename
-        } else {
-            format!("{}/{}", config.recall_subdir, filename)
-        };
+        let recall_path = filename;
         writeln!(writer, "{:>6} {:>12} {:>4} {}", numb, name, 1, recall_path)
             .map_err(|err| InterchangeError::io(&recall_rec_path, err))?;
     }
@@ -866,6 +867,49 @@ mod tests {
         line
     }
 
+    fn event_line_with_gw(
+        year: i32,
+        julian: i32,
+        runvol: f64,
+        sbrunv: f64,
+        drrunv: f64,
+        sedcon: [f64; 5],
+        gwbfv: f64,
+        gwdsv: f64,
+    ) -> String {
+        let values = [
+            1.0,  // dur
+            1.0,  // tcs
+            1.0,  // oalpha
+            0.0,  // runoff
+            runvol,
+            0.0,  // sbrunf
+            sbrunv,
+            0.0,  // drainq
+            drrunv,
+            0.0,  // peakro
+            0.0,  // tdet
+            0.0,  // tdep
+            sedcon[0],
+            sedcon[1],
+            sedcon[2],
+            sedcon[3],
+            sedcon[4],
+            0.0,  // clot
+            0.0,  // slot
+            0.0,  // saot
+            0.0,  // laot
+            0.0,  // sdot
+            gwbfv,
+            gwdsv,
+        ];
+        let mut line = format!("EVENT   {year:4} {julian:4}");
+        for value in values {
+            line.push_str(&format!(" {value:.6}"));
+        }
+        line
+    }
+
     fn subevent_line(year: i32, julian: i32, sbrunv: f64, drrunv: f64) -> String {
         let values = [0.0, sbrunv, 0.0, drrunv, 0.0, 0.0];
         let mut line = format!("SUBEVENT {year:4} {julian:4}");
@@ -929,6 +973,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            true,
             None,
             "wea1",
             "sdc",
@@ -983,6 +1028,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1026,6 +1072,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             false,
             false,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1066,6 +1113,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             true,
             false,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1100,6 +1148,7 @@ mod tests {
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
+            true,
             true,
             true,
             None,
@@ -1140,6 +1189,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1178,6 +1228,7 @@ mod tests {
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
+            true,
             true,
             true,
             None,
@@ -1223,6 +1274,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1265,6 +1317,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             false,
             true,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1288,6 +1341,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             false,
             false,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1322,6 +1376,7 @@ mod tests {
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
+            true,
             true,
             true,
             None,
@@ -1362,6 +1417,7 @@ mod tests {
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
+            true,
             true,
             true,
             None,
@@ -1407,6 +1463,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1423,6 +1480,7 @@ mod tests {
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
+            true,
             true,
             true,
             None,
@@ -1444,6 +1502,7 @@ mod tests {
             None,
             &version,
             "hill_{wepp_id:05d}.rec",
+            true,
             true,
             true,
             None,
@@ -1481,6 +1540,7 @@ mod tests {
             "hill_{wepp_id:05d}.rec",
             true,
             true,
+            true,
             None,
             "wea1",
             "sdc",
@@ -1492,5 +1552,76 @@ mod tests {
         assert_eq!(manifest.len(), 4);
         assert_eq!(manifest[0].wepp_id, 1);
         assert_eq!(manifest[3].wepp_id, 4);
+    }
+
+    #[test]
+    fn swat_recall_include_baseflow_flag() {
+        let base = make_temp_dir("include_baseflow");
+        let wepp_output = base.join("wepp_output");
+        let swat_txtinout = base.join("swat_txtinout");
+        let swat_recall = swat_txtinout.join("recall");
+        fs::create_dir_all(&wepp_output).unwrap();
+
+        let pass_path = wepp_output.join("H20.pass.dat");
+        let line = event_line_with_gw(
+            2008,
+            1,
+            0.0,
+            0.0,
+            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            7.25,
+            99.0,
+        );
+        write_pass_file(&pass_path, 2008, &[line]);
+
+        let version = VersionInfo::new(3, 0);
+        wepp_hillslope_pass_to_swat_recall(
+            &wepp_output,
+            &swat_txtinout,
+            "recall",
+            None,
+            &version,
+            "hill_{wepp_id:05d}.rec",
+            false,
+            false,
+            true,
+            None,
+            "wea1",
+            "sdc",
+            Some(1),
+            true,
+        )
+        .expect("run recall")
+        .expect("manifest");
+
+        let recall_path = swat_recall.join("hill_00020.rec");
+        let rows = read_recall_rows(&recall_path);
+        let flo: f64 = rows[0][6].parse().unwrap();
+        assert!((flo - 7.25).abs() < 1e-6);
+
+        fs::remove_file(&recall_path).unwrap();
+        wepp_hillslope_pass_to_swat_recall(
+            &wepp_output,
+            &swat_txtinout,
+            "recall",
+            None,
+            &version,
+            "hill_{wepp_id:05d}.rec",
+            false,
+            false,
+            false,
+            None,
+            "wea1",
+            "sdc",
+            Some(1),
+            true,
+        )
+        .expect("run recall")
+        .expect("manifest");
+
+        let rows = read_recall_rows(&recall_path);
+        let flo: f64 = rows[0][6].parse().unwrap();
+        assert_eq!(flo, 0.0);
     }
 }

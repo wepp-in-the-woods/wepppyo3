@@ -1,7 +1,9 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashSet, VecDeque};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::{mpsc, Arc, Mutex};
+use std::thread;
 use std::time::Instant;
 
 use arrow2::chunk::Chunk;
@@ -95,7 +97,7 @@ fn swat_outputs_to_parquet(
     overwrite: bool,
 ) -> PyResult<PyObject> {
     let start = Instant::now();
-    validate_ncpu(ncpu)?;
+    let ncpu = resolve_ncpu(ncpu)?;
     let chunk_rows = validate_chunk_rows(chunk_rows)?;
     let compression = compression_from_str(compression)?;
     validate_stale_after(stale_after_hours)?;
@@ -184,7 +186,6 @@ fn swat_outputs_to_parquet(
     };
 
     let mut errors = Vec::new();
-    let mut skipped = Vec::new();
 
     let manifest_entries = if manifest_path.exists() {
         match read_manifest(&manifest_path) {
@@ -229,19 +230,13 @@ fn swat_outputs_to_parquet(
         }
     }
 
-    let (candidates, include_missing) = if manifest_entries.is_empty() && include.is_some() {
-        build_candidates_from_include(include.as_ref(), exclude.as_ref(), &mut skipped)
+    let (candidates, mut skipped_by_order, include_missing) = if manifest_entries.is_empty() && include.is_some() {
+        build_candidates_from_include(include.as_ref(), exclude.as_ref())
     } else {
-        build_candidates(&manifest_entries, include.as_ref(), exclude.as_ref(), &mut skipped)
+        build_candidates(&manifest_entries, include.as_ref(), exclude.as_ref())
     };
 
     let files_total = candidates.len();
-    for missing in include_missing {
-        skipped.push(SkipEntry {
-            filename: missing,
-            reason: Reason::NotInManifest,
-        });
-    }
 
     version.files_total = Some(files_total);
     if let Err(err) = write_version(&version_path, &version) {
@@ -256,89 +251,56 @@ fn swat_outputs_to_parquet(
 
     let log_path = interchange_dir.join("interchange.log");
 
-    for candidate in candidates {
-        let source_path = run_output_dir.join(&candidate.filename);
-        if !source_path.exists() {
-            skipped.push(SkipEntry {
-                filename: candidate.filename.clone(),
-                reason: Reason::Missing,
-            });
-            log_event(&log_path, "skip", &candidate.filename, Some(Reason::Missing))?;
-            continue;
-        }
+    let (work_items, work_by_index) = prepare_work_items(
+        &candidates,
+        &run_output_dir,
+        &interchange_dir,
+        overwrite,
+        delete_after_interchange,
+        &log_path,
+        &mut skipped_by_order,
+    )?;
 
-        let output_path = interchange_dir.join(replace_extension(&candidate.filename, "parquet"));
-        if output_path.exists() && !overwrite {
-            skipped.push(SkipEntry {
-                filename: candidate.filename.clone(),
-                reason: Reason::Exists,
-            });
-            log_event(&log_path, "skip", &candidate.filename, Some(Reason::Exists))?;
-            if delete_after_interchange {
-                log_event(&log_path, "delete_skipped", &candidate.filename, Some(Reason::Exists))?;
-            }
-            continue;
-        }
-
-        let before_meta = match source_path.metadata() {
-            Ok(meta) => meta,
-            Err(err) => {
-                let error = SwatError::io(&source_path, err);
-                handle_file_error(
-                    error,
-                    &candidate.filename,
-                    fail_fast,
-                    &mut skipped,
-                    &mut errors,
-                    &mut had_error_class,
-                    &mut version,
-                    &version_path,
-                )?;
-                if fail_fast {
-                    return Err(PyRuntimeError::new_err("conversion failed"));
+    if fail_fast || ncpu <= 1 || work_items.len() <= 1 {
+        for item in work_items.iter() {
+            let result = process_work_item(item, chunk_rows, compression, run_id.as_deref(), overwrite);
+            match result {
+                Ok(WorkOutcome::Written(summary)) => {
+                    files_written += 1;
+                    rows_written += summary.rows_written;
+                    row_groups += summary.row_groups;
+                    output_paths.push(item.output_path.to_string_lossy().into_owned());
+                    log_event(&log_path, "convert", &item.candidate.filename, None)?;
+                    if delete_after_interchange && item.candidate.filename != "files_out.out" {
+                        handle_delete(
+                            &item.source_path,
+                            &item.candidate.filename,
+                            dry_run,
+                            &log_path,
+                        )?;
+                    }
                 }
-                continue;
-            }
-        };
-
-        let spec = resolve_spec(&candidate.filename);
-        let metadata = build_dataset_metadata(
-            &candidate.filename,
-            candidate.category.as_deref(),
-            run_id.as_deref(),
-        );
-        let schema = match table_schema_from_file(&source_path, &spec, metadata) {
-            Ok(schema) => schema,
-            Err(err) => {
-                handle_file_error(
-                    err,
-                    &candidate.filename,
-                    fail_fast,
-                    &mut skipped,
-                    &mut errors,
-                    &mut had_error_class,
-                    &mut version,
-                    &version_path,
-                )?;
-                if fail_fast {
-                    return Err(PyRuntimeError::new_err("conversion failed"));
-                }
-                continue;
-            }
-        };
-
-        match parse_table_to_parquet(&source_path, &output_path, schema, chunk_rows, compression) {
-            Ok(summary) => {
-                if file_changed(&source_path, &before_meta)? {
-                    let err = SwatError::file_changed(
-                        &source_path,
-                        "Source file changed during conversion",
+                Ok(WorkOutcome::Skipped(reason)) => {
+                    set_skip(
+                        &mut skipped_by_order,
+                        item.index,
+                        SkipEntry {
+                            filename: item.candidate.filename.clone(),
+                            reason,
+                        },
                     );
+                    log_event(&log_path, "skip", &item.candidate.filename, Some(reason))?;
+                    if delete_after_interchange {
+                        log_event(&log_path, "delete_skipped", &item.candidate.filename, Some(reason))?;
+                    }
+                }
+                Err(err) => {
                     handle_file_error(
                         err,
-                        &candidate.filename,
+                        &item.candidate.filename,
+                        item.index,
                         fail_fast,
-                        &mut skipped,
+                        &mut skipped_by_order,
                         &mut errors,
                         &mut had_error_class,
                         &mut version,
@@ -347,37 +309,68 @@ fn swat_outputs_to_parquet(
                     if fail_fast {
                         return Err(PyRuntimeError::new_err("conversion failed"));
                     }
-                    continue;
-                }
-
-                files_written += 1;
-                rows_written += summary.rows_written;
-                row_groups += summary.row_groups;
-                output_paths.push(output_path.to_string_lossy().into_owned());
-                log_event(&log_path, "convert", &candidate.filename, None)?;
-
-                if delete_after_interchange && candidate.filename != "files_out.out" {
-                    handle_delete(
-                        &source_path,
-                        &candidate.filename,
-                        dry_run,
-                        &log_path,
-                    )?;
                 }
             }
-            Err(err) => {
-                handle_file_error(
-                    err,
-                    &candidate.filename,
-                    fail_fast,
-                    &mut skipped,
-                    &mut errors,
-                    &mut had_error_class,
-                    &mut version,
-                    &version_path,
-                )?;
-                if fail_fast {
-                    return Err(PyRuntimeError::new_err("conversion failed"));
+        }
+    } else {
+        let results = run_parallel(
+            work_items,
+            ncpu,
+            chunk_rows,
+            compression,
+            run_id.clone(),
+            work_by_index.len(),
+            overwrite,
+        );
+        for (idx, result) in results.into_iter().enumerate() {
+            let Some(item) = work_by_index.get(idx).and_then(|entry| entry.as_ref()) else {
+                continue;
+            };
+            let Some(result) = result else {
+                continue;
+            };
+            match result {
+                Ok(WorkOutcome::Written(summary)) => {
+                    files_written += 1;
+                    rows_written += summary.rows_written;
+                    row_groups += summary.row_groups;
+                    output_paths.push(item.output_path.to_string_lossy().into_owned());
+                    log_event(&log_path, "convert", &item.candidate.filename, None)?;
+                    if delete_after_interchange && item.candidate.filename != "files_out.out" {
+                        handle_delete(
+                            &item.source_path,
+                            &item.candidate.filename,
+                            dry_run,
+                            &log_path,
+                        )?;
+                    }
+                }
+                Ok(WorkOutcome::Skipped(reason)) => {
+                    set_skip(
+                        &mut skipped_by_order,
+                        item.index,
+                        SkipEntry {
+                            filename: item.candidate.filename.clone(),
+                            reason,
+                        },
+                    );
+                    log_event(&log_path, "skip", &item.candidate.filename, Some(reason))?;
+                    if delete_after_interchange {
+                        log_event(&log_path, "delete_skipped", &item.candidate.filename, Some(reason))?;
+                    }
+                }
+                Err(err) => {
+                    handle_file_error(
+                        err,
+                        &item.candidate.filename,
+                        item.index,
+                        false,
+                        &mut skipped_by_order,
+                        &mut errors,
+                        &mut had_error_class,
+                        &mut version,
+                        &version_path,
+                    )?;
                 }
             }
         }
@@ -393,6 +386,8 @@ fn swat_outputs_to_parquet(
             log_event(&log_path, "delete", "files_out.out", None)?;
         }
     }
+
+    let skipped = collect_skipped(skipped_by_order, include_missing);
 
     version.files_written = Some(files_written);
     version.files_skipped = Some(skipped.len());
@@ -608,7 +603,7 @@ fn build_summary_dict(
     })
 }
 
-fn validate_ncpu(ncpu: Option<i32>) -> PyResult<()> {
+fn resolve_ncpu(ncpu: Option<i32>) -> PyResult<usize> {
     if let Some(ncpu) = ncpu {
         if ncpu < 0 {
             return Err(PyValueError::new_err("ncpu must be >= 0"));
@@ -616,8 +611,16 @@ fn validate_ncpu(ncpu: Option<i32>) -> PyResult<()> {
         if ncpu > 32 {
             return Err(PyValueError::new_err("ncpu must be <= 32"));
         }
+        if ncpu == 0 {
+            return Ok(1);
+        }
+        return Ok(ncpu as usize);
     }
-    Ok(())
+
+    let available = thread::available_parallelism()
+        .map(|value| value.get())
+        .unwrap_or(1);
+    Ok(std::cmp::min(available, 4))
 }
 
 fn validate_chunk_rows(chunk_rows: Option<usize>) -> PyResult<usize> {
@@ -713,31 +716,31 @@ fn summary_for_existing_complete(
     interchange_dir: &Path,
     elapsed_ms: u64,
 ) -> PyResult<PyObject> {
-    let mut skipped = Vec::new();
     let manifest_entries = if manifest_path.exists() {
         read_manifest(manifest_path).unwrap_or_default()
     } else {
         Vec::new()
     };
 
-    let (candidates, include_missing) = if manifest_entries.is_empty() && include.is_some() {
-        build_candidates_from_include(include, exclude, &mut skipped)
-    } else {
-        build_candidates(&manifest_entries, include, exclude, &mut skipped)
-    };
+    let (candidates, mut skipped_by_order, include_missing) =
+        if manifest_entries.is_empty() && include.is_some() {
+            build_candidates_from_include(include, exclude)
+        } else {
+            build_candidates(&manifest_entries, include, exclude)
+        };
     let files_total = candidates.len();
     for candidate in candidates {
-        skipped.push(SkipEntry {
-            filename: candidate.filename,
-            reason: Reason::InterchangeComplete,
-        });
+        set_skip(
+            &mut skipped_by_order,
+            candidate.order_index,
+            SkipEntry {
+                filename: candidate.filename,
+                reason: Reason::InterchangeComplete,
+            },
+        );
     }
-    for missing in include_missing {
-        skipped.push(SkipEntry {
-            filename: missing,
-            reason: Reason::NotInManifest,
-        });
-    }
+    let skipped = collect_skipped(skipped_by_order, include_missing);
+    let files_skipped = skipped.len();
 
     let summary = build_summary_dict(
         elapsed_ms,
@@ -745,7 +748,7 @@ fn summary_for_existing_complete(
         interchange_dir,
         files_total,
         0,
-        skipped.len(),
+        files_skipped,
         0,
         0,
         Vec::new(),
@@ -758,9 +761,9 @@ fn build_candidates(
     manifest_entries: &[ManifestEntry],
     include: Option<&Vec<String>>,
     exclude: Option<&Vec<String>>,
-    skipped: &mut Vec<SkipEntry>,
-) -> (Vec<Candidate>, Vec<String>) {
+) -> (Vec<Candidate>, Vec<Option<SkipEntry>>, Vec<String>) {
     let mut candidates = Vec::new();
+    let mut skipped_by_order = Vec::new();
     let mut seen = HashSet::new();
 
     let include_list = include.map(dedupe_list).unwrap_or_default();
@@ -775,14 +778,8 @@ fn build_candidates(
     };
     let include_set: HashSet<String> = include_filtered.iter().cloned().collect();
 
+    let mut order_index = 0usize;
     for entry in manifest_entries.iter() {
-        if validate_basename(&entry.filename).is_err() {
-            skipped.push(SkipEntry {
-                filename: entry.filename.clone(),
-                reason: Reason::PathInvalid,
-            });
-            continue;
-        }
         if !include_set.is_empty() && !include_set.contains(&entry.filename) {
             continue;
         }
@@ -791,17 +788,36 @@ fn build_candidates(
                 continue;
             }
         }
+        let index = order_index;
+        order_index += 1;
+        skipped_by_order.push(None);
+        if validate_basename(&entry.filename).is_err() {
+            set_skip(
+                &mut skipped_by_order,
+                index,
+                SkipEntry {
+                    filename: entry.filename.clone(),
+                    reason: Reason::PathInvalid,
+                },
+            );
+            continue;
+        }
         if seen.contains(&entry.filename) {
-            skipped.push(SkipEntry {
-                filename: entry.filename.clone(),
-                reason: Reason::Duplicate,
-            });
+            set_skip(
+                &mut skipped_by_order,
+                index,
+                SkipEntry {
+                    filename: entry.filename.clone(),
+                    reason: Reason::Duplicate,
+                },
+            );
             continue;
         }
         seen.insert(entry.filename.clone());
         candidates.push(Candidate {
             filename: entry.filename.clone(),
             category: Some(entry.category.clone()),
+            order_index: index,
         });
     }
 
@@ -818,35 +834,43 @@ fn build_candidates(
         }
     }
 
-    (candidates, include_missing)
+    (candidates, skipped_by_order, include_missing)
 }
 
 fn build_candidates_from_include(
     include: Option<&Vec<String>>,
     exclude: Option<&Vec<String>>,
-    skipped: &mut Vec<SkipEntry>,
-) -> (Vec<Candidate>, Vec<String>) {
+) -> (Vec<Candidate>, Vec<Option<SkipEntry>>, Vec<String>) {
     let include_list = include.map(dedupe_list).unwrap_or_default();
+    let include_filtered = if let Some(exclude_list) = exclude {
+        include_list
+            .into_iter()
+            .filter(|item| !exclude_list.contains(item))
+            .collect::<Vec<_>>()
+    } else {
+        include_list
+    };
     let mut candidates = Vec::new();
-    for item in include_list {
-        if let Some(exclude_list) = exclude {
-            if exclude_list.contains(&item) {
-                continue;
-            }
-        }
+    let mut skipped_by_order = vec![None; include_filtered.len()];
+    for (index, item) in include_filtered.into_iter().enumerate() {
         if validate_basename(&item).is_err() {
-            skipped.push(SkipEntry {
-                filename: item.clone(),
-                reason: Reason::PathInvalid,
-            });
+            set_skip(
+                &mut skipped_by_order,
+                index,
+                SkipEntry {
+                    filename: item.clone(),
+                    reason: Reason::PathInvalid,
+                },
+            );
             continue;
         }
         candidates.push(Candidate {
             filename: item.clone(),
             category: None,
+            order_index: index,
         });
     }
-    (candidates, Vec::new())
+    (candidates, skipped_by_order, Vec::new())
 }
 
 fn dedupe_list(values: &Vec<String>) -> Vec<String> {
@@ -858,6 +882,32 @@ fn dedupe_list(values: &Vec<String>) -> Vec<String> {
         }
     }
     output
+}
+
+fn set_skip(skipped_by_order: &mut Vec<Option<SkipEntry>>, index: usize, entry: SkipEntry) {
+    if index >= skipped_by_order.len() {
+        return;
+    }
+    if skipped_by_order[index].is_none() {
+        skipped_by_order[index] = Some(entry);
+    }
+}
+
+fn collect_skipped(
+    skipped_by_order: Vec<Option<SkipEntry>>,
+    include_missing: Vec<String>,
+) -> Vec<SkipEntry> {
+    let mut skipped = Vec::new();
+    for entry in skipped_by_order.into_iter().flatten() {
+        skipped.push(entry);
+    }
+    for missing in include_missing {
+        skipped.push(SkipEntry {
+            filename: missing,
+            reason: Reason::NotInManifest,
+        });
+    }
+    skipped
 }
 
 fn record_run_error(
@@ -882,18 +932,23 @@ fn record_run_error(
 fn handle_file_error(
     err: SwatError,
     filename: &str,
+    order_index: usize,
     fail_fast: bool,
-    skipped: &mut Vec<SkipEntry>,
+    skipped_by_order: &mut Vec<Option<SkipEntry>>,
     errors: &mut Vec<ErrorEntry>,
     had_error_class: &mut bool,
     version: &mut InterchangeVersion,
     version_path: &Path,
 ) -> PyResult<()> {
     let reason = err.reason();
-    skipped.push(SkipEntry {
-        filename: filename.to_string(),
-        reason,
-    });
+    set_skip(
+        skipped_by_order,
+        order_index,
+        SkipEntry {
+            filename: filename.to_string(),
+            reason,
+        },
+    );
     if reason.is_error_class() {
         *had_error_class = true;
     }
@@ -972,8 +1027,8 @@ fn detect_run_output_dir(path: &Path) -> Option<PathBuf> {
     None
 }
 
-fn file_changed(path: &Path, before: &fs::Metadata) -> PyResult<bool> {
-    let after = path.metadata().map_err(|err| PyIOError::new_err(err.to_string()))?;
+fn file_changed(path: &Path, before: &fs::Metadata) -> Result<bool, SwatError> {
+    let after = path.metadata().map_err(|err| SwatError::io(path, err))?;
     let before_mtime = before.modified().ok();
     let after_mtime = after.modified().ok();
     Ok(before.len() != after.len() || before_mtime != after_mtime)
@@ -1075,4 +1130,178 @@ fn to_py_err(err: SwatError) -> PyErr {
 struct Candidate {
     filename: String,
     category: Option<String>,
+    order_index: usize,
+}
+
+#[derive(Debug, Clone)]
+struct WorkItem {
+    index: usize,
+    candidate: Candidate,
+    source_path: PathBuf,
+    output_path: PathBuf,
+}
+
+#[derive(Debug)]
+struct WorkResult {
+    index: usize,
+    result: Result<WorkOutcome, SwatError>,
+}
+
+#[derive(Debug)]
+enum WorkOutcome {
+    Written(WriteSummary),
+    Skipped(Reason),
+}
+
+fn prepare_work_items(
+    candidates: &[Candidate],
+    run_output_dir: &Path,
+    interchange_dir: &Path,
+    overwrite: bool,
+    delete_after_interchange: bool,
+    log_path: &Path,
+    skipped_by_order: &mut Vec<Option<SkipEntry>>,
+) -> PyResult<(Vec<WorkItem>, Vec<Option<WorkItem>>)> {
+    let mut work_items = Vec::new();
+    let mut work_by_index = vec![None; skipped_by_order.len()];
+
+    for candidate in candidates.iter() {
+        let index = candidate.order_index;
+        let source_path = run_output_dir.join(&candidate.filename);
+        if !source_path.exists() {
+            set_skip(
+                skipped_by_order,
+                index,
+                SkipEntry {
+                    filename: candidate.filename.clone(),
+                    reason: Reason::Missing,
+                },
+            );
+            log_event(log_path, "skip", &candidate.filename, Some(Reason::Missing))?;
+            continue;
+        }
+
+        let output_path = interchange_dir.join(replace_extension(&candidate.filename, "parquet"));
+        if output_path.exists() && !overwrite {
+            set_skip(
+                skipped_by_order,
+                index,
+                SkipEntry {
+                    filename: candidate.filename.clone(),
+                    reason: Reason::Exists,
+                },
+            );
+            log_event(log_path, "skip", &candidate.filename, Some(Reason::Exists))?;
+            if delete_after_interchange {
+                log_event(log_path, "delete_skipped", &candidate.filename, Some(Reason::Exists))?;
+            }
+            continue;
+        }
+
+        let item = WorkItem {
+            index,
+            candidate: candidate.clone(),
+            source_path,
+            output_path,
+        };
+        if index < work_by_index.len() {
+            work_by_index[index] = Some(item.clone());
+        }
+        work_items.push(item);
+    }
+
+    Ok((work_items, work_by_index))
+}
+
+fn process_work_item(
+    item: &WorkItem,
+    chunk_rows: usize,
+    compression: CompressionOptions,
+    run_id: Option<&str>,
+    overwrite: bool,
+) -> Result<WorkOutcome, SwatError> {
+    if item.output_path.exists() && !overwrite {
+        return Ok(WorkOutcome::Skipped(Reason::Exists));
+    }
+
+    let before_meta = item
+        .source_path
+        .metadata()
+        .map_err(|err| SwatError::io(&item.source_path, err))?;
+
+    let spec = resolve_spec(&item.candidate.filename);
+    let metadata = build_dataset_metadata(
+        &item.candidate.filename,
+        item.candidate.category.as_deref(),
+        run_id,
+    );
+    let schema = table_schema_from_file(&item.source_path, &spec, metadata)?;
+    let summary = parse_table_to_parquet(
+        &item.source_path,
+        &item.output_path,
+        schema,
+        chunk_rows,
+        compression,
+    )?;
+
+    if file_changed(&item.source_path, &before_meta)? {
+        return Err(SwatError::file_changed(
+            &item.source_path,
+            "Source file changed during conversion",
+        ));
+    }
+
+    Ok(WorkOutcome::Written(summary))
+}
+
+fn run_parallel(
+    work_items: Vec<WorkItem>,
+    ncpu: usize,
+    chunk_rows: usize,
+    compression: CompressionOptions,
+    run_id: Option<String>,
+    total: usize,
+    overwrite: bool,
+) -> Vec<Option<Result<WorkOutcome, SwatError>>> {
+    let queue = Arc::new(Mutex::new(VecDeque::from(work_items.clone())));
+    let (tx, rx) = mpsc::channel::<WorkResult>();
+    let run_id = Arc::new(run_id);
+
+    let mut handles = Vec::new();
+    for _ in 0..ncpu {
+        let queue = Arc::clone(&queue);
+        let tx = tx.clone();
+        let run_id = Arc::clone(&run_id);
+        handles.push(thread::spawn(move || loop {
+            let item = {
+                let mut queue = queue.lock().expect("queue lock");
+                queue.pop_front()
+            };
+            let Some(item) = item else {
+                break;
+            };
+            let result = process_work_item(&item, chunk_rows, compression, run_id.as_deref(), overwrite);
+            let _ = tx.send(WorkResult {
+                index: item.index,
+                result,
+            });
+        }));
+    }
+    drop(tx);
+
+    let mut results: Vec<Option<Result<WorkOutcome, SwatError>>> = Vec::with_capacity(total);
+    results.resize_with(total, || None);
+    for _ in 0..work_items.len() {
+        if let Ok(res) = rx.recv() {
+            if res.index < results.len() {
+                results[res.index] = Some(res.result);
+            }
+        }
+    }
+
+    for handle in handles {
+        let _ = handle.join();
+    }
+
+    results
 }

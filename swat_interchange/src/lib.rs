@@ -1,15 +1,17 @@
 use std::collections::{BTreeMap, HashSet, VecDeque};
-use std::fs::{self, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::Instant;
 
+use arrow2::array::{Array, BooleanArray, DictionaryArray, DictionaryKey, PrimitiveArray, Utf8Array};
 use arrow2::chunk::Chunk;
-use arrow2::datatypes::Metadata;
+use arrow2::datatypes::{DataType, Metadata, Schema};
+use arrow2::io::parquet::read;
 use arrow2::io::parquet::write::CompressionOptions;
-use pyo3::exceptions::{PyIOError, PyRuntimeError, PyValueError};
+use pyo3::exceptions::{PyFileNotFoundError, PyIOError, PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use serde::{Deserialize, Serialize};
@@ -30,6 +32,7 @@ use crate::registry::resolve_spec;
 const SPEC_NAME: &str = "swat-interchange-v1";
 const GENERATOR: &str = "wepppyo3.swat_interchange";
 const GENERATOR_VERSION: &str = env!("CARGO_PKG_VERSION");
+const MAX_SAMPLE_ROWS: usize = 3;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ErrorEntry {
@@ -56,6 +59,12 @@ struct InterchangeVersion {
 struct SkipEntry {
     filename: String,
     reason: Reason,
+}
+
+#[derive(Debug, Clone)]
+struct DocEntry {
+    parquet_path: PathBuf,
+    source_name: Option<String>,
 }
 
 #[pyfunction]
@@ -535,10 +544,69 @@ fn swat_output_to_parquet(
     Ok(summary)
 }
 
+#[pyfunction]
+#[pyo3(signature = (interchange_dir, *, to_readme_md=true))]
+fn generate_interchange_documentation(interchange_dir: String, to_readme_md: bool) -> PyResult<String> {
+    let base = PathBuf::from(interchange_dir);
+    if !base.exists() {
+        return Err(PyFileNotFoundError::new_err(format!(
+            "{} does not exist",
+            base.display()
+        )));
+    }
+
+    let version_path = base.join("interchange_version.json");
+    let version = read_version(&version_path);
+    let manifest_entries = find_manifest_entries(&base, version.as_ref());
+    let doc_entries = build_doc_entries(&base, manifest_entries.as_ref());
+
+    let mut md = String::new();
+    md.push_str("# Interchange Documentation\n\n");
+    if let Some(version) = version.as_ref() {
+        md.push_str(&format!(
+            "_Interchange Version: {} (generator {})_",
+            version.spec, version.generator_version
+        ));
+        md.push('\n');
+        md.push_str(&format!("_Run Output Dir: {}_", version.run_output_dir));
+        md.push('\n');
+        if let Some(run_id) = version.run_id.as_ref() {
+            md.push_str(&format!("_Run ID: {}_", run_id));
+            md.push('\n');
+        }
+        md.push_str(&format!("_Status: {}_", version.status));
+        md.push('\n');
+        md.push_str(&format!("_Created UTC: {}_", version.created_utc));
+        md.push_str("\n\n");
+    } else {
+        md.push_str(&format!(
+            "_Interchange Version: {} (manifest missing)_\n\n",
+            SPEC_NAME
+        ));
+    }
+
+    md.push_str("## SWAT+ Outputs\n\n");
+    for entry in doc_entries {
+        let description = description_for_entry(&entry);
+        let summary = summarize_parquet(&entry.parquet_path, &description).map_err(to_py_err)?;
+        md.push_str(&summary);
+        md.push('\n');
+    }
+
+    if to_readme_md {
+        let readme_path = base.join("README.md");
+        fs::write(&readme_path, md.as_bytes())
+            .map_err(|err| PyIOError::new_err(format!("{}: {}", readme_path.display(), err)))?;
+    }
+
+    Ok(md)
+}
+
 #[pymodule]
 fn swat_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(swat_outputs_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(swat_output_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(generate_interchange_documentation, m)?)?;
     Ok(())
 }
 
@@ -601,6 +669,346 @@ fn build_summary_dict(
         dict.set_item("skipped", skipped_list).unwrap();
         dict.into_py(py)
     })
+}
+
+fn find_manifest_entries(
+    interchange_dir: &Path,
+    version: Option<&InterchangeVersion>,
+) -> Option<Vec<ManifestEntry>> {
+    if let Some(version) = version {
+        let manifest_path = Path::new(&version.run_output_dir).join("files_out.out");
+        if manifest_path.exists() {
+            if let Ok(entries) = read_manifest(&manifest_path) {
+                return Some(entries);
+            }
+        }
+    }
+
+    if let Some(parent) = interchange_dir.parent() {
+        let manifest_path = parent.join("files_out.out");
+        if manifest_path.exists() {
+            if let Ok(entries) = read_manifest(&manifest_path) {
+                return Some(entries);
+            }
+        }
+    }
+
+    None
+}
+
+fn build_doc_entries(interchange_dir: &Path, manifest_entries: Option<&Vec<ManifestEntry>>) -> Vec<DocEntry> {
+    let mut entries = Vec::new();
+    let mut seen = HashSet::new();
+
+    if let Some(manifest_entries) = manifest_entries {
+        for entry in manifest_entries {
+            let parquet_name = replace_extension(&entry.filename, "parquet");
+            let parquet_path = interchange_dir.join(&parquet_name);
+            if parquet_path.exists() {
+                seen.insert(parquet_name);
+                entries.push(DocEntry {
+                    parquet_path,
+                    source_name: Some(entry.filename.clone()),
+                });
+            }
+        }
+    }
+
+    for parquet_name in list_parquet_files(interchange_dir) {
+        if seen.contains(&parquet_name) {
+            continue;
+        }
+        entries.push(DocEntry {
+            parquet_path: interchange_dir.join(&parquet_name),
+            source_name: None,
+        });
+    }
+
+    entries
+}
+
+fn list_parquet_files(interchange_dir: &Path) -> Vec<String> {
+    let mut names = Vec::new();
+    if let Ok(read_dir) = fs::read_dir(interchange_dir) {
+        for entry in read_dir.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|ext| ext.to_str()) != Some("parquet") {
+                continue;
+            }
+            if let Some(name) = path.file_name().and_then(|name| name.to_str()) {
+                names.push(name.to_string());
+            }
+        }
+    }
+    names.sort();
+    names
+}
+
+fn description_for_entry(entry: &DocEntry) -> String {
+    let basename = entry
+        .parquet_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("table.parquet");
+    if let Some(source_name) = entry.source_name.as_ref() {
+        let spec = resolve_spec(source_name);
+        if let Some(description) = spec.table_description {
+            return description;
+        }
+    }
+    format!("SWAT+ output table: {}", basename)
+}
+
+fn summarize_parquet(path: &Path, description: &str) -> Result<String, SwatError> {
+    let (schema, rows) = read_parquet_preview(path, MAX_SAMPLE_ROWS)?;
+    let header = format!(
+        "### `{}`\n\n{}\n\n",
+        path.file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("table.parquet"),
+        description
+    );
+    let schema_md = schema_markdown(&schema);
+    let preview_md = table_preview_markdown(&schema, &rows);
+    Ok(format!(
+        "{header}{schema_md}\n\nPreview:\n\n{preview_md}\n"
+    ))
+}
+
+fn schema_markdown(schema: &Schema) -> String {
+    let mut lines = Vec::new();
+    lines.push("| Column | Type | Units | Description |".to_string());
+    lines.push("| --- | --- | --- | --- |".to_string());
+    for field in &schema.fields {
+        let units = field
+            .metadata
+            .get("units")
+            .map(|value| value.as_str())
+            .unwrap_or("");
+        let description = field
+            .metadata
+            .get("description")
+            .map(|value| value.as_str())
+            .unwrap_or("");
+        lines.push(format!(
+            "| {} | {} | {} | {} |",
+            field.name,
+            data_type_display(&field.data_type),
+            units,
+            description
+        ));
+    }
+    lines.join("\n")
+}
+
+fn table_preview_markdown(schema: &Schema, rows: &[Vec<String>]) -> String {
+    if rows.is_empty() {
+        return "_No rows_\n".to_string();
+    }
+
+    let headers = schema
+        .fields
+        .iter()
+        .map(|field| field.name.as_str())
+        .collect::<Vec<_>>()
+        .join(" | ");
+    let separator = std::iter::repeat("---")
+        .take(schema.fields.len())
+        .collect::<Vec<_>>()
+        .join(" | ");
+    let units_row = schema
+        .fields
+        .iter()
+        .map(|field| {
+            field
+                .metadata
+                .get("units")
+                .map(|value| value.as_str())
+                .unwrap_or("")
+        })
+        .collect::<Vec<_>>()
+        .join(" | ");
+
+    let mut lines = Vec::new();
+    lines.push(headers);
+    lines.push(separator);
+    lines.push(units_row);
+    for row in rows {
+        lines.push(row.join(" | "));
+    }
+    lines.join("\n")
+}
+
+fn read_parquet_preview(path: &Path, max_rows: usize) -> Result<(Schema, Vec<Vec<String>>), SwatError> {
+    let mut reader = File::open(path).map_err(|err| SwatError::io(path, err))?;
+    let metadata = read::read_metadata(&mut reader)?;
+    let schema = read::infer_schema(&metadata)?;
+    let row_groups = metadata.row_groups.clone();
+
+    let mut file_reader = read::FileReader::new(reader, row_groups, schema.clone(), Some(1024 * 8), None, None);
+    let mut rows: Vec<Vec<String>> = Vec::new();
+    if max_rows == 0 {
+        return Ok((schema, rows));
+    }
+
+    for maybe_chunk in &mut file_reader {
+        let chunk = maybe_chunk?;
+        if chunk.len() == 0 {
+            continue;
+        }
+        let arrays = chunk.arrays();
+        for row_idx in 0..chunk.len() {
+            let mut row = Vec::with_capacity(arrays.len());
+            for array in arrays {
+                row.push(format_array_value(array.as_ref(), row_idx));
+            }
+            rows.push(row);
+            if rows.len() >= max_rows {
+                return Ok((schema, rows));
+            }
+        }
+    }
+
+    Ok((schema, rows))
+}
+
+fn data_type_display(data_type: &DataType) -> String {
+    match data_type {
+        DataType::Int8 => "int8".to_string(),
+        DataType::Int16 => "int16".to_string(),
+        DataType::Int32 => "int32".to_string(),
+        DataType::Int64 => "int64".to_string(),
+        DataType::UInt8 => "uint8".to_string(),
+        DataType::UInt16 => "uint16".to_string(),
+        DataType::UInt32 => "uint32".to_string(),
+        DataType::UInt64 => "uint64".to_string(),
+        DataType::Float32 => "float".to_string(),
+        DataType::Float64 => "double".to_string(),
+        DataType::Utf8 => "string".to_string(),
+        DataType::LargeUtf8 => "large_string".to_string(),
+        DataType::Boolean => "bool".to_string(),
+        DataType::Dictionary(_, value_type, _) => data_type_display(value_type.as_ref()),
+        other => format!("{other:?}"),
+    }
+}
+
+fn format_array_value(array: &dyn Array, index: usize) -> String {
+    if !array.is_valid(index) {
+        return String::new();
+    }
+
+    match array.data_type() {
+        DataType::Int8 => format_primitive::<i8>(array, index),
+        DataType::Int16 => format_primitive::<i16>(array, index),
+        DataType::Int32 => format_primitive::<i32>(array, index),
+        DataType::Int64 => format_primitive::<i64>(array, index),
+        DataType::UInt8 => format_primitive::<u8>(array, index),
+        DataType::UInt16 => format_primitive::<u16>(array, index),
+        DataType::UInt32 => format_primitive::<u32>(array, index),
+        DataType::UInt64 => format_primitive::<u64>(array, index),
+        DataType::Float32 => format_float32(array, index),
+        DataType::Float64 => format_float64(array, index),
+        DataType::Utf8 => format_utf8::<i32>(array, index),
+        DataType::LargeUtf8 => format_utf8::<i64>(array, index),
+        DataType::Boolean => format_bool(array, index),
+        DataType::Dictionary(_, _, _) => format_dictionary(array, index),
+        _ => String::new(),
+    }
+}
+
+fn format_primitive<T: arrow2::types::NativeType + std::fmt::Display>(
+    array: &dyn Array,
+    index: usize,
+) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<PrimitiveArray<T>>()
+        .expect("primitive array");
+    array.value(index).to_string()
+}
+
+fn format_float32(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<PrimitiveArray<f32>>()
+        .expect("float32 array");
+    let value = array.value(index);
+    if value.is_nan() {
+        return String::new();
+    }
+    if value.fract() == 0.0 {
+        format!("{:.0}", value)
+    } else {
+        value.to_string()
+    }
+}
+
+fn format_float64(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<PrimitiveArray<f64>>()
+        .expect("float64 array");
+    let value = array.value(index);
+    if value.is_nan() {
+        return String::new();
+    }
+    if value.fract() == 0.0 {
+        format!("{:.0}", value)
+    } else {
+        value.to_string()
+    }
+}
+
+fn format_utf8<O: arrow2::types::Offset>(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<Utf8Array<O>>()
+        .expect("utf8 array");
+    array.value(index).to_string()
+}
+
+fn format_bool(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<BooleanArray>()
+        .expect("boolean array");
+    array.value(index).to_string()
+}
+
+fn format_dictionary(array: &dyn Array, index: usize) -> String {
+    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<i8>>() {
+        return format_dictionary_value(array, index);
+    }
+    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<i16>>() {
+        return format_dictionary_value(array, index);
+    }
+    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<i32>>() {
+        return format_dictionary_value(array, index);
+    }
+    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<i64>>() {
+        return format_dictionary_value(array, index);
+    }
+    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<u8>>() {
+        return format_dictionary_value(array, index);
+    }
+    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<u16>>() {
+        return format_dictionary_value(array, index);
+    }
+    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<u32>>() {
+        return format_dictionary_value(array, index);
+    }
+    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<u64>>() {
+        return format_dictionary_value(array, index);
+    }
+    String::new()
+}
+
+fn format_dictionary_value<K: DictionaryKey>(array: &DictionaryArray<K>, index: usize) -> String {
+    if !array.is_valid(index) {
+        return String::new();
+    }
+    let key = unsafe { array.keys().value(index).as_usize() };
+    format_array_value(array.values().as_ref(), key)
 }
 
 fn resolve_ncpu(ncpu: Option<i32>) -> PyResult<usize> {

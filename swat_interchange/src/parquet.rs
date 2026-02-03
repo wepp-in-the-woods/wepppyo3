@@ -28,7 +28,11 @@ pub struct ParquetSink {
 }
 
 impl ParquetSink {
-    pub fn try_new(path: &Path, schema: Schema, compression: CompressionOptions) -> Result<Self, SwatError> {
+    pub fn try_new(
+        path: &Path,
+        schema: Schema,
+        compression: CompressionOptions,
+    ) -> Result<Self, SwatError> {
         let tmp_path = temp_path_for(path);
         if tmp_path.exists() {
             std::fs::remove_file(&tmp_path).map_err(|err| SwatError::io(&tmp_path, err))?;
@@ -65,7 +69,12 @@ impl ParquetSink {
 
     pub fn write_chunk(&mut self, chunk: Chunk<Box<dyn Array>>) -> Result<(), SwatError> {
         let rows = chunk.len();
-        let row_group = row_group_iter(chunk, self.encodings.clone(), self.fields.clone(), self.options);
+        let row_group = row_group_iter(
+            chunk,
+            self.encodings.clone(),
+            self.fields.clone(),
+            self.options,
+        );
         self.writer.write(row_group)?;
         self.row_groups += 1;
         self.rows_written += rows;
@@ -97,11 +106,7 @@ pub fn empty_chunk(schema: &Schema) -> Chunk<Box<dyn Array>> {
     let arrays = schema
         .fields
         .iter()
-        .map(|field| match field.data_type.to_logical_type() {
-            DataType::Utf8 => empty_dictionary_utf8().boxed(),
-            DataType::LargeUtf8 => empty_dictionary_large_utf8().boxed(),
-            _ => arrow2::array::new_empty_array(field.data_type.clone()),
-        })
+        .map(|field| arrow2::array::new_empty_array(field.data_type.clone()))
         .collect::<Vec<_>>();
     Chunk::new(arrays)
 }
@@ -119,8 +124,10 @@ fn rename_atomic(tmp_path: &Path, final_path: &Path) -> Result<(), SwatError> {
     match std::fs::rename(tmp_path, final_path) {
         Ok(()) => Ok(()),
         Err(err) if err.raw_os_error() == Some(18) => {
-            std::fs::copy(tmp_path, final_path).map_err(|copy_err| SwatError::io(final_path, copy_err))?;
-            std::fs::remove_file(tmp_path).map_err(|remove_err| SwatError::io(tmp_path, remove_err))?;
+            std::fs::copy(tmp_path, final_path)
+                .map_err(|copy_err| SwatError::io(final_path, copy_err))?;
+            std::fs::remove_file(tmp_path)
+                .map_err(|remove_err| SwatError::io(tmp_path, remove_err))?;
             Ok(())
         }
         Err(err) => Err(SwatError::io(tmp_path, err)),
@@ -134,18 +141,4 @@ fn encoding_for_type(data_type: &DataType) -> Encoding {
     }
 }
 
-fn empty_dictionary_utf8() -> arrow2::array::DictionaryArray<i32> {
-    use arrow2::array::{DictionaryArray, PrimitiveArray, Utf8Array};
-
-    let keys = PrimitiveArray::<i32>::from(Vec::<Option<i32>>::new());
-    let values = Utf8Array::<i32>::from_slice(Vec::<String>::new()).boxed();
-    DictionaryArray::try_from_keys(keys, values).expect("empty dictionary array")
-}
-
-fn empty_dictionary_large_utf8() -> arrow2::array::DictionaryArray<i32> {
-    use arrow2::array::{DictionaryArray, PrimitiveArray, Utf8Array};
-
-    let keys = PrimitiveArray::<i32>::from(Vec::<Option<i32>>::new());
-    let values = Utf8Array::<i64>::from_slice(Vec::<String>::new()).boxed();
-    DictionaryArray::try_from_keys(keys, values).expect("empty dictionary array")
-}
+// Empty chunk uses plain arrays to avoid dictionary-encoding requirements.

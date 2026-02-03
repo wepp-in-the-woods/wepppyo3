@@ -3,9 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use arrow2::array::{
-    Array, Float64Array, Int32Array, Int64Array, Utf8Array,
-};
+use arrow2::array::{Array, Float64Array, Int32Array, Int64Array, Utf8Array};
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::{DataType, Field, Metadata, Schema};
 use arrow2::io::parquet::write::CompressionOptions;
@@ -37,6 +35,8 @@ pub struct TableSchema {
     pub boundaries: Vec<usize>,
     pub header_len: usize,
     pub data_start_line: usize,
+    pub whitespace_delimited: bool,
+    pub merge_column: Option<usize>,
 }
 
 pub fn table_schema_from_file(
@@ -83,12 +83,31 @@ pub fn table_schema_from_file(
         metadata: dataset_metadata,
     };
 
+    let merge_column = if spec.merge_column.is_some() {
+        if header_info.merge_column.is_none() {
+            return Err(SwatError::header_error(
+                path,
+                Some(header_info.header_line_no),
+                format!(
+                    "Merge column '{}' not found in header",
+                    spec.merge_column.unwrap_or("")
+                ),
+                Some(header_info.header_line.clone()),
+            ));
+        }
+        header_info.merge_column
+    } else {
+        None
+    };
+
     Ok(TableSchema {
         schema,
         columns,
         boundaries: header_info.boundaries,
         header_len: header_info.header_len,
         data_start_line: header_info.data_start_line,
+        whitespace_delimited: spec.whitespace_delimited,
+        merge_column,
     })
 }
 
@@ -127,20 +146,34 @@ pub fn parse_table_to_parquet(
         if line.trim().is_empty() {
             continue;
         }
-        if overflow_non_whitespace(&line, schema.header_len) {
-            return Err(SwatError::column_mismatch(
+        let values = if schema.whitespace_delimited {
+            parse_whitespace_values(
                 source_path,
-                Some(line_no),
-                "Non-whitespace data beyond last header boundary",
-                Some(line.clone()),
-            ));
-        }
-        let values = slice_line(&line, &schema.boundaries, schema.header_len);
+                line_no,
+                &line,
+                schema.columns.len(),
+                schema.merge_column,
+            )?
+        } else {
+            if overflow_non_whitespace(&line, schema.header_len) {
+                return Err(SwatError::column_mismatch(
+                    source_path,
+                    Some(line_no),
+                    "Non-whitespace data beyond last header boundary",
+                    Some(line.clone()),
+                ));
+            }
+            slice_line(&line, &schema.boundaries, schema.header_len)
+        };
         if values.len() != schema.columns.len() {
             return Err(SwatError::column_mismatch(
                 source_path,
                 Some(line_no),
-                format!("Column count mismatch: expected {}, got {}", schema.columns.len(), values.len()),
+                format!(
+                    "Column count mismatch: expected {}, got {}",
+                    schema.columns.len(),
+                    values.len()
+                ),
                 Some(line.clone()),
             ));
         }
@@ -216,15 +249,19 @@ fn infer_column_types(
             continue;
         }
         rows_scanned += 1;
-        if overflow_non_whitespace(&line, header.header_len) {
-            return Err(SwatError::column_mismatch(
-                path,
-                Some(line_no),
-                "Non-whitespace data beyond last header boundary",
-                Some(line.clone()),
-            ));
-        }
-        let values = slice_line(&line, &header.boundaries, header.header_len);
+        let values = if header.whitespace_delimited {
+            parse_whitespace_values(path, line_no, &line, column_count, header.merge_column)?
+        } else {
+            if overflow_non_whitespace(&line, header.header_len) {
+                return Err(SwatError::column_mismatch(
+                    path,
+                    Some(line_no),
+                    "Non-whitespace data beyond last header boundary",
+                    Some(line.clone()),
+                ));
+            }
+            slice_line(&line, &header.boundaries, header.header_len)
+        };
         for (idx, value) in values.iter().enumerate() {
             if !numeric_possible[idx] || samples[idx] >= MAX_INFERENCE_SAMPLES {
                 continue;
@@ -251,12 +288,21 @@ fn infer_column_types(
 
     let types = numeric_possible
         .into_iter()
-        .map(|is_numeric| if is_numeric { ColumnType::Float64 } else { ColumnType::String })
+        .map(|is_numeric| {
+            if is_numeric {
+                ColumnType::Float64
+            } else {
+                ColumnType::String
+            }
+        })
         .collect::<Vec<_>>();
     Ok(types)
 }
 
-fn build_column_info(header: &HeaderInfo, spec: &SwatTableSpec) -> Result<Vec<ColumnInfo>, SwatError> {
+fn build_column_info(
+    header: &HeaderInfo,
+    spec: &SwatTableSpec,
+) -> Result<Vec<ColumnInfo>, SwatError> {
     let source_names = &header.source_names;
     let registry_keys = registry_keys(source_names);
     let normalized = normalize_names(source_names);
@@ -410,6 +456,8 @@ struct HeaderInfo {
     data_start_line: usize,
     header_line_no: usize,
     header_line: String,
+    whitespace_delimited: bool,
+    merge_column: Option<usize>,
 }
 
 fn read_header_info(path: &Path, spec: &SwatTableSpec) -> Result<HeaderInfo, SwatError> {
@@ -421,7 +469,11 @@ fn read_header_info(path: &Path, spec: &SwatTableSpec) -> Result<HeaderInfo, Swa
 
     for _ in 0..spec.skip_lines {
         buffer.clear();
-        if reader.read_line(&mut buffer).map_err(|err| decode_or_io(path, err))? == 0 {
+        if reader
+            .read_line(&mut buffer)
+            .map_err(|err| decode_or_io(path, err))?
+            == 0
+        {
             return Err(SwatError::header_error(
                 path,
                 None,
@@ -440,7 +492,11 @@ fn read_header_info(path: &Path, spec: &SwatTableSpec) -> Result<HeaderInfo, Swa
     let mut lines = Vec::new();
     for _ in 0..=max_idx {
         buffer.clear();
-        if reader.read_line(&mut buffer).map_err(|err| decode_or_io(path, err))? == 0 {
+        if reader
+            .read_line(&mut buffer)
+            .map_err(|err| decode_or_io(path, err))?
+            == 0
+        {
             return Err(SwatError::header_error(
                 path,
                 Some(line_no),
@@ -460,9 +516,14 @@ fn read_header_info(path: &Path, spec: &SwatTableSpec) -> Result<HeaderInfo, Swa
         .units_line_index
         .and_then(|idx| lines.get(idx).cloned());
 
-    let (source_names, boundaries, header_len) = if spec.header_merge {
+    let (mut source_names, mut boundaries, header_len) = if spec.header_merge {
         let units_line = units_line.clone().ok_or_else(|| {
-            SwatError::header_error(path, Some(line_no), "Missing units line for header merge", None)
+            SwatError::header_error(
+                path,
+                Some(line_no),
+                "Missing units line for header merge",
+                None,
+            )
         })?;
         let header_tokens = parse_tokens(&header_line);
         let units_tokens = parse_tokens(&units_line);
@@ -473,6 +534,16 @@ fn read_header_info(path: &Path, spec: &SwatTableSpec) -> Result<HeaderInfo, Swa
         let header_tokens = parse_tokens(&header_line);
         tokens_to_columns(&header_tokens, header_line.len())
     };
+
+    if let Some(overrides) = &spec.column_names_override {
+        source_names = overrides.iter().map(|name| (*name).to_string()).collect();
+        if source_names.len() > boundaries.len() {
+            boundaries
+                .extend(std::iter::repeat(header_len).take(source_names.len() - boundaries.len()));
+        } else if source_names.len() < boundaries.len() {
+            boundaries.truncate(source_names.len());
+        }
+    }
 
     let mut units = vec![String::new(); source_names.len()];
     if let Some(units_line) = units_line {
@@ -486,6 +557,10 @@ fn read_header_info(path: &Path, spec: &SwatTableSpec) -> Result<HeaderInfo, Swa
 
     let data_start_line = spec.skip_lines + max_idx + 2;
 
+    let merge_column = spec
+        .merge_column
+        .and_then(|name| source_names.iter().position(|col| col == name));
+
     Ok(HeaderInfo {
         source_names,
         boundaries,
@@ -494,6 +569,8 @@ fn read_header_info(path: &Path, spec: &SwatTableSpec) -> Result<HeaderInfo, Swa
         data_start_line,
         header_line_no: spec.skip_lines + spec.header_line_index + 1,
         header_line,
+        whitespace_delimited: spec.whitespace_delimited,
+        merge_column,
     })
 }
 
@@ -531,7 +608,10 @@ fn parse_tokens(line: &str) -> Vec<(usize, String)> {
     tokens
 }
 
-fn tokens_to_columns(tokens: &[(usize, String)], header_len: usize) -> (Vec<String>, Vec<usize>, usize) {
+fn tokens_to_columns(
+    tokens: &[(usize, String)],
+    header_len: usize,
+) -> (Vec<String>, Vec<usize>, usize) {
     let mut names = Vec::new();
     let mut boundaries = Vec::new();
     for (start, name) in tokens.iter() {
@@ -603,6 +683,67 @@ fn slice_line(line: &str, boundaries: &[usize], header_len: usize) -> Vec<String
     values
 }
 
+fn parse_whitespace_values(
+    path: &Path,
+    line_no: usize,
+    line: &str,
+    column_count: usize,
+    merge_column: Option<usize>,
+) -> Result<Vec<String>, SwatError> {
+    let mut tokens = line
+        .split_whitespace()
+        .map(|value| value.to_string())
+        .collect::<Vec<_>>();
+
+    if tokens.len() < column_count {
+        tokens.extend(std::iter::repeat(String::new()).take(column_count - tokens.len()));
+        return Ok(tokens);
+    }
+    if tokens.len() == column_count {
+        return Ok(tokens);
+    }
+
+    if let Some(merge_idx) = merge_column {
+        if merge_idx >= column_count {
+            return Err(SwatError::column_mismatch(
+                path,
+                Some(line_no),
+                format!("Merge column index {merge_idx} out of bounds for {column_count} columns"),
+                Some(line.to_string()),
+            ));
+        }
+        let extra = tokens.len() - column_count;
+        let merge_end = merge_idx + extra;
+        if merge_end >= tokens.len() {
+            return Err(SwatError::column_mismatch(
+                path,
+                Some(line_no),
+                "Merge column span exceeds token count",
+                Some(line.to_string()),
+            ));
+        }
+        let mut merged = Vec::with_capacity(column_count);
+        merged.extend(tokens[..merge_idx].iter().cloned());
+        let merged_value = tokens[merge_idx..=merge_end].join(" ");
+        merged.push(merged_value);
+        merged.extend(tokens[merge_end + 1..].iter().cloned());
+        if merged.len() == column_count {
+            return Ok(merged);
+        }
+    }
+
+    Err(SwatError::column_mismatch(
+        path,
+        Some(line_no),
+        format!(
+            "Column count mismatch: expected {}, got {}",
+            column_count,
+            tokens.len()
+        ),
+        Some(line.to_string()),
+    ))
+}
+
 fn overflow_non_whitespace(line: &str, header_len: usize) -> bool {
     if line.len() <= header_len {
         return false;
@@ -622,6 +763,7 @@ fn decode_or_io(path: &Path, err: std::io::Error) -> SwatError {
 mod tests {
     use super::*;
     use std::fs;
+    use std::io::{BufWriter, Write};
     use std::path::PathBuf;
 
     fn temp_path(filename: &str) -> PathBuf {
@@ -644,6 +786,18 @@ mod tests {
         path
     }
 
+    fn write_temp_with<F>(filename: &str, write_fn: F) -> PathBuf
+    where
+        F: FnOnce(&mut BufWriter<fs::File>),
+    {
+        let path = temp_path(filename);
+        let file = fs::File::create(&path).expect("create temp file");
+        let mut writer = BufWriter::new(file);
+        write_fn(&mut writer);
+        writer.flush().expect("flush temp file");
+        path
+    }
+
     fn base_spec(skip_lines: usize, units_line_index: Option<usize>) -> SwatTableSpec {
         SwatTableSpec {
             pattern: "*",
@@ -651,6 +805,9 @@ mod tests {
             header_line_index: 0,
             units_line_index,
             header_merge: false,
+            whitespace_delimited: false,
+            column_names_override: None,
+            merge_column: None,
             column_types: HashMap::new(),
             column_descriptions: HashMap::new(),
             units_overrides: HashMap::new(),
@@ -686,6 +843,224 @@ mod tests {
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns.len(), 1);
+        assert_eq!(schema.columns[0].data_type, ColumnType::Float64);
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn normalized_names_and_metadata_preserved() {
+        let contents = "A         A         ----      1B\nm         s         kg        -\n1         2         3         4\n";
+        let path = write_temp(contents);
+        let spec = base_spec(0, Some(1));
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
+        let names = schema
+            .columns
+            .iter()
+            .map(|col| col.name.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(names, vec!["a", "a_2", "col_2", "col_1b"]);
+        assert_eq!(schema.columns[0].units, "m");
+        assert_eq!(schema.columns[2].units, "kg");
+        assert_eq!(schema.columns[2].description, "----");
+
+        let field = &schema.schema.fields[2];
+        assert_eq!(
+            field.metadata.get("source_name").map(|v| v.as_str()),
+            Some("----")
+        );
+        assert_eq!(
+            field.metadata.get("description").map(|v| v.as_str()),
+            Some("----")
+        );
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn units_row_blank_preserved() {
+        let contents = "a         b         c\nm                   k\n1         2         3\n";
+        let path = write_temp(contents);
+        let spec = base_spec(0, Some(1));
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
+        assert_eq!(schema.columns.len(), 3);
+        assert_eq!(schema.columns[0].units, "m");
+        assert_eq!(schema.columns[1].units, "");
+        assert_eq!(schema.columns[2].units, "k");
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn units_and_description_overrides_precedence() {
+        let contents = "A   B\nm   s\n1   2\n";
+        let path = write_temp(contents);
+        let mut spec = base_spec(0, Some(1));
+        spec.units_overrides
+            .insert("A".to_string(), "ft".to_string());
+        spec.column_descriptions
+            .insert("A".to_string(), "Alpha".to_string());
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
+        assert_eq!(schema.columns[0].units, "ft");
+        assert_eq!(schema.columns[1].units, "s");
+        assert_eq!(schema.columns[0].description, "Alpha");
+        assert_eq!(schema.columns[1].description, "B");
+
+        let field = &schema.schema.fields[0];
+        assert_eq!(field.metadata.get("units").map(|v| v.as_str()), Some("ft"));
+        assert_eq!(
+            field.metadata.get("description").map(|v| v.as_str()),
+            Some("Alpha")
+        );
+        assert_eq!(
+            field.metadata.get("source_name").map(|v| v.as_str()),
+            Some("A")
+        );
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn header_merge_requires_units_line() {
+        let contents = "a   b\n1   2\n";
+        let path = write_temp(contents);
+        let mut spec = base_spec(0, None);
+        spec.header_merge = true;
+        let metadata = Metadata::new();
+        let err = table_schema_from_file(&path, &spec, metadata).expect_err("header error");
+
+        match err {
+            SwatError::Parse {
+                reason, message, ..
+            } => {
+                assert_eq!(reason, crate::errors::Reason::HeaderError);
+                assert!(message.contains("Missing units line for header merge"));
+            }
+            other => panic!("unexpected error: {other:?}"),
+        }
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn short_line_slices_to_empty_trailing() {
+        let header = "a   b   c";
+        let tokens = parse_tokens(header);
+        let (_, boundaries, header_len) = tokens_to_columns(&tokens, header.len());
+        let values = slice_line("1   2", &boundaries, header_len);
+
+        assert_eq!(values.len(), 3);
+        assert_eq!(values[0], "1");
+        assert_eq!(values[1], "2");
+        assert_eq!(values[2], "");
+    }
+
+    #[test]
+    fn overflow_non_whitespace_triggers_column_mismatch() {
+        let contents = "a   b\n1   2   3\n";
+        let path = write_temp(contents);
+        let spec = base_spec(0, None);
+        let metadata = Metadata::new();
+        let err = table_schema_from_file(&path, &spec, metadata).expect_err("column mismatch");
+
+        match err {
+            SwatError::Parse {
+                reason, message, ..
+            } => {
+                assert_eq!(reason, crate::errors::Reason::ColumnMismatch);
+                assert!(message.contains("Non-whitespace data beyond last header boundary"));
+            }
+            other => panic!("unexpected error: {other:?}"),
+        }
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn whitespace_merge_column_resolves_extra_tokens() {
+        let contents = "id   name   value\n1    alpha beta   2\n";
+        let path = write_temp(contents);
+        let mut spec = base_spec(0, None);
+        spec.whitespace_delimited = true;
+        spec.merge_column = Some("name");
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
+        assert_eq!(schema.columns.len(), 3);
+        assert_eq!(schema.columns[1].data_type, ColumnType::String);
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn column_override_extends_schema_for_whitespace() {
+        let contents = "a   b\nm   s\n1   2   3\n";
+        let path = write_temp(contents);
+        let mut spec = base_spec(0, Some(1));
+        spec.whitespace_delimited = true;
+        spec.column_names_override = Some(vec!["a", "b", "c"]);
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
+        assert_eq!(schema.columns.len(), 3);
+        assert_eq!(schema.columns[0].units, "m");
+        assert_eq!(schema.columns[1].units, "s");
+        assert_eq!(schema.columns[2].units, "");
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn default_numeric_sentinels_case_insensitive() {
+        let sentinels = default_numeric_sentinels();
+        assert!(is_null_numeric("NA", &sentinels));
+        assert!(is_null_numeric("n/a", &sentinels));
+        assert!(is_null_numeric("Null", &sentinels));
+        assert!(is_null_numeric("---", &sentinels));
+        assert!(is_null_numeric("-999", &sentinels));
+    }
+
+    #[test]
+    fn inference_stops_after_sample_cap() {
+        let path = write_temp_with("sample_cap.txt", |writer| {
+            writeln!(writer, "value").expect("write header");
+            for _ in 0..MAX_INFERENCE_SAMPLES {
+                writeln!(writer, "1.0").expect("write sample");
+            }
+            writeln!(writer, "oops").expect("write non-numeric");
+        });
+        let spec = base_spec(0, None);
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
+        assert_eq!(schema.columns[0].data_type, ColumnType::Float64);
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn inference_stops_after_row_cap() {
+        let path = write_temp_with("row_cap.txt", |writer| {
+            writeln!(writer, "value").expect("write header");
+            for idx in 0..MAX_INFERENCE_ROWS {
+                if idx % 50 == 0 {
+                    writeln!(writer, "1.0").expect("write numeric");
+                } else {
+                    writeln!(writer, "NA").expect("write null");
+                }
+            }
+            writeln!(writer, "oops").expect("write non-numeric");
+        });
+        let spec = base_spec(0, None);
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
         assert_eq!(schema.columns[0].data_type, ColumnType::Float64);
 
         let _ = fs::remove_file(path);
@@ -753,7 +1128,13 @@ impl ColumnBuffer {
         }
     }
 
-    fn push(&mut self, value: &str, column: &ColumnInfo, path: &Path, line_no: usize) -> Result<(), SwatError> {
+    fn push(
+        &mut self,
+        value: &str,
+        column: &ColumnInfo,
+        path: &Path,
+        line_no: usize,
+    ) -> Result<(), SwatError> {
         match self.data_type {
             ColumnType::Float64 => {
                 let trimmed = value.trim();

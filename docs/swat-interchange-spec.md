@@ -195,10 +195,11 @@ Define a shared, reusable text table parser in the swat_interchange crate (or a 
 - Column-position parsing as the primary strategy.
 - If a line is shorter than the last column boundary, pad missing trailing columns with nulls.
 - Optional whitespace-delimited fallback may be enabled explicitly for legacy tables; otherwise do not re-tokenize lines.
+- When whitespace fallback is enabled, a registry merge column may rejoin extra tokens into a single field (multi-word strings).
 - Per-column type casting (string/int/float) with registry overrides.
 - Chunked iteration for streaming Parquet writes.
 - Short lines (missing trailing columns) are padded and are not considered a column-count mismatch.
-- Column-count mismatch errors only occur when non-whitespace data extends past the last column boundary or when fallback tokenization yields extra columns.
+- Column-count mismatch errors only occur when non-whitespace data extends past the last column boundary or when fallback tokenization yields extra columns that cannot be merged.
 
 ### Missing values
 - Empty or whitespace-only fields are `null`.
@@ -219,10 +220,13 @@ Define a shared, reusable text table parser in the swat_interchange crate (or a 
 Provide a registry (`SwatTableSpec`) keyed by basename to override:
 - `skip_lines`: number of leading lines to skip before header.
 - `header_line_index` and `units_line_index`.
+- `whitespace_delimited` to explicitly opt into whitespace parsing.
 - `column_types` (int/float/string).
+- `column_names_override` when SWAT+ headers are known to be out of sync with data payloads.
 - `column_descriptions`.
 - `units_overrides` when the units row is absent or ambiguous.
 - `sentinel_overrides` to map file-specific missing values.
+- `merge_column` to absorb extra whitespace tokens into a single named field.
 - `table_description` for README generation.
 
 Registry behavior:

@@ -15,6 +15,9 @@ pub struct SwatTableSpec {
     pub header_line_index: usize,
     pub units_line_index: Option<usize>,
     pub header_merge: bool,
+    pub whitespace_delimited: bool,
+    pub column_names_override: Option<Vec<&'static str>>,
+    pub merge_column: Option<&'static str>,
     pub column_types: HashMap<String, ColumnType>,
     pub column_descriptions: HashMap<String, String>,
     pub units_overrides: HashMap<String, String>,
@@ -30,6 +33,9 @@ impl SwatTableSpec {
             header_line_index: 0,
             units_line_index: Some(1),
             header_merge: false,
+            whitespace_delimited: false,
+            column_names_override: None,
+            merge_column: None,
             column_types: HashMap::new(),
             column_descriptions: HashMap::new(),
             units_overrides: HashMap::new(),
@@ -61,7 +67,8 @@ pub fn resolve_spec(basename: &str) -> SwatTableSpec {
         best = Some((is_exact, len, spec));
     }
 
-    best.map(|(_, _, spec)| spec).unwrap_or_else(SwatTableSpec::default_spec)
+    best.map(|(_, _, spec)| spec)
+        .unwrap_or_else(SwatTableSpec::default_spec)
 }
 
 fn matches_pattern(pattern: &str, text: &str) -> bool {
@@ -128,6 +135,9 @@ fn registry_specs() -> Vec<SwatTableSpec> {
         header_line_index: 0,
         units_line_index: Some(1),
         header_merge: true,
+        whitespace_delimited: false,
+        column_names_override: None,
+        merge_column: None,
         column_types: checker_types,
         column_descriptions: checker_desc,
         units_overrides: checker_units,
@@ -141,6 +151,9 @@ fn registry_specs() -> Vec<SwatTableSpec> {
         header_line_index: 0,
         units_line_index: None,
         header_merge: false,
+        whitespace_delimited: false,
+        column_names_override: None,
+        merge_column: None,
         column_types: HashMap::new(),
         column_descriptions: HashMap::new(),
         units_overrides: HashMap::new(),
@@ -172,6 +185,9 @@ fn registry_specs() -> Vec<SwatTableSpec> {
         header_line_index: 0,
         units_line_index: None,
         header_merge: false,
+        whitespace_delimited: false,
+        column_names_override: None,
+        merge_column: None,
         column_types: lu_change_types,
         column_descriptions: lu_change_desc,
         units_overrides: HashMap::new(),
@@ -185,6 +201,9 @@ fn registry_specs() -> Vec<SwatTableSpec> {
         header_line_index: 0,
         units_line_index: Some(1),
         header_merge: false,
+        whitespace_delimited: false,
+        column_names_override: None,
+        merge_column: None,
         column_types: HashMap::new(),
         column_descriptions: HashMap::new(),
         units_overrides: HashMap::new(),
@@ -193,16 +212,275 @@ fn registry_specs() -> Vec<SwatTableSpec> {
     });
 
     specs.push(SwatTableSpec {
+        pattern: "hru_soilcarb_*.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: None,
+        merge_column: Some("name"),
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ soil carbon gains/losses".to_string()),
+    });
+
+    let rescarb_columns = vec![
+        "jday",
+        "mon",
+        "day",
+        "yr",
+        "unit",
+        "gis_id",
+        "name",
+        "plant_surf_c",
+        "plant_root_c",
+        "rsd_surfdecay_c",
+        "rsd_rootdecay_c",
+        "harv_stov_c",
+        "emit_c",
+    ];
+    let mut rescarb_units = HashMap::new();
+    for key in [
+        "plant_surf_c",
+        "plant_root_c",
+        "rsd_surfdecay_c",
+        "rsd_rootdecay_c",
+        "harv_stov_c",
+        "emit_c",
+    ] {
+        rescarb_units.insert(key.to_string(), "kg C/ha".to_string());
+    }
+    specs.push(SwatTableSpec {
+        pattern: "hru_rescarb_*.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: Some(rescarb_columns),
+        merge_column: Some("name"),
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: rescarb_units,
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ residue carbon gains/losses".to_string()),
+    });
+
+    let plcarb_columns = vec![
+        "jday",
+        "mon",
+        "day",
+        "yr",
+        "unit",
+        "gis_id",
+        "name",
+        "npp_c",
+        "harv_abgr_c",
+        "harv_root_c",
+        "drop_c",
+        "grazeat_c",
+        "emit_c",
+    ];
+    let mut plcarb_units = HashMap::new();
+    for key in [
+        "npp_c",
+        "harv_abgr_c",
+        "harv_root_c",
+        "drop_c",
+        "grazeat_c",
+        "emit_c",
+    ] {
+        plcarb_units.insert(key.to_string(), "kg C/ha".to_string());
+    }
+    specs.push(SwatTableSpec {
+        pattern: "hru_plcarb_*.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: Some(plcarb_columns),
+        merge_column: Some("name"),
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: plcarb_units,
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ plant carbon gains/losses".to_string()),
+    });
+
+    specs.push(SwatTableSpec {
+        pattern: "hru_scf_*.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: None,
+        merge_column: Some("name"),
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ soil carbon transformations".to_string()),
+    });
+
+    specs.push(SwatTableSpec {
+        pattern: "hru_ls_*.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: None,
+        merge_column: Some("mgt_ops"),
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ HRU losses outputs".to_string()),
+    });
+
+    let basin_wb_aa_columns = vec![
+        "jday",
+        "mon",
+        "day",
+        "yr",
+        "unit",
+        "gis_id",
+        "name",
+        "precip",
+        "snofall",
+        "snomlt",
+        "surq_gen",
+        "latq",
+        "wateryld",
+        "perc",
+        "et",
+        "ecanopy",
+        "eplant",
+        "esoil",
+        "surq_cont",
+        "cn",
+        "sw_init",
+        "sw_final",
+        "sw_ave",
+        "sw_300",
+        "sno_init",
+        "sno_final",
+        "snopack",
+        "pet",
+        "qtile",
+        "irr",
+        "surq_runon",
+        "latq_runon",
+        "overbank",
+        "surq_cha",
+        "surq_res",
+        "surq_ls",
+        "latq_cha",
+        "latq_res",
+        "latq_ls",
+        "gwsoilq",
+        "satex",
+        "satex_chan",
+        "sw_change",
+        "lagsurf",
+        "laglatq",
+        "lagsatex",
+        "wet_evap",
+        "wet_oflo",
+        "wet_stor",
+        "cal_sim",
+        "cal_adj",
+    ];
+    let mut basin_wb_aa_units = HashMap::new();
+    basin_wb_aa_units.insert("cal_sim".to_string(), "".to_string());
+    basin_wb_aa_units.insert("cal_adj".to_string(), "".to_string());
+    let mut basin_wb_aa_types = HashMap::new();
+    basin_wb_aa_types.insert("cal_sim".to_string(), ColumnType::String);
+    specs.push(SwatTableSpec {
+        pattern: "basin_wb_aa.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: Some(basin_wb_aa_columns),
+        merge_column: Some("cal_sim"),
+        column_types: basin_wb_aa_types,
+        column_descriptions: HashMap::new(),
+        units_overrides: basin_wb_aa_units,
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ basin water balance (average annual)".to_string()),
+    });
+
+    specs.push(SwatTableSpec {
         pattern: "recall_aa.txt",
         skip_lines: 1,
         header_line_index: 0,
         units_line_index: Some(1),
         header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: None,
+        merge_column: Some("name"),
         column_types: HashMap::new(),
         column_descriptions: HashMap::new(),
         units_overrides: HashMap::new(),
         sentinel_overrides: HashMap::new(),
         table_description: Some("SWAT+ recall annual averages".to_string()),
+    });
+
+    specs.push(SwatTableSpec {
+        pattern: "basin_psc_aa.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: None,
+        merge_column: Some("name"),
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some(
+            "SWAT+ basin point source contributions (average annual)".to_string(),
+        ),
+    });
+
+    specs.push(SwatTableSpec {
+        pattern: "ru_day.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: None,
+        merge_column: Some("name"),
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ routing unit daily outputs".to_string()),
+    });
+
+    specs.push(SwatTableSpec {
+        pattern: "ru_aa.txt",
+        skip_lines: 1,
+        header_line_index: 0,
+        units_line_index: Some(1),
+        header_merge: false,
+        whitespace_delimited: true,
+        column_names_override: None,
+        merge_column: Some("name"),
+        column_types: HashMap::new(),
+        column_descriptions: HashMap::new(),
+        units_overrides: HashMap::new(),
+        sentinel_overrides: HashMap::new(),
+        table_description: Some("SWAT+ routing unit average annual outputs".to_string()),
     });
 
     specs
@@ -223,5 +501,23 @@ mod tests {
     fn glob_match_for_crop_yield() {
         let spec = resolve_spec("crop_yld_001.txt");
         assert_eq!(spec.pattern, "crop_yld_*.txt");
+    }
+
+    #[test]
+    fn default_spec_for_unknown() {
+        let spec = resolve_spec("unknown.txt");
+        assert_eq!(spec.pattern, "*");
+        assert_eq!(spec.skip_lines, 1);
+        assert_eq!(spec.header_line_index, 0);
+        assert_eq!(spec.units_line_index, Some(1));
+        assert!(!spec.header_merge);
+    }
+
+    #[test]
+    fn wildcard_matching_variants() {
+        assert!(matches_pattern("foo*.txt", "foobar.txt"));
+        assert!(matches_pattern("*bar.txt", "foobar.txt"));
+        assert!(matches_pattern("foo*bar.txt", "foobazbar.txt"));
+        assert!(!matches_pattern("foo*bar.txt", "foobaz.txt"));
     }
 }

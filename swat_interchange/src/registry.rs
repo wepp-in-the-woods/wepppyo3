@@ -40,22 +40,28 @@ impl SwatTableSpec {
 }
 
 pub fn resolve_spec(basename: &str) -> SwatTableSpec {
-    let mut best: Option<(usize, SwatTableSpec)> = None;
+    let mut best: Option<(bool, usize, SwatTableSpec)> = None;
     for spec in registry_specs() {
         if !matches_pattern(spec.pattern, basename) {
             continue;
         }
+        let is_exact = !spec.pattern.contains('*');
         let len = spec.pattern.len();
         match &best {
-            Some((best_len, _)) if *best_len > len => continue,
-            Some((best_len, _)) if *best_len == len => continue,
-            _ => {
-                best = Some((len, spec));
+            Some((best_exact, best_len, _)) => {
+                if *best_exact && !is_exact {
+                    continue;
+                }
+                if *best_exact == is_exact && *best_len >= len {
+                    continue;
+                }
             }
+            None => {}
         }
+        best = Some((is_exact, len, spec));
     }
 
-    best.map(|(_, spec)| spec).unwrap_or_else(SwatTableSpec::default_spec)
+    best.map(|(_, _, spec)| spec).unwrap_or_else(SwatTableSpec::default_spec)
 }
 
 fn matches_pattern(pattern: &str, text: &str) -> bool {

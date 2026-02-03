@@ -236,7 +236,12 @@ fn swat_outputs_to_parquet(
     if write_manifest && manifest_path.exists() {
         let manifest_output = interchange_dir.join("files_out.parquet");
         if overwrite || !manifest_output.exists() {
-            if let Err(err) = write_manifest_parquet(&manifest_output, &manifest_entries) {
+            if let Err(err) = write_manifest_parquet(
+                &manifest_output,
+                &manifest_entries,
+                run_id.as_deref(),
+                compression,
+            ) {
                 return Err(PyRuntimeError::new_err(err.display_message()));
             }
         }
@@ -308,6 +313,8 @@ fn swat_outputs_to_parquet(
                     }
                 }
                 Err(err) => {
+                    let reason = err.reason();
+                    log_event(&log_path, "error", &item.candidate.filename, Some(reason))?;
                     handle_file_error(
                         err,
                         &item.candidate.filename,
@@ -373,6 +380,8 @@ fn swat_outputs_to_parquet(
                     }
                 }
                 Err(err) => {
+                    let reason = err.reason();
+                    log_event(&log_path, "error", &item.candidate.filename, Some(reason))?;
                     handle_file_error(
                         err,
                         &item.candidate.filename,
@@ -462,9 +471,6 @@ fn swat_output_to_parquet(
 
     let source_path = PathBuf::from(source_path);
     let output_path = PathBuf::from(output_path);
-    let before_meta = source_path
-        .metadata()
-        .map_err(|err| PyRuntimeError::new_err(format!("{}: {}", source_path.display(), err)))?;
 
     if delete_after_interchange {
         let run_output_dir = detect_run_output_dir(&source_path);
@@ -502,6 +508,10 @@ fn swat_output_to_parquet(
         );
         return Ok(summary);
     }
+
+    let before_meta = source_path
+        .metadata()
+        .map_err(|err| PyRuntimeError::new_err(format!("{}: {}", source_path.display(), err)))?;
 
     let spec = resolve_spec(
         source_path
@@ -1501,7 +1511,12 @@ fn file_changed(path: &Path, before: &fs::Metadata) -> Result<bool, SwatError> {
     Ok(before.len() != after.len() || before_mtime != after_mtime)
 }
 
-fn write_manifest_parquet(path: &Path, entries: &[ManifestEntry]) -> Result<WriteSummary, SwatError> {
+fn write_manifest_parquet(
+    path: &Path,
+    entries: &[ManifestEntry],
+    run_id: Option<&str>,
+    compression: CompressionOptions,
+) -> Result<WriteSummary, SwatError> {
     let categories = entries
         .iter()
         .map(|entry| Some(entry.category.clone()))
@@ -1549,6 +1564,9 @@ fn write_manifest_parquet(path: &Path, entries: &[ManifestEntry]) -> Result<Writ
     let mut metadata = BTreeMap::new();
     metadata.insert("swat_interchange_version".to_string(), SPEC_NAME.to_string());
     metadata.insert("source_file".to_string(), "files_out.out".to_string());
+    if let Some(run_id) = run_id {
+        metadata.insert("run_id".to_string(), run_id.to_string());
+    }
 
     let schema = arrow2::datatypes::Schema {
         fields,
@@ -1562,7 +1580,7 @@ fn write_manifest_parquet(path: &Path, entries: &[ManifestEntry]) -> Result<Writ
         arrow2::array::Int32Array::from(line_nos).boxed(),
     ];
     let chunk = Chunk::new(arrays);
-    write_single_chunk(path, schema, chunk, CompressionOptions::Snappy)
+    write_single_chunk(path, schema, chunk, compression)
 }
 
 fn manifest_field(
@@ -1634,20 +1652,6 @@ fn prepare_work_items(
 
     for candidate in candidates.iter() {
         let index = candidate.order_index;
-        let source_path = run_output_dir.join(&candidate.filename);
-        if !source_path.exists() {
-            set_skip(
-                skipped_by_order,
-                index,
-                SkipEntry {
-                    filename: candidate.filename.clone(),
-                    reason: Reason::Missing,
-                },
-            );
-            log_event(log_path, "skip", &candidate.filename, Some(Reason::Missing))?;
-            continue;
-        }
-
         let output_path = interchange_dir.join(replace_extension(&candidate.filename, "parquet"));
         if output_path.exists() && !overwrite {
             set_skip(
@@ -1662,6 +1666,20 @@ fn prepare_work_items(
             if delete_after_interchange {
                 log_event(log_path, "delete_skipped", &candidate.filename, Some(Reason::Exists))?;
             }
+            continue;
+        }
+
+        let source_path = run_output_dir.join(&candidate.filename);
+        if !source_path.exists() {
+            set_skip(
+                skipped_by_order,
+                index,
+                SkipEntry {
+                    filename: candidate.filename.clone(),
+                    reason: Reason::Missing,
+                },
+            );
+            log_event(log_path, "skip", &candidate.filename, Some(Reason::Missing))?;
             continue;
         }
 

@@ -16,6 +16,8 @@ use crate::registry::{ColumnType, SwatTableSpec};
 
 const DEFAULT_NUMERIC_SENTINELS: [&str; 3] = ["-9999", "-999", "-99"];
 const DEFAULT_TEXT_SENTINELS: [&str; 4] = ["na", "n/a", "null", "---"];
+const MAX_INFERENCE_SAMPLES: usize = 10_000;
+const MAX_INFERENCE_ROWS: usize = 100_000;
 
 #[derive(Debug, Clone)]
 pub struct ColumnInfo {
@@ -55,7 +57,7 @@ pub fn table_schema_from_file(
     }
 
     if needs_inference(spec, &columns) {
-        let inferred = infer_column_types(path, &header_info, columns.len())?;
+        let inferred = infer_column_types(path, &header_info, &columns)?;
         for (col, inferred_type) in columns.iter_mut().zip(inferred.into_iter()) {
             if !spec.column_types.contains_key(&col.registry_key) {
                 col.data_type = inferred_type;
@@ -176,8 +178,12 @@ fn needs_inference(spec: &SwatTableSpec, columns: &[ColumnInfo]) -> bool {
 fn infer_column_types(
     path: &Path,
     header: &HeaderInfo,
-    column_count: usize,
+    columns: &[ColumnInfo],
 ) -> Result<Vec<ColumnType>, SwatError> {
+    let column_count = columns.len();
+    if column_count == 0 {
+        return Ok(Vec::new());
+    }
     let file = File::open(path).map_err(|err| SwatError::io(path, err))?;
     let mut reader = BufReader::new(file);
 
@@ -185,8 +191,12 @@ fn infer_column_types(
     let mut samples = vec![0usize; column_count];
     let mut done = 0usize;
 
-    let default_sentinels = default_numeric_sentinels();
+    let sentinels = columns
+        .iter()
+        .map(|col| col.sentinels.clone())
+        .collect::<Vec<_>>();
     let mut idx = 0usize;
+    let mut rows_scanned = 0usize;
     let mut line = String::new();
     loop {
         line.clear();
@@ -205,6 +215,7 @@ fn infer_column_types(
         if line.trim().is_empty() {
             continue;
         }
+        rows_scanned += 1;
         if overflow_non_whitespace(&line, header.header_len) {
             return Err(SwatError::column_mismatch(
                 path,
@@ -215,10 +226,10 @@ fn infer_column_types(
         }
         let values = slice_line(&line, &header.boundaries, header.header_len);
         for (idx, value) in values.iter().enumerate() {
-            if !numeric_possible[idx] || samples[idx] >= 10_000 {
+            if !numeric_possible[idx] || samples[idx] >= MAX_INFERENCE_SAMPLES {
                 continue;
             }
-            if is_null_numeric(value, &default_sentinels) {
+            if is_null_numeric(value, &sentinels[idx]) {
                 continue;
             }
             samples[idx] += 1;
@@ -230,7 +241,10 @@ fn infer_column_types(
         if done == column_count {
             break;
         }
-        if samples.iter().all(|count| *count >= 10_000) {
+        if samples.iter().all(|count| *count >= MAX_INFERENCE_SAMPLES) {
+            break;
+        }
+        if rows_scanned >= MAX_INFERENCE_ROWS {
             break;
         }
     }
@@ -248,10 +262,11 @@ fn build_column_info(header: &HeaderInfo, spec: &SwatTableSpec) -> Result<Vec<Co
     let normalized = normalize_names(source_names);
 
     let mut columns = Vec::new();
-    for ((source_name, registry_key), name) in source_names
+    for (idx, ((source_name, registry_key), name)) in source_names
         .iter()
         .zip(registry_keys.iter())
         .zip(normalized.iter())
+        .enumerate()
     {
         let data_type = spec
             .column_types
@@ -263,12 +278,7 @@ fn build_column_info(header: &HeaderInfo, spec: &SwatTableSpec) -> Result<Vec<Co
             .units_overrides
             .get(registry_key)
             .cloned()
-            .or_else(|| {
-                header
-                    .units
-                    .get(source_name)
-                    .map(|unit| unit.to_string())
-            })
+            .or_else(|| header.units.get(idx).cloned())
             .unwrap_or_else(String::new);
 
         let description = spec
@@ -396,7 +406,7 @@ struct HeaderInfo {
     source_names: Vec<String>,
     boundaries: Vec<usize>,
     header_len: usize,
-    units: HashMap<String, String>,
+    units: Vec<String>,
     data_start_line: usize,
     header_line_no: usize,
     header_line: String,
@@ -464,11 +474,13 @@ fn read_header_info(path: &Path, spec: &SwatTableSpec) -> Result<HeaderInfo, Swa
         tokens_to_columns(&header_tokens, header_line.len())
     };
 
-    let mut units = HashMap::new();
+    let mut units = vec![String::new(); source_names.len()];
     if let Some(units_line) = units_line {
         let units_values = slice_line(&units_line, &boundaries, header_len);
-        for (name, value) in source_names.iter().zip(units_values.into_iter()) {
-            units.insert(name.clone(), value.trim().to_string());
+        for (idx, value) in units_values.into_iter().enumerate() {
+            if idx < units.len() {
+                units[idx] = value.trim().to_string();
+            }
         }
     }
 

@@ -129,7 +129,7 @@ fn rename_atomic(tmp_path: &Path, final_path: &Path) -> Result<(), SwatError> {
 
 fn encoding_for_type(data_type: &DataType) -> Encoding {
     match data_type.to_logical_type() {
-        DataType::Utf8 | DataType::LargeUtf8 => Encoding::RleDictionary,
+        DataType::Utf8 | DataType::LargeUtf8 => Encoding::Plain,
         _ => Encoding::Plain,
     }
 }

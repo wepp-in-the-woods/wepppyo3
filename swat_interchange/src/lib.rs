@@ -254,7 +254,12 @@ fn swat_outputs_to_parquet(
         build_candidates(&manifest_entries, include.as_ref(), exclude.as_ref())
     };
 
-    let files_total = candidates.len();
+    let include_filtered_len = filtered_include_len(include.as_ref(), exclude.as_ref());
+    let files_total = if include.is_some() {
+        include_filtered_len
+    } else {
+        candidates.len()
+    };
 
     version.files_total = Some(files_total);
     if let Err(err) = write_version(&version_path, &version) {
@@ -1208,7 +1213,12 @@ fn summary_for_existing_complete(
     } else {
         build_candidates(&manifest_entries, include, exclude)
     };
-    let files_total = candidates.len();
+    let include_filtered_len = filtered_include_len(include, exclude);
+    let files_total = if include.is_some() {
+        include_filtered_len
+    } else {
+        candidates.len()
+    };
     for candidate in candidates {
         set_skip(
             &mut skipped_by_order,
@@ -1219,7 +1229,13 @@ fn summary_for_existing_complete(
             },
         );
     }
-    let skipped = collect_skipped(skipped_by_order, include_missing);
+    let mut skipped = skipped_by_order.into_iter().flatten().collect::<Vec<_>>();
+    for missing in include_missing {
+        skipped.push(SkipEntry {
+            filename: missing,
+            reason: Reason::InterchangeComplete,
+        });
+    }
     let files_skipped = skipped.len();
 
     let summary = build_summary_dict(
@@ -1363,6 +1379,18 @@ fn dedupe_list(values: &Vec<String>) -> Vec<String> {
         }
     }
     output
+}
+
+fn filtered_include_len(include: Option<&Vec<String>>, exclude: Option<&Vec<String>>) -> usize {
+    let include_list = include.map(dedupe_list).unwrap_or_default();
+    if let Some(exclude_list) = exclude {
+        include_list
+            .iter()
+            .filter(|item| !exclude_list.contains(item))
+            .count()
+    } else {
+        include_list.len()
+    }
 }
 
 fn set_skip(skipped_by_order: &mut Vec<Option<SkipEntry>>, index: usize, entry: SkipEntry) {

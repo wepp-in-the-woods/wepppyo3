@@ -207,12 +207,11 @@ Define a shared, reusable text table parser in the swat_interchange crate (or a 
 
 ### Type inference and temporal columns
 - If `column_types` are not specified, default to `float` when all sampled non-null values parse as numbers; otherwise use `string`.
-- Type inference samples the first 10,000 non-null values per column; it must not scan the entire file.
+- Type inference samples up to the first 10,000 non-null values per column, capped at 100,000 data rows; it must not scan the entire file.
 - Type inference must not buffer more than the sample. A second pass (re-open file) is allowed for streaming write.
 - Numeric defaults to `float64`.
 - Integer types must be declared explicitly in the registry (`int32` or `int64`) to avoid accidental truncation.
 - Date/time columns (e.g., `yr`, `mon`, `day`, `jday`) remain numeric unless explicitly typed as Arrow dates/timestamps in the registry.
-
 ### Encoding
 - Input files are assumed UTF-8. If decoding fails, error with file context and skip the file.
 

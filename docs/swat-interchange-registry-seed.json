@@ -1,0 +1,72 @@
+{
+  "generated_utc": "2026-02-03T05:39:15.321912+00:00",
+  "notes": [
+    "Seed registry from Phase 0 fixture scan; descriptions default to header labels unless otherwise noted.",
+    "Nonstandard files may require custom parsing beyond skip/header/units indices."
+  ],
+  "entries": [
+    {
+      "pattern": "files_out.out",
+      "special_case": "manifest",
+      "table_description": "SWAT+ output manifest",
+      "notes": [
+        "Parsed by manifest parser, not the generic table parser."
+      ]
+    },
+    {
+      "pattern": "checker.out",
+      "skip_lines": 1,
+      "header_line_index": 0,
+      "units_line_index": 1,
+      "table_description": "SWAT+ checker output",
+      "column_types": {
+        "sname": "string",
+        "hydgrp": "string",
+        "tiledrain": "int32"
+      },
+      "units_overrides": {
+        "sname": "",
+        "hydgrp": "",
+        "tiledrain": ""
+      },
+      "column_descriptions": {
+        "sname": "sname",
+        "hydgrp": "hydgrp",
+        "tiledrain": "tile drainage flag (0=notile;1=tile)"
+      },
+      "notes": [
+        "Header spans two lines in fixture; sname/hydgrp appear on the units line.",
+        "Consider custom header merge: [sname, hydgrp] + line-2 numeric headers.",
+        "Units line contains a legend for tiledrain (0/1)."
+      ]
+    },
+    {
+      "pattern": "lu_change_out.txt",
+      "skip_lines": 1,
+      "header_line_index": 0,
+      "units_line_index": null,
+      "table_description": "SWAT+ land use change operations",
+      "column_types": {
+        "hru": "int32",
+        "year": "int32",
+        "mon": "int32",
+        "day": "int32",
+        "operation": "string",
+        "lu_before": "string",
+        "lu_after": "string"
+      },
+      "column_descriptions": {
+        "hru": "hru",
+        "year": "year",
+        "mon": "mon",
+        "day": "day",
+        "operation": "operation",
+        "lu_before": "lu_before",
+        "lu_after": "lu_after"
+      },
+      "notes": [
+        "No units row in fixture; units default to empty string."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,921 @@
+{
+  "run_dir": "/wc1/runs/pe/pertinent-conventioneer/swat/outputs/run_20260203T042219Z",
+  "manifest": "/wc1/runs/pe/pertinent-conventioneer/swat/outputs/run_20260203T042219Z/files_out.out",
+  "entries": [
+    {
+      "category": "CHK",
+      "filename": "checker.out",
+      "source_line": " CHK                       checker.out",
+      "line_no": 2
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_wb_day.txt",
+      "source_line": " HRU                       hru_wb_day.txt",
+      "line_no": 3
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_wb_mon.txt",
+      "source_line": " HRU                       hru_wb_mon.txt",
+      "line_no": 4
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_wb_yr.txt",
+      "source_line": " HRU                       hru_wb_yr.txt",
+      "line_no": 5
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_wb_aa.txt",
+      "source_line": " HRU                       hru_wb_aa.txt",
+      "line_no": 6
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_ncycle_aa.txt",
+      "source_line": " HRU                       hru_ncycle_aa.txt",
+      "line_no": 7
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_nb_aa.txt",
+      "source_line": " HRU                       hru_nb_aa.txt",
+      "line_no": 8
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_soilcarb_aa.txt",
+      "source_line": " HRU                       hru_soilcarb_aa.txt",
+      "line_no": 9
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_rescarb_aa.txt",
+      "source_line": " HRU                       hru_rescarb_aa.txt",
+      "line_no": 10
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_plcarb_aa.txt",
+      "source_line": " HRU                       hru_plcarb_aa.txt",
+      "line_no": 11
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_scf_aa.txt",
+      "source_line": " HRU                       hru_scf_aa.txt",
+      "line_no": 12
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_carbon_all.txt",
+      "source_line": " BASIN                     basin_carbon_all.txt",
+      "line_no": 13
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_nut_carb_gl_aa.txt",
+      "source_line": " HRU                       hru_nut_carb_gl_aa.txt",
+      "line_no": 14
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_ls_aa.txt",
+      "source_line": " HRU                       hru_ls_aa.txt",
+      "line_no": 15
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_pw_aa.txt",
+      "source_line": " HRU                       hru_pw_aa.txt",
+      "line_no": 16
+    },
+    {
+      "category": "ROUTING_UNIT",
+      "filename": "lsunit_wb_aa.txt",
+      "source_line": " ROUTING_UNIT              lsunit_wb_aa.txt",
+      "line_no": 17
+    },
+    {
+      "category": "ROUTING_UNIT",
+      "filename": "lsunit_nb_aa.txt",
+      "source_line": " ROUTING_UNIT              lsunit_nb_aa.txt",
+      "line_no": 18
+    },
+    {
+      "category": "ROUTING_UNIT",
+      "filename": "lsunit_ls_aa.txt",
+      "source_line": " ROUTING_UNIT              lsunit_ls_aa.txt",
+      "line_no": 19
+    },
+    {
+      "category": "ROUTING_UNIT",
+      "filename": "lsunit_pw_aa.txt",
+      "source_line": " ROUTING_UNIT              lsunit_pw_aa.txt",
+      "line_no": 20
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_wb_day.txt",
+      "source_line": " BASIN                     basin_wb_day.txt",
+      "line_no": 21
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_wb_yr.txt",
+      "source_line": " BASIN                     basin_wb_yr.txt",
+      "line_no": 22
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_wb_aa.txt",
+      "source_line": " BASIN                     basin_wb_aa.txt",
+      "line_no": 23
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_nb_aa.txt",
+      "source_line": " BASIN                     basin_nb_aa.txt",
+      "line_no": 24
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_ls_aa.txt",
+      "source_line": " BASIN                     basin_ls_aa.txt",
+      "line_no": 25
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_pw_aa.txt",
+      "source_line": " BASIN                     basin_pw_aa.txt",
+      "line_no": 26
+    },
+    {
+      "category": "SWAT-DEG_CHANNEL",
+      "filename": "channel_sd_day.txt",
+      "source_line": " SWAT-DEG_CHANNEL          channel_sd_day.txt",
+      "line_no": 27
+    },
+    {
+      "category": "SWAT-DEG_CHANNEL",
+      "filename": "channel_sd_aa.txt",
+      "source_line": " SWAT-DEG_CHANNEL          channel_sd_aa.txt",
+      "line_no": 28
+    },
+    {
+      "category": "SWAT-DEG_CHANNEL_MORPH",
+      "filename": "channel_sdmorph_day.txt",
+      "source_line": " SWAT-DEG_CHANNEL_MORPH    channel_sdmorph_day.txt",
+      "line_no": 29
+    },
+    {
+      "category": "SWAT-DEG_CHANNEL_MORPH",
+      "filename": "channel_sdmorph_aa.txt",
+      "source_line": " SWAT-DEG_CHANNEL_MORPH    channel_sdmorph_aa.txt",
+      "line_no": 30
+    },
+    {
+      "category": "SWAT_DEG_CHAN_BUD",
+      "filename": "sd_chanbud_day.txt",
+      "source_line": " SWAT_DEG_CHAN_BUD         sd_chanbud_day.txt",
+      "line_no": 31
+    },
+    {
+      "category": "SWAT_DEG_CHAN_BUD",
+      "filename": "sd_chanbud_aa.txt",
+      "source_line": " SWAT_DEG_CHAN_BUD         sd_chanbud_aa.txt",
+      "line_no": 32
+    },
+    {
+      "category": "DTBL",
+      "filename": "lu_change_out.txt",
+      "source_line": " DTBL                      lu_change_out.txt",
+      "line_no": 33
+    },
+    {
+      "category": "HYDOUT",
+      "filename": "hydout_day.txt",
+      "source_line": " HYDOUT                    hydout_day.txt",
+      "line_no": 34
+    },
+    {
+      "category": "HYDOUT",
+      "filename": "hydout_mon.txt",
+      "source_line": " HYDOUT                    hydout_mon.txt",
+      "line_no": 35
+    },
+    {
+      "category": "HYDOUT",
+      "filename": "hydout_yr.txt",
+      "source_line": " HYDOUT                    hydout_yr.txt",
+      "line_no": 36
+    },
+    {
+      "category": "HYDIN",
+      "filename": "hydin_day.txt",
+      "source_line": " HYDIN                     hydin_day.txt",
+      "line_no": 37
+    },
+    {
+      "category": "HYDIN",
+      "filename": "hydin_mon.txt",
+      "source_line": " HYDIN                     hydin_mon.txt",
+      "line_no": 38
+    },
+    {
+      "category": "HYDIN",
+      "filename": "hydin_yr.txt",
+      "source_line": " HYDIN                     hydin_yr.txt",
+      "line_no": 39
+    },
+    {
+      "category": "DEPO",
+      "filename": "deposition_day.txt",
+      "source_line": " DEPO                      deposition_day.txt",
+      "line_no": 40
+    },
+    {
+      "category": "DEPO",
+      "filename": "deposition_mon.txt",
+      "source_line": " DEPO                      deposition_mon.txt",
+      "line_no": 41
+    },
+    {
+      "category": "DEPO",
+      "filename": "deposition_yr.txt",
+      "source_line": " DEPO                      deposition_yr.txt",
+      "line_no": 42
+    },
+    {
+      "category": "RES_WET",
+      "filename": "wetland_aa.txt",
+      "source_line": " RES_WET                   wetland_aa.txt",
+      "line_no": 43
+    },
+    {
+      "category": "HRU_ORGC",
+      "filename": "hru_orgc.txt",
+      "source_line": " HRU_ORGC                  hru_orgc.txt",
+      "line_no": 44
+    },
+    {
+      "category": "BASIN_AQUIFER",
+      "filename": "basin_aqu_aa.txt",
+      "source_line": " BASIN_AQUIFER             basin_aqu_aa.txt",
+      "line_no": 45
+    },
+    {
+      "category": "BASIN_RESERVOIR",
+      "filename": "basin_res_aa.txt",
+      "source_line": " BASIN_RESERVOIR           basin_res_aa.txt",
+      "line_no": 46
+    },
+    {
+      "category": "RECALL_AA",
+      "filename": "recall_aa.txt",
+      "source_line": " RECALL_AA                 recall_aa.txt",
+      "line_no": 47
+    },
+    {
+      "category": "BASIN_CHANNEL",
+      "filename": "basin_cha_day.txt",
+      "source_line": " BASIN_CHANNEL             basin_cha_day.txt",
+      "line_no": 48
+    },
+    {
+      "category": "BASIN_CHANNEL",
+      "filename": "basin_cha_mon.txt",
+      "source_line": " BASIN_CHANNEL             basin_cha_mon.txt",
+      "line_no": 49
+    },
+    {
+      "category": "BASIN_CHANNEL",
+      "filename": "basin_cha_yr.txt",
+      "source_line": " BASIN_CHANNEL             basin_cha_yr.txt",
+      "line_no": 50
+    },
+    {
+      "category": "BASIN_CHANNEL",
+      "filename": "basin_cha_aa.txt",
+      "source_line": " BASIN_CHANNEL             basin_cha_aa.txt",
+      "line_no": 51
+    },
+    {
+      "category": "BASIN_SWAT_DEG_CHANNEL",
+      "filename": "basin_sd_cha_aa.txt",
+      "source_line": " BASIN_SWAT_DEG_CHANNEL    basin_sd_cha_aa.txt",
+      "line_no": 52
+    },
+    {
+      "category": "BASIN_SWAT_DEG_CHAN_MORPH",
+      "filename": "basin_sd_chamorph_aa.txt",
+      "source_line": " BASIN_SWAT_DEG_CHAN_MORPH basin_sd_chamorph_aa.txt",
+      "line_no": 53
+    },
+    {
+      "category": "BASIN_SWAT_DEG_CHAN_BUD",
+      "filename": "basin_sd_chanbud_aa.txt",
+      "source_line": " BASIN_SWAT_DEG_CHAN_BUD   basin_sd_chanbud_aa.txt",
+      "line_no": 54
+    },
+    {
+      "category": "BASIN_RECALL_AA",
+      "filename": "basin_psc_aa.txt",
+      "source_line": " BASIN_RECALL_AA           basin_psc_aa.txt",
+      "line_no": 55
+    },
+    {
+      "category": "ROUTING_UNITS",
+      "filename": "ru_day.txt",
+      "source_line": " ROUTING_UNITS             ru_day.txt",
+      "line_no": 56
+    },
+    {
+      "category": "ROUTING_UNITS",
+      "filename": "ru_aa.txt",
+      "source_line": " ROUTING_UNITS             ru_aa.txt",
+      "line_no": 57
+    }
+  ],
+  "summaries": [
+    {
+      "category": "CHK",
+      "filename": "checker.out",
+      "exists": true,
+      "size_bytes": 644,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "                                        zmx       usle_k       sumfc       sumul      usle_p     usle_ls        esco        epco     cn3_swf       perco     latq_co   tiledrain ",
+      "units_line": " sname           hydgrp                 (mm)                    (mm)        (mm)                                                                                     0=notile;1=tile;",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_wb_day.txt",
+      "exists": true,
+      "size_bytes": 7377715,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name                  precip     snofall      snomlt    surq_gen        latq    wateryld        perc          et     ecanopy      eplant       esoil   surq_cont          cn     sw_init    sw_final      sw_ave      sw_300    sno_init   sno_final     snopack         pet       qtile         irr  surq_runon  latq_runon    overbank    surq_cha    surq_res     surq_ls    latq_cha    latq_res     latq_ls     gwsoilq       satex  satex_chan   sw_change     lagsurf     laglatq    lagsatex    wet_evap    wet_oflo    wet_stor   plant_cov       mgt_ops                    ",
+      "units_line": "                                                                  mm            mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm         ---          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_wb_mon.txt",
+      "exists": true,
+      "size_bytes": 243631,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name                  precip     snofall      snomlt    surq_gen        latq    wateryld        perc          et     ecanopy      eplant       esoil   surq_cont          cn     sw_init    sw_final      sw_ave      sw_300    sno_init   sno_final     snopack         pet       qtile         irr  surq_runon  latq_runon    overbank    surq_cha    surq_res     surq_ls    latq_cha    latq_res     latq_ls     gwsoilq       satex  satex_chan   sw_change     lagsurf     laglatq    lagsatex    wet_evap    wet_oflo    wet_stor   plant_cov       mgt_ops                    ",
+      "units_line": "                                                                  mm            mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm         ---          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_wb_yr.txt",
+      "exists": true,
+      "size_bytes": 21475,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name                  precip     snofall      snomlt    surq_gen        latq    wateryld        perc          et     ecanopy      eplant       esoil   surq_cont          cn     sw_init    sw_final      sw_ave      sw_300    sno_init   sno_final     snopack         pet       qtile         irr  surq_runon  latq_runon    overbank    surq_cha    surq_res     surq_ls    latq_cha    latq_res     latq_ls     gwsoilq       satex  satex_chan   sw_change     lagsurf     laglatq    lagsatex    wet_evap    wet_oflo    wet_stor   plant_cov       mgt_ops                    ",
+      "units_line": "                                                                  mm            mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm         ---          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_wb_aa.txt",
+      "exists": true,
+      "size_bytes": 1891,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name                  precip     snofall      snomlt    surq_gen        latq    wateryld        perc          et     ecanopy      eplant       esoil   surq_cont          cn     sw_init    sw_final      sw_ave      sw_300    sno_init   sno_final     snopack         pet       qtile         irr  surq_runon  latq_runon    overbank    surq_cha    surq_res     surq_ls    latq_cha    latq_res     latq_ls     gwsoilq       satex  satex_chan   sw_change     lagsurf     laglatq    lagsatex    wet_evap    wet_oflo    wet_stor   plant_cov       mgt_ops                    ",
+      "units_line": "                                                                  mm            mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm         ---          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_ncycle_aa.txt",
+      "exists": true,
+      "size_bytes": 481,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id     name         lab_min_p        act_sta_p        act_nit_n        act_sta_n        org_lab_p         rsd_hs_c    rsd_nitrorg_n     rsd_laborg_p",
+      "units_line": "                                                               kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_nb_aa.txt",
+      "exists": true,
+      "size_bytes": 1282,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name            grzn        grzp        lab_min_p   act_sta_p       fertn            fertp            fixn             denit            act_nit_n        act_sta_n        org_lab_p        rsd_nitorg_n     rsd_laborg_p    no3atmo          nh4atmo          nuptake          puptake          gwsoiln          gwsoilp      plant_cov       mgt_ops                       ",
+      "units_line": "                                                          kgha        kgha        kgha        kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha       ",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_soilcarb_aa.txt",
+      "exists": true,
+      "size_bytes": 1109,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday        mon        day         yr            unit              gis_id     name                  sed_c         surq_c       surq_doc       surq_dic         latq_c       latq_doc       latq_dic         perc_c       perc_doc       perc_dic      res_decay      man_app_c    man_graze_c          rsp_c         emit_c",
+      "units_line": "                                                                                                          kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_rescarb_aa.txt",
+      "exists": true,
+      "size_bytes": 626,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday        mon        day         yr            unit              gis_id     name                plant_c    rsd_decay_c    harv_stov_c         emit_c",
+      "units_line": "                                                                                                          kg C/ha        kg C/ha        kg C/ha        kg C/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_plcarb_aa.txt",
+      "exists": true,
+      "size_bytes": 656,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday        mon        day         yr            unit              gis_id     name                  npp_c         harv_c         drop_c      grazeat_c         emit_c",
+      "units_line": "                                                                                                          kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_scf_aa.txt",
+      "exists": true,
+      "size_bytes": 1015,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday        mon        day         yr            unit              gis_id     name              meta_micr       str_micr         str_hs       co2_meta        co2_str        micr_hs        micr_hp        hs_micr        hs_hp          hp_micr       co2_micr         co2_hs         co2_hp",
+      "units_line": "                                                                                                          kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha        kg C/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_carbon_all.txt",
+      "exists": true,
+      "size_bytes": 257,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         yr            org_soilc        org_plc       org_resc",
+      "units_line": "                                       kg/ha          kg/ha          kg/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_nut_carb_gl_aa.txt",
+      "exists": true,
+      "size_bytes": 1197,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit   gis_id  name               sedyld             usle          sedorgc          sedorgn          sedorgp          surqno3          lat3no3         surqsolp         sedminp           tileno3          no3atmo          nh4atmo          manurec          manuren          manurep            fertc            fertn            fertp        grazc_eat        grazn_eat        gracp_eat        grazc_man        grazn_man        gracp_man             fixn            denit           yieldc           yieldn           yieldp",
+      "units_line": "                                                                tons              tha             kgha             kgha             kgha             kgha             kgha             kgha             ----             kgha          no3atmo             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_ls_aa.txt",
+      "exists": true,
+      "size_bytes": 891,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                 sedyld     sedorgn     sedorgp     surqno3     lat3no3    surqsolp        usle     sedminp     tileno3     lchlabp    tilelabp      satexn    plant_cov       mgt_ops                          percn",
+      "units_line": "                                                                  tha        kgha        kgha        kgha        kgha        kgha        tons        kgha        kgha        kgha        kgha        kgha                                                      kgha",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU",
+      "filename": "hru_pw_aa.txt",
+      "exists": true,
+      "size_bytes": 1279,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                     lai       bioms       yield     residue     sol_tmp       strsw       strsa     strstmp       strsn       strsp       strss        nplt       percn       pplnt         tmx         tmn       tmpav     solarad      wndspd        rhum     phubas0     lai_max      bm_max     bm_grow       c_gro   plant_cov       mgt_ops                    ",
+      "units_line": "                                                             m**2/m**2        kgha        kgha        kgha        degc        ----        ----        ----        ----        ----        ----        kgha        kgha        kgha        degc        degc        degc      mj/m^2         m/s        frac        degc   m**2/m**2       kg/ha       kg/ha       kg/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "ROUTING_UNIT",
+      "filename": "lsunit_wb_aa.txt",
+      "exists": true,
+      "size_bytes": 1842,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name                  precip     snofall      snomlt    surq_gen        latq    wateryld        perc          et     ecanopy      eplant       esoil   surq_cont          cn     sw_init    sw_final      sw_ave      sw_300    sno_init   sno_final     snopack         pet       qtile         irr  surq_runon  latq_runon    overbank    surq_cha    surq_res     surq_ls    latq_cha    latq_res     latq_ls     gwsoilq       satex  satex_chan   sw_change     lagsurf     laglatq    lagsatex    wet_evap    wet_oflo    wet_stor   plant_cov       mgt_ops                    ",
+      "units_line": "                                                                  mm            mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm         ---          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "ROUTING_UNIT",
+      "filename": "lsunit_nb_aa.txt",
+      "exists": true,
+      "size_bytes": 1236,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name            grzn        grzp        lab_min_p   act_sta_p       fertn            fertp            fixn             denit            act_nit_n        act_sta_n        org_lab_p        rsd_nitorg_n     rsd_laborg_p    no3atmo          nh4atmo          nuptake          puptake          gwsoiln          gwsoilp      plant_cov       mgt_ops                       ",
+      "units_line": "                                                          kgha        kgha        kgha        kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha       ",
+      "units_line_guess": true
+    },
+    {
+      "category": "ROUTING_UNIT",
+      "filename": "lsunit_ls_aa.txt",
+      "exists": true,
+      "size_bytes": 830,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                 sedyld     sedorgn     sedorgp     surqno3     lat3no3    surqsolp        usle     sedminp     tileno3     lchlabp    tilelabp      satexn    plant_cov       mgt_ops                          percn",
+      "units_line": "                                                                  tha        kgha        kgha        kgha        kgha        kgha        tons        kgha        kgha        kgha        kgha        kgha                                                      kgha",
+      "units_line_guess": true
+    },
+    {
+      "category": "ROUTING_UNIT",
+      "filename": "lsunit_pw_aa.txt",
+      "exists": true,
+      "size_bytes": 1230,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                     lai       bioms       yield     residue     sol_tmp       strsw       strsa     strstmp       strsn       strsp       strss        nplt       percn       pplnt         tmx         tmn       tmpav     solarad      wndspd        rhum     phubas0     lai_max      bm_max     bm_grow       c_gro   plant_cov       mgt_ops                    ",
+      "units_line": "                                                             m**2/m**2        kgha        kgha        kgha        degc        ----        ----        ----        ----        ----        ----        kgha        kgha        kgha        degc        degc        degc      mj/m^2         m/s        frac        degc   m**2/m**2       kg/ha       kg/ha       kg/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_wb_day.txt",
+      "exists": true,
+      "size_bytes": 6787118,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name                  precip     snofall      snomlt    surq_gen        latq    wateryld        perc          et     ecanopy      eplant       esoil   surq_cont          cn     sw_init    sw_final      sw_ave      sw_300    sno_init   sno_final     snopack         pet       qtile         irr  surq_runon  latq_runon    overbank    surq_cha    surq_res     surq_ls    latq_cha    latq_res     latq_ls     gwsoilq       satex  satex_chan   sw_change     lagsurf     laglatq    lagsatex    wet_evap    wet_oflo    wet_stor   plant_cov       mgt_ops                    ",
+      "units_line": "                                                                  mm            mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm         ---          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_wb_yr.txt",
+      "exists": true,
+      "size_bytes": 19858,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name                  precip     snofall      snomlt    surq_gen        latq    wateryld        perc          et     ecanopy      eplant       esoil   surq_cont          cn     sw_init    sw_final      sw_ave      sw_300    sno_init   sno_final     snopack         pet       qtile         irr  surq_runon  latq_runon    overbank    surq_cha    surq_res     surq_ls    latq_cha    latq_res     latq_ls     gwsoilq       satex  satex_chan   sw_change     lagsurf     laglatq    lagsatex    wet_evap    wet_oflo    wet_stor   plant_cov       mgt_ops                    ",
+      "units_line": "                                                                  mm            mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm         ---          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_wb_aa.txt",
+      "exists": true,
+      "size_bytes": 1890,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name                  precip     snofall      snomlt    surq_gen        latq    wateryld        perc          et     ecanopy      eplant       esoil   surq_cont          cn     sw_init    sw_final      sw_ave      sw_300    sno_init   sno_final     snopack         pet       qtile         irr  surq_runon  latq_runon    overbank    surq_cha    surq_res     surq_ls    latq_cha    latq_res     latq_ls     gwsoilq       satex  satex_chan   sw_change     lagsurf     laglatq    lagsatex    wet_evap    wet_oflo    wet_stor   plant_cov       mgt_ops                    ",
+      "units_line": "                                                                  mm            mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm         ---          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm          mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_nb_aa.txt",
+      "exists": true,
+      "size_bytes": 1237,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday   mon   day    yr    unit  gis_id  name            grzn        grzp        lab_min_p   act_sta_p       fertn            fertp            fixn             denit            act_nit_n        act_sta_n        org_lab_p        rsd_nitorg_n     rsd_laborg_p    no3atmo          nh4atmo          nuptake          puptake          gwsoiln          gwsoilp      plant_cov       mgt_ops                       ",
+      "units_line": "                                                          kgha        kgha        kgha        kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha             kgha       ",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_ls_aa.txt",
+      "exists": true,
+      "size_bytes": 830,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                 sedyld     sedorgn     sedorgp     surqno3     lat3no3    surqsolp        usle     sedminp     tileno3     lchlabp    tilelabp      satexn    plant_cov       mgt_ops                          percn",
+      "units_line": "                                                                  tha        kgha        kgha        kgha        kgha        kgha        tons        kgha        kgha        kgha        kgha        kgha                                                      kgha",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN",
+      "filename": "basin_pw_aa.txt",
+      "exists": true,
+      "size_bytes": 1230,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                     lai       bioms       yield     residue     sol_tmp       strsw       strsa     strstmp       strsn       strsp       strss        nplt       percn       pplnt         tmx         tmn       tmpav     solarad      wndspd        rhum     phubas0     lai_max      bm_max     bm_grow       c_gro   plant_cov       mgt_ops                    ",
+      "units_line": "                                                             m**2/m**2        kgha        kgha        kgha        degc        ----        ----        ----        ----        ----        ----        kgha        kgha        kgha        degc        degc        degc      mj/m^2         m/s        frac        degc   m**2/m**2       kg/ha       kg/ha       kg/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "SWAT-DEG_CHANNEL",
+      "filename": "channel_sd_day.txt",
+      "exists": true,
+      "size_bytes": 4642239053,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr     unit   gis_id   name                  area         precip           evap           seep          flo_stor       sed_stor      orgn_stor      sedp_stor       no3_stor      solp_stor      chla_stor       nh3_stor       no2_stor      cbod_stor       dox_stor       san_stor       sil_stor       cla_stor       sag_stor       lag_stor       grv_stor           null         flo_in         sed_in        orgn_in        sedp_in         no3_in        solp_in        chla_in         nh3_in         no2_in        cbod_in         dox_in         san_in         sil_in         cla_in         sag_in         lag_in         grv_in           null        flo_out        sed_out       orgn_out       sedp_out        no3_out       solp_out       chla_out        nh3_out        no2_out       cbod_out        dox_out        san_out        sil_out        cla_out        sag_out        lag_out        grv_out           null     water_temp",
+      "units_line": "                                                                      ha            m^3            m^3            m^3             m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                         m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                         m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                          degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "SWAT-DEG_CHANNEL",
+      "filename": "channel_sd_aa.txt",
+      "exists": true,
+      "size_bytes": 387149,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr     unit   gis_id   name                  area         precip           evap           seep          flo_stor       sed_stor      orgn_stor      sedp_stor       no3_stor      solp_stor      chla_stor       nh3_stor       no2_stor      cbod_stor       dox_stor       san_stor       sil_stor       cla_stor       sag_stor       lag_stor       grv_stor           null         flo_in         sed_in        orgn_in        sedp_in         no3_in        solp_in        chla_in         nh3_in         no2_in        cbod_in         dox_in         san_in         sil_in         cla_in         sag_in         lag_in         grv_in           null        flo_out        sed_out       orgn_out       sedp_out        no3_out       solp_out       chla_out        nh3_out        no2_out       cbod_out        dox_out        san_out        sil_out        cla_out        sag_out        lag_out        grv_out           null     water_temp",
+      "units_line": "                                                                      ha            m^3            m^3            m^3             m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                         m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                         m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                          degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "SWAT-DEG_CHANNEL_MORPH",
+      "filename": "channel_sdmorph_day.txt",
+      "exists": true,
+      "size_bytes": 2208014201,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                    flo_in          geo_bf         flo_out           peakr         sed_in        sed_out         washld          bedld            dep        deg_btm       deg_bank         hc_sed          width          depth          slope        deg_btm       deg_bank         hc_len      flo_in_mm       aqu_in_mm      flo_out_mm        sed_stor      n_tot          p_tot         dep_bf        velav_bf        ",
+      "units_line": "                                                                   m^3/s           m^3/s           m^3/s           m^3/s           tons           tons           tons           tons           tons           tons           tons           tons              m              m            m/m              m              m              m             mm              mm              mm            tons       kg_N           kg_P            m/s             m/s        ",
+      "units_line_guess": true
+    },
+    {
+      "category": "SWAT-DEG_CHANNEL_MORPH",
+      "filename": "channel_sdmorph_aa.txt",
+      "exists": true,
+      "size_bytes": 184217,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                    flo_in          geo_bf         flo_out           peakr         sed_in        sed_out         washld          bedld            dep        deg_btm       deg_bank         hc_sed          width          depth          slope        deg_btm       deg_bank         hc_len      flo_in_mm       aqu_in_mm      flo_out_mm        sed_stor      n_tot          p_tot         dep_bf        velav_bf        ",
+      "units_line": "                                                                   m^3/s           m^3/s           m^3/s           m^3/s           tons           tons           tons           tons           tons           tons           tons           tons              m              m            m/m              m              m              m             mm              mm              mm            tons       kg_N           kg_P            m/s             m/s        ",
+      "units_line_guess": true
+    },
+    {
+      "category": "SWAT_DEG_CHAN_BUD",
+      "filename": "sd_chanbud_day.txt",
+      "exists": true,
+      "size_bytes": 2503071758,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                    in_sed         out_sed        fp_dep         ch_dep        bank_ero        bed_ero         in_no3        in_orgn        out_no3       out_orgn         fp_no3        bank_no3       bed_no3        fp_orgn        ch_orgn        bank_orgn      bed_orgn       in_solp        in_orgp        out_solp       out_orgp       fp_solp        bank_solp      bed_solp       fp_orgp        ch_orgp        bank_orgp      bed_orgp       no3_orgn       solp_orgp      ",
+      "units_line": "                                                                    tons            tons          tons           tons            tons           tons           tons           tons           tons          tons           tons           tons           tons           tons            tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons         ",
+      "units_line_guess": true
+    },
+    {
+      "category": "SWAT_DEG_CHAN_BUD",
+      "filename": "sd_chanbud_aa.txt",
+      "exists": true,
+      "size_bytes": 208814,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                    in_sed         out_sed        fp_dep         ch_dep        bank_ero        bed_ero         in_no3        in_orgn        out_no3       out_orgn         fp_no3        bank_no3       bed_no3        fp_orgn        ch_orgn        bank_orgn      bed_orgn       in_solp        in_orgp        out_solp       out_orgp       fp_solp        bank_solp      bed_solp       fp_orgp        ch_orgp        bank_orgp      bed_orgp       no3_orgn       solp_orgp      ",
+      "units_line": "                                                                    tons            tons          tons           tons            tons           tons           tons           tons           tons          tons           tons           tons           tons           tons            tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons         ",
+      "units_line_guess": true
+    },
+    {
+      "category": "DTBL",
+      "filename": "lu_change_out.txt",
+      "exists": true,
+      "size_bytes": 199,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "          hru       year         mon         day     operation   lu_before         lu_after",
+      "units_line": "",
+      "units_line_guess": false
+    },
+    {
+      "category": "HYDOUT",
+      "filename": "hydout_day.txt",
+      "exists": true,
+      "size_bytes": 6738881375,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type   objtyp      typ_no hyd_typ fraction              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                                                                     m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "HYDOUT",
+      "filename": "hydout_mon.txt",
+      "exists": true,
+      "size_bytes": 221406047,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type   objtyp      typ_no hyd_typ fraction              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                                                                     m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "HYDOUT",
+      "filename": "hydout_yr.txt",
+      "exists": true,
+      "size_bytes": 18451295,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type   objtyp      typ_no hyd_typ fraction              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                                                                     m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "HYDIN",
+      "filename": "hydin_day.txt",
+      "exists": true,
+      "size_bytes": 6819877535,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type   objtyp      typ_no hyd_typ fraction              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                                                                     m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "HYDIN",
+      "filename": "hydin_mon.txt",
+      "exists": true,
+      "size_bytes": 224067167,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type   objtyp      typ_no hyd_typ fraction              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                                                                     m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "HYDIN",
+      "filename": "hydin_yr.txt",
+      "exists": true,
+      "size_bytes": 18673055,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type   objtyp      typ_no hyd_typ fraction              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                                                                     m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "DEPO",
+      "filename": "deposition_day.txt",
+      "exists": true,
+      "size_bytes": 787,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                               m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "DEPO",
+      "filename": "deposition_mon.txt",
+      "exists": true,
+      "size_bytes": 787,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                               m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "DEPO",
+      "filename": "deposition_yr.txt",
+      "exists": true,
+      "size_bytes": 787,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                               m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "RES_WET",
+      "filename": "wetland_aa.txt",
+      "exists": true,
+      "size_bytes": 1967,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr     unit   gis_id   name                  area         precip           evap           seep          flo_stor       sed_stor      orgn_stor      sedp_stor       no3_stor      solp_stor      chla_stor       nh3_stor       no2_stor      cbod_stor       dox_stor       san_stor       sil_stor       cla_stor       sag_stor       lag_stor       grv_stor           null         flo_in         sed_in        orgn_in        sedp_in         no3_in        solp_in        chla_in         nh3_in         no2_in        cbod_in         dox_in         san_in         sil_in         cla_in         sag_in         lag_in         grv_in           null        flo_out        sed_out       orgn_out       sedp_out        no3_out       solp_out       chla_out        nh3_out        no2_out       cbod_out        dox_out        san_out        sil_out        cla_out        sag_out        lag_out        grv_out           null",
+      "units_line": "                                                                      ha            m^3            m^3            m^3             m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                           m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                           m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons               ",
+      "units_line_guess": true
+    },
+    {
+      "category": "HRU_ORGC",
+      "filename": "hru_orgc.txt",
+      "exists": true,
+      "size_bytes": 396,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "         day          yr        unit           str_c             lig_c         meta_c          man_c          hum_c         phum_c       mb_c ",
+      "units_line": "          --          --          --           kg/ha             kg/ha          kg/ha          kg/ha          kg/ha          kg/ha          kg/ha",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_AQUIFER",
+      "filename": "basin_aqu_aa.txt",
+      "exists": true,
+      "size_bytes": 1051,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                       flo          dep_wt            stor          rchrg           seep          revap         no3_st           minp           orgn           orgp       no3_rchg       no3_loss        no3_lat       no3_seep        flo_cha        flo_res         flo_ls",
+      "units_line": "                                                                       mm              m              mm             mm             mm             mm        kg/ha_N        kg/ha_P        kg/ha_N        kg/ha_P        kg/ha_N        kg/ha_N        kg/ha_N        kg/ha_N             mm             mm             mm",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_RESERVOIR",
+      "filename": "basin_res_aa.txt",
+      "exists": true,
+      "size_bytes": 1967,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr     unit   gis_id   name                  area         precip           evap           seep          flo_stor       sed_stor      orgn_stor      sedp_stor       no3_stor      solp_stor      chla_stor       nh3_stor       no2_stor      cbod_stor       dox_stor       san_stor       sil_stor       cla_stor       sag_stor       lag_stor       grv_stor           null         flo_in         sed_in        orgn_in        sedp_in         no3_in        solp_in        chla_in         nh3_in         no2_in        cbod_in         dox_in         san_in         sil_in         cla_in         sag_in         lag_in         grv_in           null        flo_out        sed_out       orgn_out       sedp_out        no3_out       solp_out       chla_out        nh3_out        no2_out       cbod_out        dox_out        san_out        sil_out        cla_out        sag_out        lag_out        grv_out           null",
+      "units_line": "                                                                      ha            m^3            m^3            m^3             m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                           m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                           m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons               ",
+      "units_line_guess": true
+    },
+    {
+      "category": "RECALL_AA",
+      "filename": "recall_aa.txt",
+      "exists": true,
+      "size_bytes": 356467,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                               m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_CHANNEL",
+      "filename": "basin_cha_day.txt",
+      "exists": true,
+      "size_bytes": 1995,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday    mon   day   yr    unit  gis_id  name                 flo_in        flo_out            evap        tloss           sed_in        sed_out       sed_conc       orgn_in        orgn_out         orgp_in        orgp_out        no3_in        no3_out          nh4_in        nh4_out         no2_in        no2_out       solp_in       solp_out         chla_in       chla_out        cbod_in       cbod_out         dis_in        dis_out    solpst_in      solpst_out    sorbpst_in     sorbpst_out       react             volat     setlpst          resuspst       difus         reactb          bury            sedpest             bacp          baclp           met1           met2           met3        sand_in       sand_out        silt_in       silt_out        clay_in       clay_out        smag_in       smag_out         lag_in        lag_out        grvl_in       grvl_out        bnk_ero         ch_deg         ch_dep         fp_dep       tot_ssed",
+      "units_line": "                                                                 ha-m           ha-m            ha-m         ha-m             tons           tons           mg/L           kgN             kgN             kgP             kgP           kgN            kgN              kg             kg             kg             kg           kgP            kgP              kg             kg             kg             kg             kg             kg       mg_pst          mg_pst        mg_pst          mg_pst      mg_pst                mg      mg_pst                mg      mg_pst             mg            mg                 mg             ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_CHANNEL",
+      "filename": "basin_cha_mon.txt",
+      "exists": true,
+      "size_bytes": 1995,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday    mon   day   yr    unit  gis_id  name                 flo_in        flo_out            evap        tloss           sed_in        sed_out       sed_conc       orgn_in        orgn_out         orgp_in        orgp_out        no3_in        no3_out          nh4_in        nh4_out         no2_in        no2_out       solp_in       solp_out         chla_in       chla_out        cbod_in       cbod_out         dis_in        dis_out    solpst_in      solpst_out    sorbpst_in     sorbpst_out       react             volat     setlpst          resuspst       difus         reactb          bury            sedpest             bacp          baclp           met1           met2           met3        sand_in       sand_out        silt_in       silt_out        clay_in       clay_out        smag_in       smag_out         lag_in        lag_out        grvl_in       grvl_out        bnk_ero         ch_deg         ch_dep         fp_dep       tot_ssed",
+      "units_line": "                                                                 ha-m           ha-m            ha-m         ha-m             tons           tons           mg/L           kgN             kgN             kgP             kgP           kgN            kgN              kg             kg             kg             kg           kgP            kgP              kg             kg             kg             kg             kg             kg       mg_pst          mg_pst        mg_pst          mg_pst      mg_pst                mg      mg_pst                mg      mg_pst             mg            mg                 mg             ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_CHANNEL",
+      "filename": "basin_cha_yr.txt",
+      "exists": true,
+      "size_bytes": 1995,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday    mon   day   yr    unit  gis_id  name                 flo_in        flo_out            evap        tloss           sed_in        sed_out       sed_conc       orgn_in        orgn_out         orgp_in        orgp_out        no3_in        no3_out          nh4_in        nh4_out         no2_in        no2_out       solp_in       solp_out         chla_in       chla_out        cbod_in       cbod_out         dis_in        dis_out    solpst_in      solpst_out    sorbpst_in     sorbpst_out       react             volat     setlpst          resuspst       difus         reactb          bury            sedpest             bacp          baclp           met1           met2           met3        sand_in       sand_out        silt_in       silt_out        clay_in       clay_out        smag_in       smag_out         lag_in        lag_out        grvl_in       grvl_out        bnk_ero         ch_deg         ch_dep         fp_dep       tot_ssed",
+      "units_line": "                                                                 ha-m           ha-m            ha-m         ha-m             tons           tons           mg/L           kgN             kgN             kgP             kgP           kgN            kgN              kg             kg             kg             kg           kgP            kgP              kg             kg             kg             kg             kg             kg       mg_pst          mg_pst        mg_pst          mg_pst      mg_pst                mg      mg_pst                mg      mg_pst             mg            mg                 mg             ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_CHANNEL",
+      "filename": "basin_cha_aa.txt",
+      "exists": true,
+      "size_bytes": 1995,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "  jday    mon   day   yr    unit  gis_id  name                 flo_in        flo_out            evap        tloss           sed_in        sed_out       sed_conc       orgn_in        orgn_out         orgp_in        orgp_out        no3_in        no3_out          nh4_in        nh4_out         no2_in        no2_out       solp_in       solp_out         chla_in       chla_out        cbod_in       cbod_out         dis_in        dis_out    solpst_in      solpst_out    sorbpst_in     sorbpst_out       react             volat     setlpst          resuspst       difus         reactb          bury            sedpest             bacp          baclp           met1           met2           met3        sand_in       sand_out        silt_in       silt_out        clay_in       clay_out        smag_in       smag_out         lag_in        lag_out        grvl_in       grvl_out        bnk_ero         ch_deg         ch_dep         fp_dep       tot_ssed",
+      "units_line": "                                                                 ha-m           ha-m            ha-m         ha-m             tons           tons           mg/L           kgN             kgN             kgP             kgP           kgN            kgN              kg             kg             kg             kg           kgP            kgP              kg             kg             kg             kg             kg             kg       mg_pst          mg_pst        mg_pst          mg_pst      mg_pst                mg      mg_pst                mg      mg_pst             mg            mg                 mg             ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----           ----",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_SWAT_DEG_CHANNEL",
+      "filename": "basin_sd_cha_aa.txt",
+      "exists": true,
+      "size_bytes": 2898,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr     unit   gis_id   name                  area         precip           evap           seep          flo_stor       sed_stor      orgn_stor      sedp_stor       no3_stor      solp_stor      chla_stor       nh3_stor       no2_stor      cbod_stor       dox_stor       san_stor       sil_stor       cla_stor       sag_stor       lag_stor       grv_stor           null         flo_in         sed_in        orgn_in        sedp_in         no3_in        solp_in        chla_in         nh3_in         no2_in        cbod_in         dox_in         san_in         sil_in         cla_in         sag_in         lag_in         grv_in           null        flo_out        sed_out       orgn_out       sedp_out        no3_out       solp_out       chla_out        nh3_out        no2_out       cbod_out        dox_out        san_out        sil_out        cla_out        sag_out        lag_out        grv_out           null",
+      "units_line": "                                                                      ha            m^3            m^3            m^3             m^3           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                         m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons                         m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons               ",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_SWAT_DEG_CHAN_MORPH",
+      "filename": "basin_sd_chamorph_aa.txt",
+      "exists": true,
+      "size_bytes": 1475,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                    flo_in          geo_bf         flo_out           peakr         sed_in        sed_out         washld          bedld            dep        deg_btm       deg_bank         hc_sed          width          depth          slope        deg_btm       deg_bank         hc_len      flo_in_mm       aqu_in_mm      flo_out_mm        sed_stor      n_tot          p_tot         dep_bf        velav_bf        ",
+      "units_line": "                                                                   m^3/s           m^3/s           m^3/s           m^3/s           tons           tons           tons           tons           tons           tons           tons           tons              m              m            m/m              m              m              m             mm              mm              mm            tons       kg_N           kg_P            m/s             m/s        ",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_SWAT_DEG_CHAN_BUD",
+      "filename": "basin_sd_chanbud_aa.txt",
+      "exists": true,
+      "size_bytes": 1652,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "   jday   mon   day    yr   unit  gis_id  name                    in_sed         out_sed        fp_dep         ch_dep        bank_ero        bed_ero         in_no3        in_orgn        out_no3       out_orgn         fp_no3        bank_no3       bed_no3        fp_orgn        ch_orgn        bank_orgn      bed_orgn       in_solp        in_orgp        out_solp       out_orgp       fp_solp        bank_solp      bed_solp       fp_orgp        ch_orgp        bank_orgp      bed_orgp       no3_orgn       solp_orgp      ",
+      "units_line": "                                                                    tons            tons          tons           tons            tons           tons           tons           tons           tons          tons           tons           tons           tons           tons            tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons           tons         ",
+      "units_line_guess": true
+    },
+    {
+      "category": "BASIN_RECALL_AA",
+      "filename": "basin_psc_aa.txt",
+      "exists": true,
+      "size_bytes": 1168,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr name                            flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                               m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "ROUTING_UNITS",
+      "filename": "ru_day.txt",
+      "exists": true,
+      "size_bytes": 4580927,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                               m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    },
+    {
+      "category": "ROUTING_UNITS",
+      "filename": "ru_aa.txt",
+      "exists": true,
+      "size_bytes": 1167,
+      "title_line": " Osu                       SWAT+ 2026-02-02        MODULAR Rev 2026.61.0.2.61-18-g34c93dc                 ",
+      "header_line": "        jday         mon         day          yr   name        type              flo            sed           orgn           sedp            no3           solp           chla            nh3            no2           cbod            dox            san            sil            cla            sag            lag            grv           null",
+      "units_line": "                                                                               m^3/s           tons            kgN            kgP            kgN            kgP             kg            kgN            kgN             kg             kg           tons           tons           tons           tons           tons           tons           degc",
+      "units_line_guess": true
+    }
+  ],
+  "extra_files_not_in_manifest": [
+    "area_calc.out",
+    "basin_totc.txt",
+    "co2.out",
+    "cs_aqu.ini",
+    "cs_channel.ini",
+    "cs_hru.ini",
+    "diagnostics.out",
+    "erosion.out",
+    "fort.8000",
+    "fort.8001",
+    "hru_totc.txt",
+    "index.json",
+    "recall_db.rec",
+    "simulation.out",
+    "success.fin"
+  ]
+}

@@ -117,6 +117,14 @@ impl PassColumns {
         &self.drrunv
     }
 
+    pub fn gwbfv(&self) -> &[f64] {
+        &self.gwbfv
+    }
+
+    pub fn gwdsv(&self) -> &[f64] {
+        &self.gwdsv
+    }
+
     pub fn sedcon_1(&self) -> &[f64] {
         &self.sedcon_1
     }

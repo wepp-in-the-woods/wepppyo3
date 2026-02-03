@@ -56,6 +56,7 @@ wepp_hillslope_pass_to_swat_recall(
     filename_template: str = "hill_{wepp_id:05d}.rec",
     include_subsurface: bool = True,
     include_tile: bool = True,
+    include_baseflow: bool = True,
     recall_connections: Optional[List[Tuple[int, int]]] = None,
     recall_wst: str = "wea1",
     recall_object_type: str = "sdc",
@@ -84,12 +85,12 @@ Use `wepp_interchange/src/hill_pass.rs`:
   - `runvol` (m^3), `sbrunv` (m^3), `drrunv` (m^3)
   - `sedcon_1..5` (per-class sediment concentrations)
   - `clot/slot/saot/laot/sdot` (per-class fractions; use only for fallback)
-  - `gwbfv`/`gwdsv` (groundwater/baseflow diagnostics; not emitted to SWAT+)
+  - `gwbfv`/`gwdsv` (groundwater/baseflow diagnostics; `gwbfv` can be included in FLO when enabled; `gwdsv` is not emitted to SWAT+)
 
 ### Daily flow volume (FLO)
-Use a configurable flow composition (default includes subsurface and tile):
-- `FLO = runvol + (include_subsurface ? sbrunv : 0) + (include_tile ? drrunv : 0)`
-- `gwbfv`/`gwdsv` remain diagnostic-only and are not emitted to SWAT+ recall rows.
+Use a configurable flow composition (default includes subsurface, tile, and baseflow):
+- `FLO = runvol + (include_subsurface ? sbrunv : 0) + (include_tile ? drrunv : 0) + (include_baseflow ? gwbfv : 0)`
+- `gwdsv` remains diagnostic-only and is not emitted to SWAT+ recall rows.
 
 ### Daily sediment loads
 WEPP pass files provide per-class sediment concentration (`sedcon_1..5`).

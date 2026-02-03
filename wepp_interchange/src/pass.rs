@@ -309,35 +309,87 @@ fn parse_metadata(header_lines: &[String], path: &Path) -> Result<PassMetadata, 
 
 fn build_event_schema(meta: &PassMetadata, version: &VersionInfo) -> Schema {
     let mut fields: Vec<Field> = vec![
-        Field::new("event", DataType::Utf8, true),
-        Field::new("year", DataType::Int16, true),
-        Field::new("sim_day_index", DataType::Int32, true),
-        Field::new("julian", DataType::Int16, true),
-        Field::new("month", DataType::Int8, true),
-        Field::new("day_of_month", DataType::Int8, true),
-        Field::new("water_year", DataType::Int16, true),
-        Field::new("wepp_id", DataType::Int32, true),
-        Field::new("dur", DataType::Float64, true),
-        Field::new("tcs", DataType::Float64, true),
-        Field::new("oalpha", DataType::Float64, true),
-        Field::new("runoff", DataType::Float64, true),
-        Field::new("runvol", DataType::Float64, true),
-        Field::new("sbrunf", DataType::Float64, true),
-        Field::new("sbrunv", DataType::Float64, true),
-        Field::new("drainq", DataType::Float64, true),
-        Field::new("drrunv", DataType::Float64, true),
-        Field::new("peakro", DataType::Float64, true),
-        Field::new("tdet", DataType::Float64, true),
-        Field::new("tdep", DataType::Float64, true),
-        Field::new("gwbfv", DataType::Float64, true),
-        Field::new("gwdsv", DataType::Float64, true),
+        field_with_meta(
+            "event",
+            DataType::Utf8,
+            None,
+            Some("Record type: EVENT, SUBEVENT, NO EVENT"),
+        ),
+        field_with_meta("year", DataType::Int16, None, None),
+        field_with_meta(
+            "sim_day_index",
+            DataType::Int32,
+            None,
+            Some("1-indexed simulation day since start year"),
+        ),
+        field_with_meta("julian", DataType::Int16, None, None),
+        field_with_meta("month", DataType::Int8, None, None),
+        field_with_meta("day_of_month", DataType::Int8, None, None),
+        field_with_meta("water_year", DataType::Int16, None, None),
+        field_with_meta("wepp_id", DataType::Int32, None, None),
+        field_with_meta("dur", DataType::Float64, Some("s"), Some("Storm duration")),
+        field_with_meta(
+            "tcs",
+            DataType::Float64,
+            Some("h"),
+            Some("Overland flow time of concentration"),
+        ),
+        field_with_meta(
+            "oalpha",
+            DataType::Float64,
+            Some("unitless"),
+            Some("Overland flow alpha parameter"),
+        ),
+        field_with_meta("runoff", DataType::Float64, Some("m"), Some("Runoff depth")),
+        field_with_meta("runvol", DataType::Float64, Some("m^3"), Some("Runoff volume")),
+        field_with_meta(
+            "sbrunf",
+            DataType::Float64,
+            Some("m"),
+            Some("Subsurface runoff depth"),
+        ),
+        field_with_meta(
+            "sbrunv",
+            DataType::Float64,
+            Some("m^3"),
+            Some("Subsurface runoff volume"),
+        ),
+        field_with_meta("drainq", DataType::Float64, Some("m/day"), Some("Drainage flux")),
+        field_with_meta(
+            "drrunv",
+            DataType::Float64,
+            Some("m^3"),
+            Some("Tile Drainage volume"),
+        ),
+        field_with_meta(
+            "peakro",
+            DataType::Float64,
+            Some("m^3/s"),
+            Some("Peak runoff rate"),
+        ),
+        field_with_meta("tdet", DataType::Float64, Some("kg"), Some("Total detachment")),
+        field_with_meta("tdep", DataType::Float64, Some("kg"), Some("Total deposition")),
+        field_with_meta("gwbfv", DataType::Float64, None, Some("Groundwater baseflow")),
+        field_with_meta("gwdsv", DataType::Float64, None, Some("Groundwater deep seepage")),
     ];
 
     for idx in 0..meta.npart {
-        fields.push(Field::new(format!("sedcon_{}", idx + 1), DataType::Float64, true));
+        let description = format!("Sediment concentration {}", idx + 1);
+        fields.push(field_with_meta(
+            &format!("sedcon_{}", idx + 1),
+            DataType::Float64,
+            Some("kg/m^3"),
+            Some(description.as_str()),
+        ));
     }
     for idx in 0..meta.npart {
-        fields.push(Field::new(format!("frcflw_{}", idx + 1), DataType::Float64, true));
+        let description = format!("Fraction of particle class {} in flow", idx + 1);
+        fields.push(field_with_meta(
+            &format!("frcflw_{}", idx + 1),
+            DataType::Float64,
+            Some("unitless"),
+            Some(description.as_str()),
+        ));
     }
 
     let mut schema = Schema::from(fields);

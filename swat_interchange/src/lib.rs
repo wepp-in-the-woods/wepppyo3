@@ -274,6 +274,9 @@ fn swat_outputs_to_parquet(
                 reason: Reason::Exists,
             });
             log_event(&log_path, "skip", &candidate.filename, Some(Reason::Exists))?;
+            if delete_after_interchange {
+                log_event(&log_path, "delete_skipped", &candidate.filename, Some(Reason::Exists))?;
+            }
             continue;
         }
 
@@ -384,7 +387,7 @@ fn swat_outputs_to_parquet(
         if dry_run {
             log_event(&log_path, "delete_skipped", "files_out.out", None)?;
         } else if let Err(err) = fs::remove_file(&manifest_path) {
-            log_event(&log_path, "error", "files_out.out", Some(Reason::ParseError))?;
+            log_event(&log_path, "error", "files_out.out", None)?;
             let _ = err;
         } else {
             log_event(&log_path, "delete", "files_out.out", None)?;
@@ -452,7 +455,32 @@ fn swat_output_to_parquet(
     let source_path = PathBuf::from(source_path);
     let output_path = PathBuf::from(output_path);
 
+    if delete_after_interchange {
+        let run_output_dir = detect_run_output_dir(&source_path);
+        if run_output_dir.is_none() && !allow_external_delete {
+            return Err(PyValueError::new_err(
+                "delete_after_interchange requires a SWAT run output directory or allow_external_delete=True",
+            ));
+        }
+    }
+
     if output_path.exists() && !overwrite {
+        if delete_after_interchange {
+            let log_name = source_path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .map(|name| name.to_string())
+                .unwrap_or_else(|| source_path.to_string_lossy().into_owned());
+            let log_path = if let Some(run_output_dir) = detect_run_output_dir(&source_path) {
+                run_output_dir.join("interchange").join("interchange.log")
+            } else {
+                output_path
+                    .parent()
+                    .unwrap_or_else(|| Path::new("."))
+                    .join("interchange.log")
+            };
+            log_event(&log_path, "delete_skipped", &log_name, Some(Reason::Exists))?;
+        }
         let summary = build_single_summary(
             start.elapsed().as_millis() as u64,
             &source_path,
@@ -462,15 +490,6 @@ fn swat_output_to_parquet(
             category,
         );
         return Ok(summary);
-    }
-
-    if delete_after_interchange {
-        let run_output_dir = detect_run_output_dir(&source_path);
-        if run_output_dir.is_none() && !allow_external_delete {
-            return Err(PyValueError::new_err(
-                "delete_after_interchange requires a SWAT run output directory or allow_external_delete=True",
-            ));
-        }
     }
 
     let spec = resolve_spec(
@@ -494,6 +513,11 @@ fn swat_output_to_parquet(
         .map_err(to_py_err)?;
 
     if delete_after_interchange && source_path.file_name().and_then(|name| name.to_str()) != Some("files_out.out") {
+        let log_name = source_path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .map(|name| name.to_string())
+            .unwrap_or_else(|| source_path.to_string_lossy().into_owned());
         let log_path = if let Some(run_output_dir) = detect_run_output_dir(&source_path) {
             run_output_dir.join("interchange").join("interchange.log")
         } else {
@@ -502,7 +526,7 @@ fn swat_output_to_parquet(
                 .unwrap_or_else(|| Path::new("."))
                 .join("interchange.log")
         };
-        handle_delete(&source_path, &source_path.to_string_lossy(), dry_run, &log_path)?;
+        handle_delete(&source_path, &log_name, dry_run, &log_path)?;
     }
 
     let summary = build_single_summary(
@@ -900,7 +924,7 @@ fn handle_delete(
     match fs::remove_file(source_path) {
         Ok(()) => log_event(log_path, "delete", filename, None)?,
         Err(err) => {
-            log_event(log_path, "error", filename, Some(Reason::ParseError))?;
+            log_event(log_path, "error", filename, None)?;
             let _ = err;
         }
     }
@@ -908,12 +932,17 @@ fn handle_delete(
 }
 
 fn log_event(log_path: &Path, action: &str, filename: &str, reason: Option<Reason>) -> PyResult<()> {
-    let event = serde_json::json!({
-        "timestamp": now_rfc3339(),
-        "action": action,
-        "file": filename,
-        "reason": reason.map(|r| r.as_str()),
-    });
+    let mut event = serde_json::Map::new();
+    event.insert("timestamp".to_string(), serde_json::Value::String(now_rfc3339()));
+    event.insert("action".to_string(), serde_json::Value::String(action.to_string()));
+    event.insert("file".to_string(), serde_json::Value::String(filename.to_string()));
+    if let Some(reason) = reason {
+        event.insert(
+            "reason".to_string(),
+            serde_json::Value::String(reason.as_str().to_string()),
+        );
+    }
+    let event = serde_json::Value::Object(event);
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)

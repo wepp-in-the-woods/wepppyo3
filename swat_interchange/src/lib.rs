@@ -195,6 +195,9 @@ fn swat_outputs_to_parquet(
     };
 
     let mut errors = Vec::new();
+    if let Err(err) = write_version(&version_path, &version) {
+        return Err(PyRuntimeError::new_err(err.display_message()));
+    }
 
     let manifest_entries = if manifest_path.exists() {
         match read_manifest(&manifest_path) {
@@ -239,7 +242,8 @@ fn swat_outputs_to_parquet(
         }
     }
 
-    let (candidates, mut skipped_by_order, include_missing) = if manifest_entries.is_empty() && include.is_some() {
+    let manifest_exists = manifest_path.exists();
+    let (candidates, mut skipped_by_order, include_missing) = if !manifest_exists && include.is_some() {
         build_candidates_from_include(include.as_ref(), exclude.as_ref())
     } else {
         build_candidates(&manifest_entries, include.as_ref(), exclude.as_ref())
@@ -458,6 +462,9 @@ fn swat_output_to_parquet(
 
     let source_path = PathBuf::from(source_path);
     let output_path = PathBuf::from(output_path);
+    let before_meta = source_path
+        .metadata()
+        .map_err(|err| PyRuntimeError::new_err(format!("{}: {}", source_path.display(), err)))?;
 
     if delete_after_interchange {
         let run_output_dir = detect_run_output_dir(&source_path);
@@ -512,9 +519,20 @@ fn swat_output_to_parquet(
         None,
     );
 
-    let schema = table_schema_from_file(&source_path, &spec, metadata).map_err(to_py_err)?;
+    let schema = table_schema_from_file(&source_path, &spec, metadata)
+        .map_err(|err| PyRuntimeError::new_err(err.display_message()))?;
     let summary = parse_table_to_parquet(&source_path, &output_path, schema, chunk_rows, compression)
-        .map_err(to_py_err)?;
+        .map_err(|err| PyRuntimeError::new_err(err.display_message()))?;
+
+    if file_changed(&source_path, &before_meta)
+        .map_err(|err| PyRuntimeError::new_err(err.display_message()))?
+    {
+        let _ = fs::remove_file(&output_path);
+        return Err(PyRuntimeError::new_err(
+            SwatError::file_changed(&source_path, "Source file changed during conversion")
+                .display_message(),
+        ));
+    }
 
     if delete_after_interchange && source_path.file_name().and_then(|name| name.to_str()) != Some("files_out.out") {
         let log_name = source_path
@@ -759,12 +777,7 @@ fn summarize_parquet(path: &Path, description: &str) -> Result<String, SwatError
     );
     let schema_md = schema_markdown(&schema);
     let preview_md = table_preview_markdown(&schema, &rows);
-    let preview_block = if rows.is_empty() {
-        preview_md
-    } else {
-        format!("Preview:\n\n{preview_md}")
-    };
-    Ok(format!("{header}{schema_md}\n\n{preview_block}\n"))
+    Ok(format!("{header}{schema_md}\n\nPreview:\n\n{preview_md}\n"))
 }
 
 fn schema_markdown(schema: &Schema) -> String {
@@ -1175,12 +1188,12 @@ fn summary_for_existing_complete(
         Vec::new()
     };
 
-    let (candidates, mut skipped_by_order, include_missing) =
-        if manifest_entries.is_empty() && include.is_some() {
-            build_candidates_from_include(include, exclude)
-        } else {
-            build_candidates(&manifest_entries, include, exclude)
-        };
+    let manifest_exists = manifest_path.exists();
+    let (candidates, mut skipped_by_order, include_missing) = if !manifest_exists && include.is_some() {
+        build_candidates_from_include(include, exclude)
+    } else {
+        build_candidates(&manifest_entries, include, exclude)
+    };
     let files_total = candidates.len();
     for candidate in candidates {
         set_skip(
@@ -1218,6 +1231,7 @@ fn build_candidates(
     let mut candidates = Vec::new();
     let mut skipped_by_order = Vec::new();
     let mut seen = HashSet::new();
+    let include_provided = include.is_some();
 
     let include_list = include.map(dedupe_list).unwrap_or_default();
     let include_filtered = if let Some(exclude_list) = exclude {
@@ -1233,7 +1247,7 @@ fn build_candidates(
 
     let mut order_index = 0usize;
     for entry in manifest_entries.iter() {
-        if !include_set.is_empty() && !include_set.contains(&entry.filename) {
+        if include_provided && !include_set.contains(&entry.filename) {
             continue;
         }
         if let Some(exclude_list) = exclude {
@@ -1275,7 +1289,7 @@ fn build_candidates(
     }
 
     let mut include_missing = Vec::new();
-    if !include_filtered.is_empty() {
+    if include_provided && !include_filtered.is_empty() {
         let manifest_names: HashSet<String> = manifest_entries
             .iter()
             .map(|entry| entry.filename.clone())
@@ -1698,6 +1712,7 @@ fn process_work_item(
     )?;
 
     if file_changed(&item.source_path, &before_meta)? {
+        let _ = fs::remove_file(&item.output_path);
         return Err(SwatError::file_changed(
             &item.source_path,
             "Source file changed during conversion",

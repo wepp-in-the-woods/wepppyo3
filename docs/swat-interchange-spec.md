@@ -292,6 +292,7 @@ swat_outputs_to_parquet(
 - `include` / `exclude` accept basenames from `files_out.out` (no globs).
 - If both `include` and `exclude` are provided, remove `exclude` entries from the `include` set.
 - Files listed in `include` but not present in the manifest are recorded in `skipped` with reason `not_in_manifest`.
+- If `files_out.out` exists but parses to zero entries, treat it as an empty manifest; `include` entries are recorded as `not_in_manifest` (no include-only fallback).
 - `include` is de-duplicated (first occurrence wins).
 - `exclude` entries not present in the manifest are ignored (no `skipped` record).
 - When a manifest is present, processing order, `output_paths`, and `skipped` follow manifest order after include/exclude filtering.
@@ -317,7 +318,6 @@ swat_outputs_to_parquet(
   - `row_groups`: int (total across all files)
   - `output_paths`: list[str] (manifest order, or `include` order without a manifest; only successfully written outputs)
   - `skipped`: list[{"filename": str, "reason": str}]
-
 ### Single-file entrypoint
 ```python
 swat_output_to_parquet(
@@ -389,7 +389,7 @@ generate_interchange_documentation(
     - `Units` and `Description` come from field metadata; if missing, leave blank.
   - Preview table:
     - Show up to 3 rows (head of the table).
-    - If there are zero rows, omit the preview table and write `_No rows_`.
+    - If there are zero rows, still emit the `Preview:` header and write `_No rows_` beneath it.
     - No leading/trailing `|` characters (matches `pandas`-style Markdown output).
     - The units row appears immediately after the separator row.
     - Value formatting:
@@ -398,7 +398,6 @@ generate_interchange_documentation(
       - Other floats use `g` formatting (e.g., `1.23`, `1e-05`).
       - Integers render as plain integers.
   - Return value: the Markdown string; when `to_readme_md=True`, also write `README.md`.
-
 ## Concurrency
 - Use a bounded worker pool (Rust thread pool or rayon) to process files in parallel.
 - `ncpu` controls the maximum concurrent conversions.

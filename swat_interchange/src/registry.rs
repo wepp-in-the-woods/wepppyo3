@@ -207,3 +207,21 @@ fn registry_specs() -> Vec<SwatTableSpec> {
 
     specs
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn exact_match_beats_glob() {
+        let spec = resolve_spec("checker.out");
+        assert_eq!(spec.pattern, "checker.out");
+        assert!(spec.header_merge);
+    }
+
+    #[test]
+    fn glob_match_for_crop_yield() {
+        let spec = resolve_spec("crop_yld_001.txt");
+        assert_eq!(spec.pattern, "crop_yld_*.txt");
+    }
+}

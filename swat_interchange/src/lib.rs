@@ -1088,6 +1088,89 @@ fn format_exponent(exp: i32) -> String {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pyo3::types::{PyDict, PyList};
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn temp_dir(name: &str) -> PathBuf {
+        let mut base = std::env::temp_dir();
+        let suffix = format!(
+            "swat_interchange_{:?}_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos(),
+            name
+        );
+        base.push(suffix);
+        fs::create_dir_all(&base).expect("create temp dir");
+        base
+    }
+
+    #[test]
+    fn filtered_include_len_dedup_and_exclude() {
+        let include = vec!["a".to_string(), "b".to_string(), "a".to_string()];
+        let exclude = vec!["b".to_string()];
+        let count = filtered_include_len(Some(&include), Some(&exclude));
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn complete_summary_marks_missing_as_complete() {
+        let base = temp_dir("summary_complete");
+        let manifest_path = base.join("files_out.out");
+        let interchange_dir = base.join("interchange");
+        fs::create_dir_all(&interchange_dir).expect("create interchange dir");
+        let manifest = "files_out.out - OUTPUT FILES WRITTEN\nCAT file1.txt\n";
+        fs::write(&manifest_path, manifest).expect("write manifest");
+
+        let include = vec!["file1.txt".to_string(), "file2.txt".to_string()];
+        pyo3::prepare_freethreaded_python();
+        let summary = summary_for_existing_complete(
+            &base,
+            &manifest_path,
+            Some(&include),
+            None,
+            &interchange_dir,
+            0,
+        )
+        .expect("summary");
+
+        Python::with_gil(|py| {
+            let dict = summary.bind(py).downcast::<PyDict>().expect("dict");
+            let files_total: usize = dict
+                .get_item("files_total")
+                .unwrap()
+                .unwrap()
+                .extract()
+                .unwrap();
+            assert_eq!(files_total, 2);
+            let skipped_any = dict.get_item("skipped").unwrap().unwrap();
+            let skipped = skipped_any.downcast::<PyList>().unwrap();
+            let mut reasons = Vec::new();
+            for item in skipped.iter() {
+                let reason: String = item
+                    .downcast::<PyDict>()
+                    .unwrap()
+                    .get_item("reason")
+                    .unwrap()
+                    .unwrap()
+                    .extract()
+                    .unwrap();
+                reasons.push(reason);
+            }
+            assert_eq!(reasons.len(), 2);
+            assert!(reasons.iter().all(|reason| reason == "interchange_complete"));
+        });
+
+        let _ = fs::remove_file(&manifest_path);
+        let _ = fs::remove_dir_all(&base);
+    }
+}
+
 fn resolve_ncpu(ncpu: Option<i32>) -> PyResult<usize> {
     if let Some(ncpu) = ncpu {
         if ncpu < 0 {

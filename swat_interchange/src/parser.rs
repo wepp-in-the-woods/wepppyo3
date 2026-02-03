@@ -618,6 +618,80 @@ fn decode_or_io(path: &Path, err: std::io::Error) -> SwatError {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn temp_path(filename: &str) -> PathBuf {
+        let mut path = std::env::temp_dir();
+        let suffix = format!(
+            "swat_interchange_{:?}_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos(),
+            filename
+        );
+        path.push(suffix);
+        path
+    }
+
+    fn write_temp(contents: &str) -> PathBuf {
+        let path = temp_path("table.txt");
+        fs::write(&path, contents).expect("write temp file");
+        path
+    }
+
+    fn base_spec(skip_lines: usize, units_line_index: Option<usize>) -> SwatTableSpec {
+        SwatTableSpec {
+            pattern: "*",
+            skip_lines,
+            header_line_index: 0,
+            units_line_index,
+            header_merge: false,
+            column_types: HashMap::new(),
+            column_descriptions: HashMap::new(),
+            units_overrides: HashMap::new(),
+            sentinel_overrides: HashMap::new(),
+            table_description: None,
+        }
+    }
+
+    #[test]
+    fn units_are_bound_per_occurrence() {
+        let contents = "a         a         b\nm         s         k\n1         2         3\n";
+        let path = write_temp(contents);
+        let spec = base_spec(0, Some(1));
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
+        assert_eq!(schema.columns.len(), 3);
+        assert_eq!(schema.columns[0].units, "m");
+        assert_eq!(schema.columns[1].units, "s");
+        assert_eq!(schema.columns[2].units, "k");
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn inference_respects_sentinel_overrides() {
+        let contents = "value    \nMISS\nMISS\n1.5\n";
+        let path = write_temp(contents);
+        let mut spec = base_spec(0, None);
+        spec.sentinel_overrides
+            .insert("value".to_string(), vec!["MISS".to_string()]);
+        let metadata = Metadata::new();
+        let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
+
+        assert_eq!(schema.columns.len(), 1);
+        assert_eq!(schema.columns[0].data_type, ColumnType::Float64);
+
+        let _ = fs::remove_file(path);
+    }
+}
+
 struct ColumnBuffers {
     buffers: Vec<ColumnBuffer>,
 }

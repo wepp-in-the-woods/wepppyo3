@@ -770,9 +770,12 @@ fn summarize_parquet(path: &Path, description: &str) -> Result<String, SwatError
     );
     let schema_md = schema_markdown(&schema);
     let preview_md = table_preview_markdown(&schema, &rows);
-    Ok(format!(
-        "{header}{schema_md}\n\nPreview:\n\n{preview_md}\n"
-    ))
+    let preview_block = if rows.is_empty() {
+        preview_md
+    } else {
+        format!("Preview:\n\n{preview_md}")
+    };
+    Ok(format!("{header}{schema_md}\n\n{preview_block}\n"))
 }
 
 fn schema_markdown(schema: &Schema) -> String {
@@ -882,10 +885,10 @@ fn data_type_display(data_type: &DataType) -> String {
         DataType::UInt16 => "uint16".to_string(),
         DataType::UInt32 => "uint32".to_string(),
         DataType::UInt64 => "uint64".to_string(),
-        DataType::Float32 => "float".to_string(),
-        DataType::Float64 => "double".to_string(),
-        DataType::Utf8 => "string".to_string(),
-        DataType::LargeUtf8 => "large_string".to_string(),
+        DataType::Float32 => "float32".to_string(),
+        DataType::Float64 => "float64".to_string(),
+        DataType::Utf8 => "utf8".to_string(),
+        DataType::LargeUtf8 => "large_utf8".to_string(),
         DataType::Boolean => "bool".to_string(),
         DataType::Dictionary(_, value_type, _) => data_type_display(value_type.as_ref()),
         other => format!("{other:?}"),
@@ -939,7 +942,7 @@ fn format_float32(array: &dyn Array, index: usize) -> String {
     if value.fract() == 0.0 {
         format!("{:.0}", value)
     } else {
-        value.to_string()
+        format_general(value as f64, 6)
     }
 }
 
@@ -955,7 +958,7 @@ fn format_float64(array: &dyn Array, index: usize) -> String {
     if value.fract() == 0.0 {
         format!("{:.0}", value)
     } else {
-        value.to_string()
+        format_general(value, 6)
     }
 }
 
@@ -1009,6 +1012,59 @@ fn format_dictionary_value<K: DictionaryKey>(array: &DictionaryArray<K>, index: 
     }
     let key = unsafe { array.keys().value(index).as_usize() };
     format_array_value(array.values().as_ref(), key)
+}
+
+fn format_general(value: f64, precision: usize) -> String {
+    if value == 0.0 {
+        return "0".to_string();
+    }
+    if !value.is_finite() {
+        return value.to_string();
+    }
+
+    let abs = value.abs();
+    let exponent = abs.log10().floor() as i32;
+    if exponent < -4 || exponent >= precision as i32 {
+        let raw = format!("{:.*e}", precision.saturating_sub(1), value);
+        let mut parts = raw.split('e');
+        let mantissa = parts.next().unwrap_or("");
+        let exponent_str = parts.next().unwrap_or("0");
+        let mantissa = trim_trailing_zeros(mantissa);
+        let exp_val: i32 = exponent_str.parse().unwrap_or(0);
+        format!("{}e{}", mantissa, format_exponent(exp_val))
+    } else {
+        let digits_after = (precision as i32 - 1 - exponent).max(0) as usize;
+        let raw = format!("{:.*}", digits_after, value);
+        trim_trailing_zeros(&raw)
+    }
+}
+
+fn trim_trailing_zeros(raw: &str) -> String {
+    if !raw.contains('.') {
+        return raw.to_string();
+    }
+    let mut output = raw.to_string();
+    while output.ends_with('0') {
+        output.pop();
+    }
+    if output.ends_with('.') {
+        output.pop();
+    }
+    if output == "-0" {
+        "0".to_string()
+    } else {
+        output
+    }
+}
+
+fn format_exponent(exp: i32) -> String {
+    let sign = if exp < 0 { '-' } else { '+' };
+    let value = exp.abs();
+    if value < 10 {
+        format!("{sign}0{value}")
+    } else {
+        format!("{sign}{value}")
+    }
 }
 
 fn resolve_ncpu(ncpu: Option<i32>) -> PyResult<usize> {

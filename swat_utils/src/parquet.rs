@@ -1,12 +1,12 @@
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
+use arrow2::array::Array;
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::{DataType, Schema};
 use arrow2::io::parquet::write::{
     row_group_iter, transverse, CompressionOptions, Encoding, FileWriter, Version, WriteOptions,
 };
-use arrow2::array::Array;
 
 use crate::errors::InterchangeError;
 
@@ -45,9 +45,7 @@ impl ParquetSink {
         let encodings = schema
             .fields
             .iter()
-            .map(|field| {
-                transverse(&field.data_type, |_| encoding_for_type(&field.data_type))
-            })
+            .map(|field| transverse(&field.data_type, |_| encoding_for_type(&field.data_type)))
             .collect::<Vec<_>>();
 
         let writer = FileWriter::try_new(file, schema.clone(), options)?;
@@ -67,7 +65,12 @@ impl ParquetSink {
 
     pub fn write_chunk(&mut self, chunk: Chunk<Box<dyn Array>>) -> Result<(), InterchangeError> {
         let rows = chunk.len();
-        let row_group = row_group_iter(chunk, self.encodings.clone(), self.fields.clone(), self.options);
+        let row_group = row_group_iter(
+            chunk,
+            self.encodings.clone(),
+            self.fields.clone(),
+            self.options,
+        );
         self.writer.write(row_group)?;
         self.row_groups += 1;
         self.rows_written += rows;
@@ -99,14 +102,19 @@ fn rename_atomic(tmp_path: &Path, final_path: &Path) -> Result<(), InterchangeEr
         Err(err) if err.raw_os_error() == Some(18) => {
             std::fs::copy(tmp_path, final_path)
                 .map_err(|copy_err| InterchangeError::io(final_path, copy_err))?;
-            std::fs::remove_file(tmp_path).map_err(|remove_err| InterchangeError::io(tmp_path, remove_err))?;
+            std::fs::remove_file(tmp_path)
+                .map_err(|remove_err| InterchangeError::io(tmp_path, remove_err))?;
             Ok(())
         }
         Err(err) => Err(InterchangeError::io(tmp_path, err)),
     }
 }
 
-pub fn write_single_chunk(path: &Path, schema: Schema, chunk: Chunk<Box<dyn Array>>) -> Result<WriteSummary, InterchangeError> {
+pub fn write_single_chunk(
+    path: &Path,
+    schema: Schema,
+    chunk: Chunk<Box<dyn Array>>,
+) -> Result<WriteSummary, InterchangeError> {
     let mut sink = ParquetSink::try_new(path, schema)?;
     sink.write_chunk(chunk)?;
     sink.finish()

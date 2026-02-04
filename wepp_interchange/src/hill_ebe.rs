@@ -6,7 +6,9 @@ use std::path::Path;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-use crate::calendar::{compute_sim_day_index, determine_wateryear, load_cli_calendar, CalendarLookup};
+use crate::calendar::{
+    compute_sim_day_index, determine_wateryear, load_cli_calendar, CalendarLookup,
+};
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
 use crate::schema::VersionInfo;
@@ -19,8 +21,8 @@ const RAW_HEADER_STANDARD: [&str; 14] = [
 ];
 
 const RAW_UNITS_STANDARD: [&str; 14] = [
-    "---", "--", "----", "(mm)", "(mm)", "kg/m^2", "kg/m^2", "kg/m^2", "(m)", "kg/m^2",
-    "kg/m^2", "(m)", "(kg/m)", "----",
+    "---", "--", "----", "(mm)", "(mm)", "kg/m^2", "kg/m^2", "kg/m^2", "(m)", "kg/m^2", "kg/m^2",
+    "(m)", "(kg/m)", "----",
 ];
 
 const RAW_HEADER_REVEG: [&str; 16] = [
@@ -29,8 +31,8 @@ const RAW_HEADER_REVEG: [&str; 16] = [
 ];
 
 const RAW_UNITS_REVEG: [&str; 16] = [
-    "---", "--", "----", "(mm)", "(mm)", "kg/m^2", "kg/m^2", "kg/m^2", "(m)", "kg/m^2",
-    "kg/m^2", "(m)", "(kg/m)", "----", "(m)", "(m)",
+    "---", "--", "----", "(mm)", "(mm)", "kg/m^2", "kg/m^2", "kg/m^2", "(m)", "kg/m^2", "kg/m^2",
+    "(m)", "(kg/m)", "----", "(m)", "(m)",
 ];
 
 const MEASUREMENT_COLUMNS_STANDARD: [&str; 11] = [
@@ -210,12 +212,19 @@ pub fn hillslope_ebe_to_columns(
             continue;
         }
         if non_empty_count == 2 {
-            header_tokens = Some(raw_line.split_whitespace().map(|token| token.to_string()).collect());
+            header_tokens = Some(
+                raw_line
+                    .split_whitespace()
+                    .map(|token| token.to_string())
+                    .collect(),
+            );
             continue;
         }
         if non_empty_count == 3 {
-            let unit_tokens: Vec<String> =
-                raw_line.split_whitespace().map(|token| token.to_string()).collect();
+            let unit_tokens: Vec<String> = raw_line
+                .split_whitespace()
+                .map(|token| token.to_string())
+                .collect();
             let header_tokens_ref = header_tokens.as_ref().ok_or_else(|| {
                 InterchangeError::parse(path, None, "Missing EBE header row", None)
             })?;
@@ -228,7 +237,12 @@ pub fn hillslope_ebe_to_columns(
             } else {
                 MEASUREMENT_COLUMNS_REVEG.to_vec()
             };
-            if measurement_columns.iter().map(|s| s.as_str()).collect::<Vec<_>>() != expected {
+            if measurement_columns
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                != expected
+            {
                 return Err(InterchangeError::parse(
                     path,
                     None,
@@ -243,7 +257,10 @@ pub fn hillslope_ebe_to_columns(
         }
 
         let tokens: Vec<&str> = raw_line.split_whitespace().collect();
-        let header_len = header_tokens.as_ref().map(|tokens| tokens.len()).unwrap_or(0);
+        let header_len = header_tokens
+            .as_ref()
+            .map(|tokens| tokens.len())
+            .unwrap_or(0);
         if tokens.len() != header_len {
             continue;
         }
@@ -279,11 +296,11 @@ pub fn hillslope_ebe_to_columns(
         for (column_name, token) in measurement_columns.iter().zip(tokens.iter().skip(3)) {
             let target_name = column_aliases(column_name);
             if let Some(index) = mapping.get(target_name) {
-            let value = parse_required_float(token).map_err(|msg| {
-                InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
-            })?;
-            row_measurements[*index] = Some(value);
-        }
+                let value = parse_required_float(token).map_err(|msg| {
+                    InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
+                })?;
+                row_measurements[*index] = Some(value);
+            }
         }
 
         out.wepp_id.push(wepp_id);
@@ -380,7 +397,8 @@ fn calendar_day_to_julian(
         });
     }
 
-    let julian = julian_from_ymd(year, month, day).map_err(|message| InterchangeError::Calendar { message })?;
+    let julian = julian_from_ymd(year, month, day)
+        .map_err(|message| InterchangeError::Calendar { message })?;
     Ok(julian)
 }
 
@@ -404,7 +422,13 @@ fn days_in_month(year: i32, month: i32) -> i32 {
     let leap = is_leap_year(year);
     match month {
         1 => 31,
-        2 => if leap { 29 } else { 28 },
+        2 => {
+            if leap {
+                29
+            } else {
+                28
+            }
+        }
         3 => 31,
         4 => 30,
         5 => 31,
@@ -453,7 +477,7 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
             Some(name.to_string()),
         ));
     }
-    digits
-        .parse::<i32>()
-        .map_err(|_| InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string())))
+    digits.parse::<i32>().map_err(|_| {
+        InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
+    })
 }

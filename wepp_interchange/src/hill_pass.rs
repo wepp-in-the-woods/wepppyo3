@@ -5,7 +5,9 @@ use std::path::Path;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-use crate::calendar::{compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar};
+use crate::calendar::{
+    compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
+};
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
 use crate::schema::VersionInfo;
@@ -338,7 +340,10 @@ pub fn hillslope_pass_to_columns(
                 return Err(InterchangeError::parse(
                     path,
                     None,
-                    format!("Unexpected SUBEVENT token count in {path:?}: {}", values.len()),
+                    format!(
+                        "Unexpected SUBEVENT token count in {path:?}: {}",
+                        values.len()
+                    ),
                     Some(raw_line.clone()),
                 ));
             }
@@ -349,7 +354,10 @@ pub fn hillslope_pass_to_columns(
                 return Err(InterchangeError::parse(
                     path,
                     None,
-                    format!("Unexpected NO EVENT token count in {path:?}: {}", values.len()),
+                    format!(
+                        "Unexpected NO EVENT token count in {path:?}: {}",
+                        values.len()
+                    ),
                     Some(raw_line.clone()),
                 ));
             }
@@ -433,7 +441,12 @@ impl PassRow {
         }
     }
 
-    fn fill_event(&mut self, values: &[String], path: &Path, raw_line: &str) -> Result<(), InterchangeError> {
+    fn fill_event(
+        &mut self,
+        values: &[String],
+        path: &Path,
+        raw_line: &str,
+    ) -> Result<(), InterchangeError> {
         let mut iter = values.iter();
         self.dur = parse_token(iter.next(), path, raw_line)?;
         self.tcs = parse_token(iter.next(), path, raw_line)?;
@@ -462,7 +475,12 @@ impl PassRow {
         Ok(())
     }
 
-    fn fill_subevent(&mut self, values: &[String], path: &Path, raw_line: &str) -> Result<(), InterchangeError> {
+    fn fill_subevent(
+        &mut self,
+        values: &[String],
+        path: &Path,
+        raw_line: &str,
+    ) -> Result<(), InterchangeError> {
         let mut iter = values.iter();
         self.sbrunf = parse_token(iter.next(), path, raw_line)?;
         self.sbrunv = parse_token(iter.next(), path, raw_line)?;
@@ -473,7 +491,12 @@ impl PassRow {
         Ok(())
     }
 
-    fn fill_noevent(&mut self, values: &[String], path: &Path, raw_line: &str) -> Result<(), InterchangeError> {
+    fn fill_noevent(
+        &mut self,
+        values: &[String],
+        path: &Path,
+        raw_line: &str,
+    ) -> Result<(), InterchangeError> {
         let mut iter = values.iter();
         self.gwbfv = parse_token(iter.next(), path, raw_line)?;
         self.gwdsv = parse_token(iter.next(), path, raw_line)?;
@@ -516,11 +539,21 @@ impl PassRow {
     }
 }
 
-fn parse_token(token: Option<&String>, path: &Path, raw_line: &str) -> Result<f64, InterchangeError> {
+fn parse_token(
+    token: Option<&String>,
+    path: &Path,
+    raw_line: &str,
+) -> Result<f64, InterchangeError> {
     let token = token.ok_or_else(|| {
-        InterchangeError::parse(path, None, "Missing numeric token", Some(raw_line.to_string()))
+        InterchangeError::parse(
+            path,
+            None,
+            "Missing numeric token",
+            Some(raw_line.to_string()),
+        )
     })?;
-    parse_required_float(token).map_err(|msg| InterchangeError::parse(path, None, msg, Some(raw_line.to_string())))
+    parse_required_float(token)
+        .map_err(|msg| InterchangeError::parse(path, None, msg, Some(raw_line.to_string())))
 }
 
 fn line_tokens(line: &str) -> Vec<String> {
@@ -558,7 +591,7 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
             Some(name.to_string()),
         ));
     }
-    digits
-        .parse::<i32>()
-        .map_err(|_| InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string())))
+    digits.parse::<i32>().map_err(|_| {
+        InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
+    })
 }

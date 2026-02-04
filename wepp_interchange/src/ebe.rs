@@ -5,7 +5,9 @@ use std::path::Path;
 use arrow2::array::PrimitiveArray;
 use arrow2::chunk::Chunk;
 
-use crate::calendar::{compute_sim_day_index, determine_wateryear, load_cli_calendar, CalendarLookup};
+use crate::calendar::{
+    compute_sim_day_index, determine_wateryear, load_cli_calendar, CalendarLookup,
+};
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
 use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
@@ -43,7 +45,8 @@ fn calendar_day_to_julian(
         });
     }
 
-    let date = chrono_date(year, month, day).map_err(|message| InterchangeError::Calendar { message })?;
+    let date =
+        chrono_date(year, month, day).map_err(|message| InterchangeError::Calendar { message })?;
     Ok(date)
 }
 
@@ -67,7 +70,13 @@ fn days_in_month(year: i32, month: i32) -> i32 {
     let leap = is_leap_year(year);
     match month {
         1 => 31,
-        2 => if leap { 29 } else { 28 },
+        2 => {
+            if leap {
+                29
+            } else {
+                28
+            }
+        }
         3 => 31,
         4 => 30,
         5 => 31,
@@ -151,13 +160,28 @@ pub fn watershed_ebe_to_parquet(
         }
 
         let day_of_month: i32 = tokens[0].parse().map_err(|_| {
-            InterchangeError::parse(ebe_path, Some(line_no + 1), "Invalid day token", Some(raw_line.clone()))
+            InterchangeError::parse(
+                ebe_path,
+                Some(line_no + 1),
+                "Invalid day token",
+                Some(raw_line.clone()),
+            )
         })?;
         let month: i32 = tokens[1].parse().map_err(|_| {
-            InterchangeError::parse(ebe_path, Some(line_no + 1), "Invalid month token", Some(raw_line.clone()))
+            InterchangeError::parse(
+                ebe_path,
+                Some(line_no + 1),
+                "Invalid month token",
+                Some(raw_line.clone()),
+            )
         })?;
         let sim_year: i32 = tokens[2].parse().map_err(|_| {
-            InterchangeError::parse(ebe_path, Some(line_no + 1), "Invalid simulation year token", Some(raw_line.clone()))
+            InterchangeError::parse(
+                ebe_path,
+                Some(line_no + 1),
+                "Invalid simulation year token",
+                Some(raw_line.clone()),
+            )
         })?;
 
         let year = if normalize_sim_years {

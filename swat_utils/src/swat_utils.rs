@@ -127,9 +127,13 @@ pub fn wepp_hillslope_pass_to_swat_recall(
     write_manifest: bool,
 ) -> Result<Option<Vec<RecallManifestEntry>>, InterchangeError> {
     let mut tasks: Vec<PassTask> = Vec::new();
-    for entry in fs::read_dir(wepp_output_dir).map_err(|err| InterchangeError::io(wepp_output_dir, err))? {
+    for entry in
+        fs::read_dir(wepp_output_dir).map_err(|err| InterchangeError::io(wepp_output_dir, err))?
+    {
         let entry = entry.map_err(|err| InterchangeError::io(wepp_output_dir, err))?;
-        let file_type = entry.file_type().map_err(|err| InterchangeError::io(entry.path(), err))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|err| InterchangeError::io(entry.path(), err))?;
         if !file_type.is_file() {
             continue;
         }
@@ -146,7 +150,11 @@ pub fn wepp_hillslope_pass_to_swat_recall(
     tasks.sort_by_key(|task| task.wepp_id);
 
     if tasks.is_empty() {
-        return if write_manifest { Ok(Some(Vec::new())) } else { Ok(None) };
+        return if write_manifest {
+            Ok(Some(Vec::new()))
+        } else {
+            Ok(None)
+        };
     }
 
     let recall_dir = swat_txtinout_dir.to_path_buf();
@@ -172,7 +180,9 @@ pub fn wepp_hillslope_pass_to_swat_recall(
     let worker_count = match ncpu {
         Some(value) if value > 1 => value,
         Some(_) => 1,
-        None => thread::available_parallelism().map(|value| value.get()).unwrap_or(1),
+        None => thread::available_parallelism()
+            .map(|value| value.get())
+            .unwrap_or(1),
     };
 
     let results = if worker_count <= 1 || tasks.len() <= 1 {
@@ -203,7 +213,8 @@ fn run_parallel(
 ) -> Result<Vec<RecallManifestEntry>, InterchangeError> {
     let task_count = tasks.len();
     let (task_tx, task_rx) = std::sync::mpsc::channel::<PassTask>();
-    let (result_tx, result_rx) = std::sync::mpsc::channel::<Result<RecallManifestEntry, InterchangeError>>();
+    let (result_tx, result_rx) =
+        std::sync::mpsc::channel::<Result<RecallManifestEntry, InterchangeError>>();
     let shared_rx = Arc::new(Mutex::new(task_rx));
     let shared_config = Arc::new(config);
 
@@ -254,7 +265,10 @@ fn run_parallel(
     Ok(results)
 }
 
-fn process_pass_task(task: &PassTask, config: &RecallConfig) -> Result<RecallManifestEntry, InterchangeError> {
+fn process_pass_task(
+    task: &PassTask,
+    config: &RecallConfig,
+) -> Result<RecallManifestEntry, InterchangeError> {
     let recall_name = format_recall_filename(&config.filename_template, task.wepp_id);
     let recall_path = config.swat_recall_dir.join(recall_name);
 
@@ -305,7 +319,11 @@ fn process_pass_task(task: &PassTask, config: &RecallConfig) -> Result<RecallMan
         let gwbfv = columns.gwbfv()[idx];
 
         let flo = runvol
-            + if config.include_subsurface { sbrunv } else { 0.0 }
+            + if config.include_subsurface {
+                sbrunv
+            } else {
+                0.0
+            }
             + if config.include_tile { drrunv } else { 0.0 }
             + if config.include_baseflow { gwbfv } else { 0.0 };
         let cla = (columns.sedcon_1()[idx] * runvol) / 1000.0;
@@ -417,12 +435,8 @@ fn process_pass_task(task: &PassTask, config: &RecallConfig) -> Result<RecallMan
     let mut writer = BufWriter::new(
         fs::File::create(&recall_path).map_err(|err| InterchangeError::io(&recall_path, err))?,
     );
-    writeln!(
-        writer,
-        "WEPP hillslope {} recall (daily)",
-        task.wepp_id
-    )
-    .map_err(|err| InterchangeError::io(&recall_path, err))?;
+    writeln!(writer, "WEPP hillslope {} recall (daily)", task.wepp_id)
+        .map_err(|err| InterchangeError::io(&recall_path, err))?;
     writeln!(writer, "{nbyr}").map_err(|err| InterchangeError::io(&recall_path, err))?;
     writeln!(writer, "{RECALL_DAY_HEADER}")
         .map_err(|err| InterchangeError::io(&recall_path, err))?;
@@ -478,10 +492,7 @@ fn write_recall_master_files(
                 return Err(InterchangeError::parse(
                     &config.swat_txtinout_dir,
                     None,
-                    format!(
-                        "Missing recall connection for wepp_id {}",
-                        entry.wepp_id
-                    ),
+                    format!("Missing recall connection for wepp_id {}", entry.wepp_id),
                     None,
                 ));
             }
@@ -501,8 +512,7 @@ fn write_recall_rec(
         fs::File::create(&recall_rec_path)
             .map_err(|err| InterchangeError::io(&recall_rec_path, err))?,
     );
-    writeln!(writer, "recall.rec")
-        .map_err(|err| InterchangeError::io(&recall_rec_path, err))?;
+    writeln!(writer, "recall.rec").map_err(|err| InterchangeError::io(&recall_rec_path, err))?;
     writeln!(writer, "{RECALL_REC_HEADER}")
         .map_err(|err| InterchangeError::io(&recall_rec_path, err))?;
 
@@ -535,19 +545,14 @@ fn write_recall_con(
     for (idx, entry) in entries.iter().enumerate() {
         let numb = (idx + 1) as i32;
         let name = format_recall_label(&config.filename_template, entry.wepp_id);
-        let chn_enum = *recall_connections
-            .get(&entry.wepp_id)
-            .ok_or_else(|| {
-                InterchangeError::parse(
-                    &config.swat_txtinout_dir,
-                    None,
-                    format!(
-                        "Missing recall connection for wepp_id {}",
-                        entry.wepp_id
-                    ),
-                    None,
-                )
-            })?;
+        let chn_enum = *recall_connections.get(&entry.wepp_id).ok_or_else(|| {
+            InterchangeError::parse(
+                &config.swat_txtinout_dir,
+                None,
+                format!("Missing recall connection for wepp_id {}", entry.wepp_id),
+                None,
+            )
+        })?;
         writeln!(
             writer,
             "{:>10} {:>12} {:>8} {:>10.3} {:>8.3} {:>8.3} {:>9.3} {:>8} {:>6} {:>9} {:>9} {:>8} {:>7} {:>9} {:>11} {:>9} {:>9.4}",
@@ -714,7 +719,11 @@ fn year_length(year: i32, lookup: Option<&crate::calendar::CalendarLookup>) -> i
     }
 }
 
-fn next_day(year: i32, julian: i32, lookup: Option<&crate::calendar::CalendarLookup>) -> (i32, i32) {
+fn next_day(
+    year: i32,
+    julian: i32,
+    lookup: Option<&crate::calendar::CalendarLookup>,
+) -> (i32, i32) {
     let year_len = year_length(year, lookup);
     if julian < year_len {
         (year, julian + 1)
@@ -825,40 +834,42 @@ mod tests {
         writeln!(file, "p1.cli").unwrap();
         writeln!(file, "   1      {start_year}").unwrap();
         writeln!(file, ".10000E+00").unwrap();
-        writeln!(file, "  5    0.20000E-05 0.10000E-04 0.30000E-04 0.35000E-03 0.20000E-03")
-            .unwrap();
+        writeln!(
+            file,
+            "  5    0.20000E-05 0.10000E-04 0.30000E-04 0.35000E-03 0.20000E-03"
+        )
+        .unwrap();
         writeln!(file, "    0.00     0.00     0.00     0.00").unwrap();
         for line in data_lines {
             writeln!(file, "{line}").unwrap();
         }
     }
 
-    fn event_line(year: i32, julian: i32, runvol: f64, sbrunv: f64, drrunv: f64, sedcon: [f64; 5]) -> String {
+    fn event_line(
+        year: i32,
+        julian: i32,
+        runvol: f64,
+        sbrunv: f64,
+        drrunv: f64,
+        sedcon: [f64; 5],
+    ) -> String {
         let values = [
-            1.0,  // dur
-            1.0,  // tcs
-            1.0,  // oalpha
-            0.0,  // runoff
-            runvol,
-            0.0,  // sbrunf
-            sbrunv,
-            0.0,  // drainq
-            drrunv,
-            0.0,  // peakro
-            0.0,  // tdet
-            0.0,  // tdep
-            sedcon[0],
-            sedcon[1],
-            sedcon[2],
-            sedcon[3],
-            sedcon[4],
-            0.0,  // clot
-            0.0,  // slot
-            0.0,  // saot
-            0.0,  // laot
-            0.0,  // sdot
-            0.0,  // gwbfv
-            0.0,  // gwdsv
+            1.0, // dur
+            1.0, // tcs
+            1.0, // oalpha
+            0.0, // runoff
+            runvol, 0.0, // sbrunf
+            sbrunv, 0.0, // drainq
+            drrunv, 0.0, // peakro
+            0.0, // tdet
+            0.0, // tdep
+            sedcon[0], sedcon[1], sedcon[2], sedcon[3], sedcon[4], 0.0, // clot
+            0.0, // slot
+            0.0, // saot
+            0.0, // laot
+            0.0, // sdot
+            0.0, // gwbfv
+            0.0, // gwdsv
         ];
         let mut line = format!("EVENT   {year:4} {julian:4}");
         for value in values {
@@ -878,30 +889,21 @@ mod tests {
         gwdsv: f64,
     ) -> String {
         let values = [
-            1.0,  // dur
-            1.0,  // tcs
-            1.0,  // oalpha
-            0.0,  // runoff
-            runvol,
-            0.0,  // sbrunf
-            sbrunv,
-            0.0,  // drainq
-            drrunv,
-            0.0,  // peakro
-            0.0,  // tdet
-            0.0,  // tdep
-            sedcon[0],
-            sedcon[1],
-            sedcon[2],
-            sedcon[3],
-            sedcon[4],
-            0.0,  // clot
-            0.0,  // slot
-            0.0,  // saot
-            0.0,  // laot
-            0.0,  // sdot
-            gwbfv,
-            gwdsv,
+            1.0, // dur
+            1.0, // tcs
+            1.0, // oalpha
+            0.0, // runoff
+            runvol, 0.0, // sbrunf
+            sbrunv, 0.0, // drainq
+            drrunv, 0.0, // peakro
+            0.0, // tdet
+            0.0, // tdep
+            sedcon[0], sedcon[1], sedcon[2], sedcon[3], sedcon[4], 0.0, // clot
+            0.0, // slot
+            0.0, // saot
+            0.0, // laot
+            0.0, // sdot
+            gwbfv, gwdsv,
         ];
         let mut line = format!("EVENT   {year:4} {julian:4}");
         for value in values {
@@ -1440,8 +1442,14 @@ mod tests {
         assert_eq!(parse_pass_filename("A12.pass.dat"), None);
         assert_eq!(parse_pass_filename("H12.pass"), None);
 
-        assert_eq!(format_recall_filename("hill_{wepp_id:05d}.rec", 7), "hill_00007.rec");
-        assert_eq!(format_recall_filename("hill_{wepp_id}.rec", 7), "hill_7.rec");
+        assert_eq!(
+            format_recall_filename("hill_{wepp_id:05d}.rec", 7),
+            "hill_00007.rec"
+        );
+        assert_eq!(
+            format_recall_filename("hill_{wepp_id}.rec", 7),
+            "hill_7.rec"
+        );
         assert_eq!(format_recall_filename("custom.rec", 7), "custom.rec");
     }
 

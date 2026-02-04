@@ -136,33 +136,123 @@ pub fn watershed_chnwb_to_parquet(
         let mut measurements = tokens[3..].iter();
         let parse_value = |token: &str| {
             parse_required_float(token).map_err(|msg| {
-                InterchangeError::parse(
-                    chnwb_path,
-                    Some(idx + 1),
-                    msg,
-                    Some(raw_line.clone()),
-                )
+                InterchangeError::parse(chnwb_path, Some(idx + 1), msg, Some(raw_line.clone()))
             })
         };
-        p.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        rm.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        q.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        ep.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        es.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        er.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        dp.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        upstrmq.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        subrin.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        latqcc.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        total_soil_water.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        frozwt.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        snow_water.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        qofe.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        tile.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        irr.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        surf.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        base.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
-        area.push(parse_value(next_token(&mut measurements, chnwb_path, idx, &raw_line)?)?);
+        p.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        rm.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        q.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        ep.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        es.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        er.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        dp.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        upstrmq.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        subrin.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        latqcc.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        total_soil_water.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        frozwt.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        snow_water.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        qofe.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        tile.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        irr.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        surf.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        base.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
+        area.push(parse_value(next_token(
+            &mut measurements,
+            chnwb_path,
+            idx,
+            &raw_line,
+        )?)?);
 
         row_counter += 1;
         if row_counter % chunk_size == 0 {
@@ -248,7 +338,12 @@ fn next_token<'a>(
     raw_line: &str,
 ) -> Result<&'a str, InterchangeError> {
     iter.next().copied().ok_or_else(|| {
-        InterchangeError::parse(path, Some(line_no + 1), "Missing measurement token", Some(raw_line.to_string()))
+        InterchangeError::parse(
+            path,
+            Some(line_no + 1),
+            "Missing measurement token",
+            Some(raw_line.to_string()),
+        )
     })
 }
 

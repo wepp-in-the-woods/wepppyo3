@@ -5,7 +5,7 @@ use std::path::Path;
 
 use gdal::errors::GdalError;
 use gdal::raster::{
-    ColorEntry, ColorTable, GdalDataType, PaletteInterpretation, RasterCreationOption, Buffer,
+    Buffer, ColorEntry, ColorTable, GdalDataType, PaletteInterpretation, RasterCreationOption,
 };
 use gdal::spatial_ref::SpatialRef;
 use gdal::Dataset;
@@ -342,12 +342,8 @@ fn scan_band(
     let mut y = 0usize;
     while y < height {
         let y_size = std::cmp::min(block_y, height - y);
-        let buffer = band.read_as::<f64>(
-            (0, y as isize),
-            (width, y_size),
-            (width, y_size),
-            None,
-        )?;
+        let buffer =
+            band.read_as::<f64>((0, y as isize), (width, y_size), (width, y_size), None)?;
 
         for value in buffer.data.iter() {
             let v = *value as f64;
@@ -425,7 +421,11 @@ fn parse_ct_dict(ct: &Bound<'_, PyDict>) -> PyResult<HashMap<String, Vec<i32>>> 
 fn build_color_table_maps(
     band: &gdal::raster::RasterBand<'_>,
     color_map: &HashMap<(i32, i32, i32), String>,
-) -> Option<(HashMap<String, Vec<i32>>, Vec<((i32, i32, i32), Option<String>)>, Vec<String>)> {
+) -> Option<(
+    HashMap<String, Vec<i32>>,
+    Vec<((i32, i32, i32), Option<String>)>,
+    Vec<String>,
+)> {
     let ct = band.color_table()?;
     let mut class_index_map: HashMap<String, Vec<i32>> = HashMap::new();
     for sev in ALLOWED_SEVERITIES.iter() {
@@ -461,9 +461,8 @@ fn build_ct_from_band(
     band: &gdal::raster::RasterBand<'_>,
     color_map: &HashMap<(i32, i32, i32), String>,
 ) -> Option<HashMap<String, Vec<i32>>> {
-    build_color_table_maps(band, color_map).map(|(class_index_map, _color_lookup, _severities)| {
-        class_index_map
-    })
+    build_color_table_maps(band, color_map)
+        .map(|(class_index_map, _color_lookup, _severities)| class_index_map)
 }
 
 fn severity_code(severity: &str) -> Option<u8> {
@@ -566,12 +565,8 @@ fn classify_band(
     let mut y = 0usize;
     while y < height {
         let y_size = std::cmp::min(block_y, height - y);
-        let buffer = band.read_as::<f64>(
-            (0, y as isize),
-            (width, y_size),
-            (width, y_size),
-            None,
-        )?;
+        let buffer =
+            band.read_as::<f64>((0, y as isize), (width, y_size), (width, y_size), None)?;
 
         for row in 0..y_size {
             let row_offset = row * width;
@@ -660,7 +655,10 @@ fn summarize_sbs_raster(path: &str, color_map_path: Option<String>) -> PyResult<
         summarize_color_table_internal(&band, &color_map);
 
     let (sanity_status, sanity_message) = if !srs_valid {
-        (1, "Map contains an invalid projection. Try reprojecting to UTM.")
+        (
+            1,
+            "Map contains an invalid projection. Try reprojecting to UTM.",
+        )
     } else if class_count > 256 {
         (1, "Map has more than 256 classes")
     } else if has_non_integer {
@@ -734,7 +732,11 @@ fn summarize_sbs_raster(path: &str, color_map_path: Option<String>) -> PyResult<
 
 #[pyfunction]
 #[pyo3(signature = (path, *, color_map_path=None))]
-fn read_color_table(py: Python<'_>, path: &str, color_map_path: Option<String>) -> PyResult<PyObject> {
+fn read_color_table(
+    py: Python<'_>,
+    path: &str,
+    color_map_path: Option<String>,
+) -> PyResult<PyObject> {
     let dataset = Dataset::open(path)
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{}", e)))?;
     let band = dataset
@@ -748,16 +750,16 @@ fn read_color_table(py: Python<'_>, path: &str, color_map_path: Option<String>) 
     {
         let class_dict = PyDict::new_bound(py);
         for sev in ALLOWED_SEVERITIES.iter() {
-            let values = class_index_map
-                .get(*sev)
-                .cloned()
-                .unwrap_or_default();
+            let values = class_index_map.get(*sev).cloned().unwrap_or_default();
             class_dict.set_item(*sev, PyList::new_bound(py, values))?;
         }
 
         let color_dict = PyDict::new_bound(py);
         for (rgb, severity) in color_lookup {
-            let key = PyTuple::new_bound(py, &[rgb.0.into_py(py), rgb.1.into_py(py), rgb.2.into_py(py)]);
+            let key = PyTuple::new_bound(
+                py,
+                &[rgb.0.into_py(py), rgb.1.into_py(py), rgb.2.into_py(py)],
+            );
             let value: PyObject = match severity {
                 Some(sev) => sev.into_py(py),
                 None => py.None(),
@@ -773,7 +775,10 @@ fn read_color_table(py: Python<'_>, path: &str, color_map_path: Option<String>) 
         dict.set_item("has_color_table", false)?;
         dict.set_item("class_index_map", py.None())?;
         dict.set_item("color_map", py.None())?;
-        dict.set_item("color_table_severities", PyList::new_bound(py, Vec::<String>::new()))?;
+        dict.set_item(
+            "color_table_severities",
+            PyList::new_bound(py, Vec::<String>::new()),
+        )?;
     }
 
     Ok(dict.into_py(py))
@@ -798,13 +803,9 @@ fn unique_values(path: &str) -> PyResult<Vec<PyObject>> {
     let mut y = 0usize;
     while y < height {
         let y_size = std::cmp::min(block_y, height - y);
-        let buffer = band.read_as::<f64>(
-            (0, y as isize),
-            (width, y_size),
-            (width, y_size),
-            None,
-        )
-        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{}", e)))?;
+        let buffer = band
+            .read_as::<f64>((0, y as isize), (width, y_size), (width, y_size), None)
+            .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{}", e)))?;
 
         for value in buffer.data.iter() {
             unique.insert(normalized_value_from_f64(*value));
@@ -829,7 +830,11 @@ fn unique_values(path: &str) -> PyResult<Vec<PyObject>> {
 
 #[pyfunction]
 #[pyo3(signature = (path, *, color_map_path=None))]
-fn summarize_color_table(py: Python<'_>, path: &str, color_map_path: Option<String>) -> PyResult<PyObject> {
+fn summarize_color_table(
+    py: Python<'_>,
+    path: &str,
+    color_map_path: Option<String>,
+) -> PyResult<PyObject> {
     let dataset = Dataset::open(path)
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{}", e)))?;
     let band = dataset
@@ -857,10 +862,7 @@ fn summarize_color_table(py: Python<'_>, path: &str, color_map_path: Option<Stri
 
         let class_dict = PyDict::new_bound(py);
         for sev in ALLOWED_SEVERITIES.iter() {
-            let values = class_index_map
-                .get(*sev)
-                .cloned()
-                .unwrap_or_default();
+            let values = class_index_map.get(*sev).cloned().unwrap_or_default();
             class_dict.set_item(*sev, PyList::new_bound(py, values))?;
         }
 
@@ -875,7 +877,10 @@ fn summarize_color_table(py: Python<'_>, path: &str, color_map_path: Option<Stri
         dict.set_item("class_index_map", class_dict)?;
     } else {
         dict.set_item("has_color_table", false)?;
-        dict.set_item("color_table_severities", PyList::new_bound(py, Vec::<String>::new()))?;
+        dict.set_item(
+            "color_table_severities",
+            PyList::new_bound(py, Vec::<String>::new()),
+        )?;
         dict.set_item("color_table_valid", false)?;
         dict.set_item("severity_counts", PyDict::new_bound(py))?;
         dict.set_item("class_index_map", py.None())?;

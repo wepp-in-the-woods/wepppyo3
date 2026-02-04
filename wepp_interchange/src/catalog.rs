@@ -11,13 +11,7 @@ use time::OffsetDateTime;
 use crate::errors::InterchangeError;
 
 const SUPPORTED_EXTENSIONS: [&str; 7] = [
-    ".nodb",
-    ".tsv",
-    ".csv",
-    ".tif",
-    ".parquet",
-    ".json",
-    ".geojson",
+    ".nodb", ".tsv", ".csv", ".tif", ".parquet", ".json", ".geojson",
 ];
 
 pub fn catalog_scan(base: &Path) -> Result<Vec<PyObject>, InterchangeError> {
@@ -43,7 +37,10 @@ fn build_catalog(base: &Path) -> Vec<CatalogEntry> {
 }
 
 fn build_entry(base: &Path, path: &Path, catalog_path: Option<&str>) -> Option<CatalogEntry> {
-    let suffix = path.extension().and_then(|s| s.to_str()).map(|s| format!(".{}", s.to_lowercase()))?;
+    let suffix = path
+        .extension()
+        .and_then(|s| s.to_str())
+        .map(|s| format!(".{}", s.to_lowercase()))?;
     if !SUPPORTED_EXTENSIONS.contains(&suffix.as_str()) {
         return None;
     }
@@ -59,7 +56,10 @@ fn build_entry(base: &Path, path: &Path, catalog_path: Option<&str>) -> Option<C
     } else if let Ok(rel) = path.strip_prefix(base) {
         rel.to_string_lossy().to_string()
     } else {
-        path.to_string_lossy().get(base_len..).unwrap_or("").to_string()
+        path.to_string_lossy()
+            .get(base_len..)
+            .unwrap_or("")
+            .to_string()
     };
 
     let mut entry = CatalogEntry {
@@ -236,7 +236,10 @@ fn iter_catalog_files(base: &Path, directory: Option<&Path>) -> Vec<PathBuf> {
             continue;
         }
 
-        let is_symlink_dir = current.symlink_metadata().map(|m| m.file_type().is_symlink()).unwrap_or(false);
+        let is_symlink_dir = current
+            .symlink_metadata()
+            .map(|m| m.file_type().is_symlink())
+            .unwrap_or(false);
         if !is_symlink_dir {
             if visited_real_dirs.contains(&resolved_current) {
                 continue;

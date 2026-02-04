@@ -1,13 +1,15 @@
+use glob::glob;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
+use raster::raster::Raster;
+use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use raster::raster::Raster;
-use std::error::Error;
-use glob::glob;
 
-fn read_2023_slope_meta(file_path: &str) -> Result<(Vec<usize>, Vec<f64>, f64, f64), Box<dyn Error>> {
+fn read_2023_slope_meta(
+    file_path: &str,
+) -> Result<(Vec<usize>, Vec<f64>, f64, f64), Box<dyn Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
 
@@ -48,8 +50,7 @@ fn read_2023_slope_meta(file_path: &str) -> Result<(Vec<usize>, Vec<f64>, f64, f
 }
 
 fn read_plot_fn(plot_fn: &Path) -> Result<(Vec<f64>, f64), io::Error> {
-
-//    println!("plot_fn: {}", plot_fn.display());
+    //    println!("plot_fn: {}", plot_fn.display());
 
     let file = File::open(plot_fn)?;
     let reader = io::BufReader::new(file);
@@ -79,8 +80,7 @@ fn read_plot_fn(plot_fn: &Path) -> Result<(Vec<f64>, f64), io::Error> {
     Ok((soil_loss, dx))
 }
 
-
-fn interp(x: f64, dx:f64, fp: &Vec<f64>) -> f64 {
+fn interp(x: f64, dx: f64, fp: &Vec<f64>) -> f64 {
     let n = fp.len();
     let last_indx = n - 1;
 
@@ -99,9 +99,7 @@ fn interp(x: f64, dx:f64, fp: &Vec<f64>) -> f64 {
     let y1 = fp[i + 1];
 
     y0 + (x - x0) * (y1 - y0) / dx
-
 }
-
 
 #[derive(Debug)]
 pub enum SoilLossError {
@@ -135,9 +133,8 @@ fn replace_extension(path: &Path, from_ext: &str, to_ext: &str) -> Option<PathBu
 fn make_soil_loss_grid_fps_rs(
     discha_fn: &str,
     fp_runs_dir: &str,
-    loss_fn: &str
-) -> Result<(), Box<dyn Error>>  {
-
+    loss_fn: &str,
+) -> Result<(), Box<dyn Error>> {
     let discha: Raster<f64> = Raster::<f64>::read(discha_fn).unwrap();
 
     let mut soil_loss_grid = discha.empty_clone();
@@ -149,11 +146,14 @@ fn make_soil_loss_grid_fps_rs(
         match entry {
             Ok(plot_fn) => {
                 if let Some(slp_path) = replace_extension(&plot_fn, "plot.dat", "slp") {
-                    let slp_path_str = slp_path.to_str().ok_or("Invalid UTF-8 sequence")?.to_string();
-                    
+                    let slp_path_str = slp_path
+                        .to_str()
+                        .ok_or("Invalid UTF-8 sequence")?
+                        .to_string();
+
                     println!("Plot file: {:?}", plot_fn);
                     println!("SLP file: {:?}", slp_path_str);
-                    
+
                     let (soil_loss, dx) = read_plot_fn(&Path::new(&plot_fn))?;
                     let (indices, distances_norm, cell_size, length) =
                         read_2023_slope_meta(&slp_path_str)?;
@@ -163,8 +163,7 @@ fn make_soil_loss_grid_fps_rs(
                     let mut distance_norm_0: f64;
                     let mut distance_norm_1: f64;
                     for (i, indx) in indices.iter().enumerate() {
-                        if i == 0
-                        {
+                        if i == 0 {
                             distance_norm_0 = distances_norm[i];
                             distance_norm_1 = (distances_norm[i] + distances_norm[i + 1]) / 2.0;
                         } else if i == indices.len() - 1 {
@@ -178,7 +177,8 @@ fn make_soil_loss_grid_fps_rs(
                         for (j, _soil_loss) in soil_loss.iter().enumerate() {
                             let _distance_norm = j as f64 * dx;
                             // continue if _distance_norm is outside the range for indx
-                            if _distance_norm < distance_norm_0 || _distance_norm > distance_norm_1 {
+                            if _distance_norm < distance_norm_0 || _distance_norm > distance_norm_1
+                            {
                                 continue;
                             }
 
@@ -200,7 +200,7 @@ fn make_soil_loss_grid_fps_rs(
             *loss /= counts_grid.data[i] as f64;
         }
     }
-    
+
     soil_loss_grid.write(loss_fn)?;
 
     Ok(())
@@ -210,13 +210,13 @@ fn make_soil_loss_grid_rs(
     subwta_fn: &str,
     discha_fn: &str,
     output_dir: &str,
-    loss_fn: &str
+    loss_fn: &str,
 ) -> Result<i32, SoilLossError> {
-
     let discha: Raster<f64> = Raster::<f64>::read(discha_fn).unwrap();
     let subwta: Raster<i32> = Raster::<i32>::read(subwta_fn).unwrap();
 
-    let mut topaz_ids: Vec<i32> = subwta.unique_values()
+    let mut topaz_ids: Vec<i32> = subwta
+        .unique_values()
         .into_iter()
         .filter(|&x| x != 0 && x % 10 != 4)
         .collect();
@@ -226,7 +226,7 @@ fn make_soil_loss_grid_rs(
     let mut soil_loss_grid = discha.empty_clone();
 
     for topaz_id in &topaz_ids {
-//        println!("topaz_id: {}", topaz_id);
+        //        println!("topaz_id: {}", topaz_id);
         let plot_fn = format!("{}/H{}.plot.dat", output_dir, i);
 
         let indices = subwta.indices_of(*topaz_id);
@@ -264,7 +264,6 @@ fn make_soil_loss_grid_rs(
     Ok(i)
 }
 
-
 /// makes a soil-loss grid from topaz distance to channel map
 /// and wepp plot file outputs
 #[pyfunction]
@@ -272,18 +271,14 @@ fn make_soil_loss_grid(
     subwta_fn: &str,
     discha_fn: &str,
     output_dir: &str,
-    loss_fn: &str
+    loss_fn: &str,
 ) -> PyResult<i32> {
     make_soil_loss_grid_rs(subwta_fn, discha_fn, output_dir, loss_fn)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{:?}", e)))
 }
 
 #[pyfunction]
-fn make_soil_loss_grid_fps(
-    discha_fn: &str,
-    fp_runs_dir: &str,
-    loss_fn: &str
-) -> PyResult<()> {
+fn make_soil_loss_grid_fps(discha_fn: &str, fp_runs_dir: &str, loss_fn: &str) -> PyResult<()> {
     make_soil_loss_grid_fps_rs(discha_fn, fp_runs_dir, loss_fn)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{:?}", e)))
 }
@@ -297,21 +292,20 @@ fn wepp_viz_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-
 #[cfg(test)]
 mod tests {
 
-    use crate::make_soil_loss_grid_rs;
     use crate::make_soil_loss_grid_fps_rs;
+    use crate::make_soil_loss_grid_rs;
 
     #[test]
     fn test_make_soil_loss_grid() {
-
         let result = make_soil_loss_grid_rs(
-    "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/dem/topaz/SUBWTA.ARC",
-    "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/dem/topaz/DISCHA.ARC", 
-    "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/wepp/output",
-    "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/wepp/plots/loss.tif");
+            "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/dem/topaz/SUBWTA.ARC",
+            "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/dem/topaz/DISCHA.ARC",
+            "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/wepp/output",
+            "/geodata/weppcloud_runs/mdobre-mouth-watering-anathema/wepp/plots/loss.tif",
+        );
 
         let result = 165;
         // Assert conditions on the result
@@ -320,16 +314,15 @@ mod tests {
 
     #[test]
     fn test_make_soil_loss_grid_fps() {
-
         let result = make_soil_loss_grid_fps_rs(
-    "/geodata/weppcloud_runs/falling-validity/dem/topaz/DISCHA.ARC",
-    "/media/ramdisk/falling-validity",
-    "/geodata/weppcloud_runs/falling-validity/wepp/plots/loss_fps.tif");
-    
-            // Assert conditions on the result
-            assert_eq!(result.is_ok(), true); // replace ... with the expected value
+            "/geodata/weppcloud_runs/falling-validity/dem/topaz/DISCHA.ARC",
+            "/media/ramdisk/falling-validity",
+            "/geodata/weppcloud_runs/falling-validity/wepp/plots/loss_fps.tif",
+        );
+
+        // Assert conditions on the result
+        assert_eq!(result.is_ok(), true); // replace ... with the expected value
     }
 }
 
-
-// wepp_viz_rust.make_soil_loss_grid('/geodata/weppcloud_runs/unimposing-muslin/dem/topaz/SUBWTA.ARC','/geodata/weppcloud_runs/unimposing-muslin/dem/topaz/DISCHA.ARC', '/geodata/weppcloud_runs/unimposing-muslin/wepp/ouput') 
+// wepp_viz_rust.make_soil_loss_grid('/geodata/weppcloud_runs/unimposing-muslin/dem/topaz/SUBWTA.ARC','/geodata/weppcloud_runs/unimposing-muslin/dem/topaz/DISCHA.ARC', '/geodata/weppcloud_runs/unimposing-muslin/wepp/ouput')

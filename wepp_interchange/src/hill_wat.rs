@@ -148,7 +148,8 @@ impl WatColumns {
         dict.set_item("UpStrmQ", self.upstrmq).unwrap();
         dict.set_item("SubRIn", self.subrin).unwrap();
         dict.set_item("latqcc", self.latqcc).unwrap();
-        dict.set_item("Total-Soil Water", self.total_soil_water).unwrap();
+        dict.set_item("Total-Soil Water", self.total_soil_water)
+            .unwrap();
         dict.set_item("frozwt", self.frozwt).unwrap();
         dict.set_item("Snow-Water", self.snow_water).unwrap();
         dict.set_item("QOFE", self.qofe).unwrap();
@@ -238,17 +239,39 @@ pub fn hillslope_wat_to_columns(
                     continue;
                 }
 
-                let julian_val: i32 = tokens[*column_positions.get("J").unwrap()].parse().map_err(|_| {
-                    InterchangeError::parse(path, None, "Invalid julian token", Some(raw_line.clone()))
-                })?;
-                let year_val: i32 = tokens[*column_positions.get("Y").unwrap()].parse().map_err(|_| {
-                    InterchangeError::parse(path, None, "Invalid year token", Some(raw_line.clone()))
-                })?;
-                let (month, day_of_month) = julian_to_calendar(year_val, julian_val, lookup.as_ref());
+                let julian_val: i32 = tokens[*column_positions.get("J").unwrap()]
+                    .parse()
+                    .map_err(|_| {
+                        InterchangeError::parse(
+                            path,
+                            None,
+                            "Invalid julian token",
+                            Some(raw_line.clone()),
+                        )
+                    })?;
+                let year_val: i32 = tokens[*column_positions.get("Y").unwrap()]
+                    .parse()
+                    .map_err(|_| {
+                        InterchangeError::parse(
+                            path,
+                            None,
+                            "Invalid year token",
+                            Some(raw_line.clone()),
+                        )
+                    })?;
+                let (month, day_of_month) =
+                    julian_to_calendar(year_val, julian_val, lookup.as_ref());
                 let water_year = determine_wateryear(year_val, julian_val);
-                let ofe_val: i32 = tokens[*column_positions.get("OFE").unwrap()].parse().map_err(|_| {
-                    InterchangeError::parse(path, None, "Invalid OFE token", Some(raw_line.clone()))
-                })?;
+                let ofe_val: i32 = tokens[*column_positions.get("OFE").unwrap()]
+                    .parse()
+                    .map_err(|_| {
+                        InterchangeError::parse(
+                            path,
+                            None,
+                            "Invalid OFE token",
+                            Some(raw_line.clone()),
+                        )
+                    })?;
 
                 out.wepp_id.push(wepp_id);
                 out.ofe_id.push(ofe_val as i16);
@@ -307,7 +330,11 @@ fn build_header_from_rows(
     path: &Path,
 ) -> Result<Vec<String>, InterchangeError> {
     let mut header: Vec<String> = Vec::new();
-    let min_len = raw_header_rows.iter().map(|row| row.len()).min().unwrap_or(0);
+    let min_len = raw_header_rows
+        .iter()
+        .map(|row| row.len())
+        .min()
+        .unwrap_or(0);
     for col_idx in 0..min_len {
         let mut merged = raw_header_rows
             .iter()
@@ -323,10 +350,20 @@ fn build_header_from_rows(
     let aliases = header_aliases();
     let canonical_header: Vec<String> = header
         .iter()
-        .map(|value| aliases.get(value.as_str()).unwrap_or(&value.as_str()).to_string())
+        .map(|value| {
+            aliases
+                .get(value.as_str())
+                .unwrap_or(&value.as_str())
+                .to_string()
+        })
         .collect();
 
-    if canonical_header.iter().map(|s| s.as_str()).collect::<Vec<_>>() != WAT_COLUMN_NAMES {
+    if canonical_header
+        .iter()
+        .map(|s| s.as_str())
+        .collect::<Vec<_>>()
+        != WAT_COLUMN_NAMES
+    {
         return Err(InterchangeError::parse(
             path,
             None,
@@ -368,7 +405,7 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
             Some(name.to_string()),
         ));
     }
-    digits
-        .parse::<i32>()
-        .map_err(|_| InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string())))
+    digits.parse::<i32>().map_err(|_| {
+        InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
+    })
 }

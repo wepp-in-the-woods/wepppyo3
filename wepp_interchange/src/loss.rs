@@ -204,26 +204,42 @@ pub fn watershed_loss_to_parquet(
     let mut paths: HashMap<String, PathBuf> = HashMap::new();
     let mut summaries: HashMap<String, WriteSummary> = HashMap::new();
 
-    std::fs::create_dir_all(output_dir)
-        .map_err(|err| InterchangeError::io(output_dir, err))?;
+    std::fs::create_dir_all(output_dir).map_err(|err| InterchangeError::io(output_dir, err))?;
 
     let (hill_all_schema, hill_avg_schema) = hill_schemas(version, parsed.average_years);
-    let (chn_all_schema, chn_avg_schema) = chn_schemas(version, parsed.average_years, hill_count.is_some());
+    let (chn_all_schema, chn_avg_schema) =
+        chn_schemas(version, parsed.average_years, hill_count.is_some());
     let (out_all_schema, out_avg_schema) = out_schemas(version, parsed.average_years);
     let (class_all_schema, class_avg_schema) = class_schemas(version, parsed.average_years);
 
-    let hill_all_chunk = build_chunk(&hill_all_schema, &HILL_HEADER, &parsed.yearly_hill, Some(&parsed.yearly_hill_years), None)?;
-    let hill_avg_chunk = build_chunk(&hill_avg_schema, &HILL_AVG_HEADER, &parsed.average_hill, None, None)?;
+    let hill_all_chunk = build_chunk(
+        &hill_all_schema,
+        &HILL_HEADER,
+        &parsed.yearly_hill,
+        Some(&parsed.yearly_hill_years),
+        None,
+    )?;
+    let hill_avg_chunk = build_chunk(
+        &hill_avg_schema,
+        &HILL_AVG_HEADER,
+        &parsed.average_hill,
+        None,
+        None,
+    )?;
 
     let chn_all_extra = hill_count.map(|count| {
-        parsed.yearly_chn.iter().map(|row| {
-            coerce_int(row.get(chn_enum_index())).map(|value| value + count)
-        }).collect::<Vec<_>>()
+        parsed
+            .yearly_chn
+            .iter()
+            .map(|row| coerce_int(row.get(chn_enum_index())).map(|value| value + count))
+            .collect::<Vec<_>>()
     });
     let chn_avg_extra = hill_count.map(|count| {
-        parsed.average_chn.iter().map(|row| {
-            coerce_int(row.get(chn_enum_index())).map(|value| value + count)
-        }).collect::<Vec<_>>()
+        parsed
+            .average_chn
+            .iter()
+            .map(|row| coerce_int(row.get(chn_enum_index())).map(|value| value + count))
+            .collect::<Vec<_>>()
     });
 
     let chn_all_chunk = build_chunk(
@@ -317,7 +333,11 @@ fn hill_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, S
     let mut hill_fields = vec![field_with_meta("year", DataType::Int16, None, None)];
     hill_fields.push(field_with_meta("Type", DataType::Utf8, None, None));
     for (idx, name) in HILL_HEADER.iter().enumerate().skip(1) {
-        let dtype = if idx == 1 { DataType::Int32 } else { DataType::Float64 };
+        let dtype = if idx == 1 {
+            DataType::Int32
+        } else {
+            DataType::Float64
+        };
         let units = HILL_UNITS[idx];
         hill_fields.push(field_with_meta(name, dtype, units, None));
     }
@@ -327,7 +347,11 @@ fn hill_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, S
 
     let mut avg_fields = vec![field_with_meta("Type", DataType::Utf8, None, None)];
     for (idx, name) in HILL_AVG_HEADER.iter().enumerate().skip(1) {
-        let dtype = if idx == 1 { DataType::Int32 } else { DataType::Float64 };
+        let dtype = if idx == 1 {
+            DataType::Int32
+        } else {
+            DataType::Float64
+        };
         let units = HILL_AVG_UNITS[idx];
         avg_fields.push(field_with_meta(name, dtype, units, None));
     }
@@ -343,11 +367,19 @@ fn hill_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, S
     (hill_schema, avg_schema)
 }
 
-fn chn_schemas(version: &VersionInfo, average_years: Option<i16>, append_wepp: bool) -> (Schema, Schema) {
+fn chn_schemas(
+    version: &VersionInfo,
+    average_years: Option<i16>,
+    append_wepp: bool,
+) -> (Schema, Schema) {
     let mut chn_fields = vec![field_with_meta("year", DataType::Int16, None, None)];
     chn_fields.push(field_with_meta("Type", DataType::Utf8, None, None));
     for (idx, name) in CHN_HEADER.iter().enumerate().skip(1) {
-        let dtype = if idx == 1 { DataType::Int32 } else { DataType::Float64 };
+        let dtype = if idx == 1 {
+            DataType::Int32
+        } else {
+            DataType::Float64
+        };
         let units = CHN_UNITS[idx];
         chn_fields.push(field_with_meta(name, dtype, units, None));
     }
@@ -360,7 +392,11 @@ fn chn_schemas(version: &VersionInfo, average_years: Option<i16>, append_wepp: b
 
     let mut avg_fields = vec![field_with_meta("Type", DataType::Utf8, None, None)];
     for (idx, name) in CHN_AVG_HEADER.iter().enumerate().skip(1) {
-        let dtype = if idx == 1 { DataType::Int32 } else { DataType::Float64 };
+        let dtype = if idx == 1 {
+            DataType::Int32
+        } else {
+            DataType::Float64
+        };
         let units = CHN_AVG_UNITS[idx];
         avg_fields.push(field_with_meta(name, dtype, units, None));
     }
@@ -408,7 +444,11 @@ fn out_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, Sc
 fn class_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, Schema) {
     let mut all_fields = vec![field_with_meta("year", DataType::Int16, None, None)];
     for (idx, name) in CLASS_HEADER.iter().enumerate() {
-        let dtype = if *name == "Class" { DataType::Int8 } else { DataType::Float64 };
+        let dtype = if *name == "Class" {
+            DataType::Int8
+        } else {
+            DataType::Float64
+        };
         all_fields.push(field_with_meta(name, dtype, CLASS_UNITS[idx], None));
     }
     let mut all_schema = Schema::from(all_fields);
@@ -417,7 +457,11 @@ fn class_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, 
 
     let mut avg_fields = Vec::new();
     for (idx, name) in CLASS_HEADER.iter().enumerate() {
-        let dtype = if *name == "Class" { DataType::Int8 } else { DataType::Float64 };
+        let dtype = if *name == "Class" {
+            DataType::Int8
+        } else {
+            DataType::Float64
+        };
         avg_fields.push(field_with_meta(name, dtype, CLASS_UNITS[idx], None));
     }
     let mut avg_schema = Schema::from(avg_fields);
@@ -444,26 +488,32 @@ fn max_hill_id(rows: &[Vec<LossValue>]) -> Option<i32> {
         return None;
     }
     let idx = hill_wepp_index();
-    rows.iter()
-        .filter_map(|row| coerce_int(row.get(idx)))
-        .max()
+    rows.iter().filter_map(|row| coerce_int(row.get(idx))).max()
 }
 
 fn hill_wepp_index() -> usize {
-    HILL_AVG_HEADER.iter().position(|name| *name == "wepp_id").unwrap_or(1)
+    HILL_AVG_HEADER
+        .iter()
+        .position(|name| *name == "wepp_id")
+        .unwrap_or(1)
 }
 
 fn chn_enum_index() -> usize {
-    CHN_HEADER.iter().position(|name| *name == "chn_enum").unwrap_or(1)
+    CHN_HEADER
+        .iter()
+        .position(|name| *name == "chn_enum")
+        .unwrap_or(1)
 }
 
 fn out_rows_to_values(rows: &[OutRow]) -> Vec<Vec<LossValue>> {
     rows.iter()
-        .map(|row| vec![
-            LossValue::Str(row.key.clone()),
-            row.value.clone(),
-            LossValue::Str(row.units.clone()),
-        ])
+        .map(|row| {
+            vec![
+                LossValue::Str(row.key.clone()),
+                row.value.clone(),
+                LossValue::Str(row.units.clone()),
+            ]
+        })
         .collect()
 }
 
@@ -487,11 +537,21 @@ fn build_chunk(
                 let mut values: Vec<Option<i8>> = Vec::with_capacity(rows.len());
                 for (row_idx, row) in rows.iter().enumerate() {
                     let value = if name == "year" {
-                        years.and_then(|vals| vals.get(row_idx).copied()).map(|v| v as i8)
-                    } else if name == "wepp_id" && extra_wepp.is_some() && !header_index.contains_key(name) {
-                        extra_wepp.and_then(|vals| vals.get(row_idx).cloned()).flatten().map(|v| v as i8)
+                        years
+                            .and_then(|vals| vals.get(row_idx).copied())
+                            .map(|v| v as i8)
+                    } else if name == "wepp_id"
+                        && extra_wepp.is_some()
+                        && !header_index.contains_key(name)
+                    {
+                        extra_wepp
+                            .and_then(|vals| vals.get(row_idx).cloned())
+                            .flatten()
+                            .map(|v| v as i8)
                     } else {
-                        header_index.get(name).and_then(|idx| coerce_int(row.get(*idx)).map(|v| v as i8))
+                        header_index
+                            .get(name)
+                            .and_then(|idx| coerce_int(row.get(*idx)).map(|v| v as i8))
                     };
                     values.push(value);
                 }
@@ -502,10 +562,18 @@ fn build_chunk(
                 for (row_idx, row) in rows.iter().enumerate() {
                     let value = if name == "year" {
                         years.and_then(|vals| vals.get(row_idx).copied())
-                    } else if name == "wepp_id" && extra_wepp.is_some() && !header_index.contains_key(name) {
-                        extra_wepp.and_then(|vals| vals.get(row_idx).cloned()).flatten().map(|v| v as i16)
+                    } else if name == "wepp_id"
+                        && extra_wepp.is_some()
+                        && !header_index.contains_key(name)
+                    {
+                        extra_wepp
+                            .and_then(|vals| vals.get(row_idx).cloned())
+                            .flatten()
+                            .map(|v| v as i16)
                     } else {
-                        header_index.get(name).and_then(|idx| coerce_int(row.get(*idx)).map(|v| v as i16))
+                        header_index
+                            .get(name)
+                            .and_then(|idx| coerce_int(row.get(*idx)).map(|v| v as i16))
                     };
                     values.push(value);
                 }
@@ -515,11 +583,20 @@ fn build_chunk(
                 let mut values: Vec<Option<i32>> = Vec::with_capacity(rows.len());
                 for (row_idx, row) in rows.iter().enumerate() {
                     let value = if name == "year" {
-                        years.and_then(|vals| vals.get(row_idx).copied()).map(|v| v as i32)
-                    } else if name == "wepp_id" && extra_wepp.is_some() && !header_index.contains_key(name) {
-                        extra_wepp.and_then(|vals| vals.get(row_idx).cloned()).flatten()
+                        years
+                            .and_then(|vals| vals.get(row_idx).copied())
+                            .map(|v| v as i32)
+                    } else if name == "wepp_id"
+                        && extra_wepp.is_some()
+                        && !header_index.contains_key(name)
+                    {
+                        extra_wepp
+                            .and_then(|vals| vals.get(row_idx).cloned())
+                            .flatten()
                     } else {
-                        header_index.get(name).and_then(|idx| coerce_int(row.get(*idx)))
+                        header_index
+                            .get(name)
+                            .and_then(|idx| coerce_int(row.get(*idx)))
                     };
                     values.push(value);
                 }
@@ -529,11 +606,21 @@ fn build_chunk(
                 let mut values: Vec<Option<f64>> = Vec::with_capacity(rows.len());
                 for (row_idx, row) in rows.iter().enumerate() {
                     let value = if name == "year" {
-                        years.and_then(|vals| vals.get(row_idx).copied()).map(|v| v as f64)
-                    } else if name == "wepp_id" && extra_wepp.is_some() && !header_index.contains_key(name) {
-                        extra_wepp.and_then(|vals| vals.get(row_idx).cloned()).flatten().map(|v| v as f64)
+                        years
+                            .and_then(|vals| vals.get(row_idx).copied())
+                            .map(|v| v as f64)
+                    } else if name == "wepp_id"
+                        && extra_wepp.is_some()
+                        && !header_index.contains_key(name)
+                    {
+                        extra_wepp
+                            .and_then(|vals| vals.get(row_idx).cloned())
+                            .flatten()
+                            .map(|v| v as f64)
                     } else {
-                        header_index.get(name).and_then(|idx| coerce_float(row.get(*idx)))
+                        header_index
+                            .get(name)
+                            .and_then(|idx| coerce_float(row.get(*idx)))
                     };
                     values.push(value);
                 }
@@ -543,11 +630,21 @@ fn build_chunk(
                 let mut values: Vec<Option<String>> = Vec::with_capacity(rows.len());
                 for (row_idx, row) in rows.iter().enumerate() {
                     let value = if name == "year" {
-                        years.and_then(|vals| vals.get(row_idx).copied()).map(|v| v.to_string())
-                    } else if name == "wepp_id" && extra_wepp.is_some() && !header_index.contains_key(name) {
-                        extra_wepp.and_then(|vals| vals.get(row_idx).cloned()).flatten().map(|v| v.to_string())
+                        years
+                            .and_then(|vals| vals.get(row_idx).copied())
+                            .map(|v| v.to_string())
+                    } else if name == "wepp_id"
+                        && extra_wepp.is_some()
+                        && !header_index.contains_key(name)
+                    {
+                        extra_wepp
+                            .and_then(|vals| vals.get(row_idx).cloned())
+                            .flatten()
+                            .map(|v| v.to_string())
                     } else {
-                        header_index.get(name).and_then(|idx| coerce_string(row.get(*idx)))
+                        header_index
+                            .get(name)
+                            .and_then(|idx| coerce_string(row.get(*idx)))
                     };
                     values.push(value);
                 }
@@ -567,13 +664,25 @@ fn build_chunk(
 fn coerce_int(value: Option<&LossValue>) -> Option<i32> {
     match value? {
         LossValue::Int(v) => Some(*v),
-        LossValue::Float(v) => if v.is_nan() { None } else { Some(*v as i32) },
+        LossValue::Float(v) => {
+            if v.is_nan() {
+                None
+            } else {
+                Some(*v as i32)
+            }
+        }
         LossValue::Str(s) => {
             let stripped = s.trim();
             if stripped.is_empty() {
                 None
             } else {
-                parse_float_strict(stripped).and_then(|v| if v.is_nan() { None } else { Some(v as i32) })
+                parse_float_strict(stripped).and_then(|v| {
+                    if v.is_nan() {
+                        None
+                    } else {
+                        Some(v as i32)
+                    }
+                })
             }
         }
     }
@@ -633,7 +742,12 @@ fn parse_loss_file(path: &Path) -> Result<ParsedLossData, InterchangeError> {
             if let Some(year) = extract_year(line) {
                 yearly_sections.push((idx, year));
             } else {
-                return Err(InterchangeError::parse(path, Some(idx + 1), "Unable to extract year from line", Some(line.clone())));
+                return Err(InterchangeError::parse(
+                    path,
+                    Some(idx + 1),
+                    "Unable to extract year from line",
+                    Some(line.clone()),
+                ));
             }
         }
     }
@@ -649,7 +763,12 @@ fn parse_loss_file(path: &Path) -> Result<ParsedLossData, InterchangeError> {
     }
 
     let average_idx = average_idx.ok_or_else(|| {
-        InterchangeError::parse(path, None, "Average annual section not found in loss file.", None)
+        InterchangeError::parse(
+            path,
+            None,
+            "Average annual section not found in loss file.",
+            None,
+        )
     })?;
 
     let mut section_indices: Vec<usize> = yearly_sections.iter().map(|(idx, _)| *idx).collect();
@@ -661,7 +780,11 @@ fn parse_loss_file(path: &Path) -> Result<ParsedLossData, InterchangeError> {
 
     for (idx, year) in yearly_sections {
         let (hill_start, chn_start, out_start) = find_tbl_starts(idx, &lines, path)?;
-        let next_section = section_indices.iter().copied().find(|pos| *pos > idx).unwrap_or(lines.len());
+        let next_section = section_indices
+            .iter()
+            .copied()
+            .find(|pos| *pos > idx)
+            .unwrap_or(lines.len());
 
         let hill_rows = parse_tbl(&lines[hill_start..], HILL_HEADER.len(), path, hill_start)?;
         for row in hill_rows {
@@ -688,9 +811,20 @@ fn parse_loss_file(path: &Path) -> Result<ParsedLossData, InterchangeError> {
         }
     }
 
-    let (avg_hill_start, avg_chn_start, avg_out_start) = find_tbl_starts(average_idx, &lines, path)?;
-    parsed.average_hill = parse_tbl(&lines[avg_hill_start..], HILL_AVG_HEADER.len(), path, avg_hill_start)?;
-    parsed.average_chn = parse_tbl(&lines[avg_chn_start..], CHN_AVG_HEADER.len(), path, avg_chn_start)?;
+    let (avg_hill_start, avg_chn_start, avg_out_start) =
+        find_tbl_starts(average_idx, &lines, path)?;
+    parsed.average_hill = parse_tbl(
+        &lines[avg_hill_start..],
+        HILL_AVG_HEADER.len(),
+        path,
+        avg_hill_start,
+    )?;
+    parsed.average_chn = parse_tbl(
+        &lines[avg_chn_start..],
+        CHN_AVG_HEADER.len(),
+        path,
+        avg_chn_start,
+    )?;
     parsed.average_out = parse_out(&lines[avg_out_start..]);
     parsed.average_class = collect_class_block(&lines, avg_out_start, lines.len(), path)?;
 
@@ -795,8 +929,12 @@ fn extend_row_from_token(
         let cut = std::cmp::min(idx + 3, token.len());
         let part0 = &token[..cut];
         let part1 = &token[cut..];
-        row.push(LossValue::Float(parse_required_float(part0, path, line_no, line)?));
-        row.push(LossValue::Float(parse_required_float(part1, path, line_no, line)?));
+        row.push(LossValue::Float(parse_required_float(
+            part0, path, line_no, line,
+        )?));
+        row.push(LossValue::Float(parse_required_float(
+            part1, path, line_no, line,
+        )?));
         return Ok(());
     }
 
@@ -804,9 +942,15 @@ fn extend_row_from_token(
         let part0 = token.get(..3).unwrap_or(token);
         let part1 = token.get(3..11).unwrap_or("");
         let part2 = token.get(11..).unwrap_or("");
-        row.push(LossValue::Float(parse_required_float(part0, path, line_no, line)?));
-        row.push(LossValue::Float(parse_required_float(part1, path, line_no, line)?));
-        row.push(LossValue::Float(parse_required_float(part2, path, line_no, line)?));
+        row.push(LossValue::Float(parse_required_float(
+            part0, path, line_no, line,
+        )?));
+        row.push(LossValue::Float(parse_required_float(
+            part1, path, line_no, line,
+        )?));
+        row.push(LossValue::Float(parse_required_float(
+            part2, path, line_no, line,
+        )?));
         return Ok(());
     }
 
@@ -820,12 +964,16 @@ fn extend_row_from_token(
                 if cleaned.is_empty() {
                     row.push(LossValue::Float(f64::NAN));
                 } else {
-                    row.push(LossValue::Float(parse_required_float(&cleaned, path, line_no, line)?));
+                    row.push(LossValue::Float(parse_required_float(
+                        &cleaned, path, line_no, line,
+                    )?));
                 }
                 row.push(LossValue::Str("********".to_string()));
             } else {
                 row.push(LossValue::Str("********".to_string()));
-                row.push(LossValue::Float(parse_required_float(&cleaned, path, line_no, line)?));
+                row.push(LossValue::Float(parse_required_float(
+                    &cleaned, path, line_no, line,
+                )?));
             }
         } else if let Some(value) = parse_float_strict(token) {
             row.push(LossValue::Float(value));
@@ -922,16 +1070,25 @@ fn collect_class_block(
 ) -> Result<Vec<Vec<LossValue>>, InterchangeError> {
     let mut target_line = None;
     for idx in start..end {
-        if lines[idx].to_lowercase().contains("sediment particle information leaving") {
+        if lines[idx]
+            .to_lowercase()
+            .contains("sediment particle information leaving")
+        {
             target_line = Some(idx);
             break;
         }
     }
-    let Some(target) = target_line else { return Ok(Vec::new()); };
+    let Some(target) = target_line else {
+        return Ok(Vec::new());
+    };
     extract_class_data(&lines[target + 1..end], path, target + 1)
 }
 
-fn extract_class_data(lines: &[String], path: &Path, start_line: usize) -> Result<Vec<Vec<LossValue>>, InterchangeError> {
+fn extract_class_data(
+    lines: &[String],
+    path: &Path,
+    start_line: usize,
+) -> Result<Vec<Vec<LossValue>>, InterchangeError> {
     let mut class_lines: Vec<String> = Vec::new();
     for line in lines {
         if line.is_empty() {
@@ -944,10 +1101,18 @@ fn extract_class_data(lines: &[String], path: &Path, start_line: usize) -> Resul
         if stripped.chars().all(|c| c == '-') {
             continue;
         }
-        if stripped.to_lowercase().starts_with("distribution of primary particles") {
+        if stripped
+            .to_lowercase()
+            .starts_with("distribution of primary particles")
+        {
             break;
         }
-        if stripped.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+        if stripped
+            .chars()
+            .next()
+            .map(|c| c.is_ascii_digit())
+            .unwrap_or(false)
+        {
             class_lines.push(line.clone());
         }
     }

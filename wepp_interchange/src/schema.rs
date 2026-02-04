@@ -42,8 +42,14 @@ pub fn field_with_meta(
 pub fn schema_with_version(mut schema: Schema, version: &VersionInfo) -> Schema {
     let mut metadata = std::mem::take(&mut schema.metadata);
     metadata.insert("dataset_version".to_string(), version.dataset_version());
-    metadata.insert("dataset_version_major".to_string(), version.major.to_string());
-    metadata.insert("dataset_version_minor".to_string(), version.minor.to_string());
+    metadata.insert(
+        "dataset_version_major".to_string(),
+        version.major.to_string(),
+    );
+    metadata.insert(
+        "dataset_version_minor".to_string(),
+        version.minor.to_string(),
+    );
     metadata.insert("schema_version".to_string(), version.major.to_string());
     schema.metadata = metadata;
     schema
@@ -52,7 +58,12 @@ pub fn schema_with_version(mut schema: Schema, version: &VersionInfo) -> Schema 
 pub fn watershed_ebe_schema(version: &VersionInfo) -> Schema {
     let fields = vec![
         field_with_meta("year", DataType::Int16, None, Some("Calendar year")),
-        field_with_meta("sim_day_index", DataType::Int32, None, Some("1-indexed simulation day")),
+        field_with_meta(
+            "sim_day_index",
+            DataType::Int32,
+            None,
+            Some("1-indexed simulation day"),
+        ),
         field_with_meta(
             "simulation_year",
             DataType::Int16,
@@ -60,8 +71,18 @@ pub fn watershed_ebe_schema(version: &VersionInfo) -> Schema {
             Some("WEPP simulation year reported in output"),
         ),
         field_with_meta("month", DataType::Int8, None, Some("Calendar month")),
-        field_with_meta("day_of_month", DataType::Int8, None, Some("Calendar day of month")),
-        field_with_meta("julian", DataType::Int16, None, Some("Julian day from WEPP output")),
+        field_with_meta(
+            "day_of_month",
+            DataType::Int8,
+            None,
+            Some("Calendar day of month"),
+        ),
+        field_with_meta(
+            "julian",
+            DataType::Int16,
+            None,
+            Some("Julian day from WEPP output"),
+        ),
         field_with_meta(
             "water_year",
             DataType::Int16,
@@ -129,8 +150,18 @@ pub fn watershed_chanwb_schema(version: &VersionInfo) -> Schema {
             None,
             Some("Simulation year from chanwb.out"),
         ),
-        field_with_meta("julian", DataType::Int16, None, Some("Julian day reported by WEPP")),
-        field_with_meta("month", DataType::Int8, None, Some("Calendar month derived from Julian day")),
+        field_with_meta(
+            "julian",
+            DataType::Int16,
+            None,
+            Some("Julian day reported by WEPP"),
+        ),
+        field_with_meta(
+            "month",
+            DataType::Int8,
+            None,
+            Some("Calendar month derived from Julian day"),
+        ),
         field_with_meta(
             "day_of_month",
             DataType::Int8,
@@ -143,8 +174,18 @@ pub fn watershed_chanwb_schema(version: &VersionInfo) -> Schema {
             None,
             Some("Water year computed from Julian day"),
         ),
-        field_with_meta("Elmt_ID", DataType::Int32, None, Some("Channel element identifier")),
-        field_with_meta("Chan_ID", DataType::Int32, None, Some("Channel ID reported by WEPP")),
+        field_with_meta(
+            "Elmt_ID",
+            DataType::Int32,
+            None,
+            Some("Channel element identifier"),
+        ),
+        field_with_meta(
+            "Chan_ID",
+            DataType::Int32,
+            None,
+            Some("Channel ID reported by WEPP"),
+        ),
     ];
 
     let measurements = vec![
@@ -154,9 +195,17 @@ pub fn watershed_chanwb_schema(version: &VersionInfo) -> Schema {
             "Total inflow above channel outlet, includes baseflow, all sources",
         ),
         ("Outflow (m^3)", "m^3", "Water flow out of channel outlet"),
-        ("Storage (m^3)", "m^3", "Water surface storage at the end of the day"),
+        (
+            "Storage (m^3)",
+            "m^3",
+            "Water surface storage at the end of the day",
+        ),
         ("Baseflow (m^3)", "m^3", "Portion of inflow from baseflow"),
-        ("Loss (m^3)", "m^3", "Transmission loss in channel, infiltration"),
+        (
+            "Loss (m^3)",
+            "m^3",
+            "Transmission loss in channel, infiltration",
+        ),
         (
             "Balance (m^3)",
             "m^3",
@@ -165,7 +214,12 @@ pub fn watershed_chanwb_schema(version: &VersionInfo) -> Schema {
     ];
 
     for (name, units, description) in measurements {
-        fields.push(field_with_meta(name, DataType::Float64, Some(units), Some(description)));
+        fields.push(field_with_meta(
+            name,
+            DataType::Float64,
+            Some(units),
+            Some(description),
+        ));
     }
 
     schema_with_version(Schema::from(fields), version)
@@ -173,7 +227,12 @@ pub fn watershed_chanwb_schema(version: &VersionInfo) -> Schema {
 
 pub fn watershed_chnwb_schema(version: &VersionInfo) -> Schema {
     let mut fields = vec![
-        field_with_meta("wepp_id", DataType::Int32, None, Some("Channel (OFE) identifier")),
+        field_with_meta(
+            "wepp_id",
+            DataType::Int32,
+            None,
+            Some("Channel (OFE) identifier"),
+        ),
         field_with_meta("julian", DataType::Int16, None, Some("Julian day")),
         field_with_meta("year", DataType::Int16, None, Some("Calendar year")),
         field_with_meta(
@@ -183,11 +242,26 @@ pub fn watershed_chnwb_schema(version: &VersionInfo) -> Schema {
             Some("Simulation year value from input file"),
         ),
         field_with_meta("month", DataType::Int8, None, Some("Calendar month")),
-        field_with_meta("day_of_month", DataType::Int8, None, Some("Calendar day of month")),
-        field_with_meta("water_year", DataType::Int16, None, Some("Computed water year")),
+        field_with_meta(
+            "day_of_month",
+            DataType::Int8,
+            None,
+            Some("Calendar day of month"),
+        ),
+        field_with_meta(
+            "water_year",
+            DataType::Int16,
+            None,
+            Some("Computed water year"),
+        ),
         field_with_meta("OFE", DataType::Int16, None, Some("Channel OFE index")),
         field_with_meta("J", DataType::Int16, None, Some("Julian day as reported")),
-        field_with_meta("Y", DataType::Int16, None, Some("Simulation year as reported")),
+        field_with_meta(
+            "Y",
+            DataType::Int16,
+            None,
+            Some("Simulation year as reported"),
+        ),
     ];
 
     let measurements = vec![
@@ -201,7 +275,11 @@ pub fn watershed_chnwb_schema(version: &VersionInfo) -> Schema {
         ("UpStrmQ (mm)", "mm", "Runon added to OFE"),
         ("SubRIn (mm)", "mm", "Subsurface runon added to OFE"),
         ("latqcc (mm)", "mm", "lateral subsurface flow"),
-        ("Total Soil Water (mm)", "mm", "Unfrozen water in soil profile"),
+        (
+            "Total Soil Water (mm)",
+            "mm",
+            "Unfrozen water in soil profile",
+        ),
         ("frozwt (mm)", "mm", "Frozen water in soil profile"),
         ("Snow Water (mm)", "mm", "Water in surface snow"),
         ("QOFE (mm)", "mm", "Daily runoff scaled to single OFE"),
@@ -213,7 +291,12 @@ pub fn watershed_chnwb_schema(version: &VersionInfo) -> Schema {
     ];
 
     for (name, units, description) in measurements {
-        fields.push(field_with_meta(name, DataType::Float64, Some(units), Some(description)));
+        fields.push(field_with_meta(
+            name,
+            DataType::Float64,
+            Some(units),
+            Some(description),
+        ));
     }
 
     schema_with_version(Schema::from(fields), version)
@@ -253,14 +336,54 @@ pub fn hill_pass_schema(version: &VersionInfo) -> Schema {
             Some("Overland flow alpha parameter"),
         ),
         field_with_meta("runoff", DataType::Float64, Some("m"), Some("Runoff depth")),
-        field_with_meta("runvol", DataType::Float64, Some("m^3"), Some("Runoff volume")),
-        field_with_meta("sbrunf", DataType::Float64, Some("m"), Some("Subsurface runoff depth")),
-        field_with_meta("sbrunv", DataType::Float64, Some("m^3"), Some("Subsurface runoff volume")),
-        field_with_meta("drainq", DataType::Float64, Some("m/day"), Some("Drainage flux")),
-        field_with_meta("drrunv", DataType::Float64, Some("m^3"), Some("Tile Drainage volume")),
-        field_with_meta("peakro", DataType::Float64, Some("m^3/s"), Some("Peak runoff rate")),
-        field_with_meta("tdet", DataType::Float64, Some("kg"), Some("Total detachment")),
-        field_with_meta("tdep", DataType::Float64, Some("kg"), Some("Total deposition")),
+        field_with_meta(
+            "runvol",
+            DataType::Float64,
+            Some("m^3"),
+            Some("Runoff volume"),
+        ),
+        field_with_meta(
+            "sbrunf",
+            DataType::Float64,
+            Some("m"),
+            Some("Subsurface runoff depth"),
+        ),
+        field_with_meta(
+            "sbrunv",
+            DataType::Float64,
+            Some("m^3"),
+            Some("Subsurface runoff volume"),
+        ),
+        field_with_meta(
+            "drainq",
+            DataType::Float64,
+            Some("m/day"),
+            Some("Drainage flux"),
+        ),
+        field_with_meta(
+            "drrunv",
+            DataType::Float64,
+            Some("m^3"),
+            Some("Tile Drainage volume"),
+        ),
+        field_with_meta(
+            "peakro",
+            DataType::Float64,
+            Some("m^3/s"),
+            Some("Peak runoff rate"),
+        ),
+        field_with_meta(
+            "tdet",
+            DataType::Float64,
+            Some("kg"),
+            Some("Total detachment"),
+        ),
+        field_with_meta(
+            "tdep",
+            DataType::Float64,
+            Some("kg"),
+            Some("Total deposition"),
+        ),
         field_with_meta(
             "sedcon_1",
             DataType::Float64,
@@ -291,7 +414,12 @@ pub fn hill_pass_schema(version: &VersionInfo) -> Schema {
             Some("kg/m^3"),
             Some("Sediment concentration 5"),
         ),
-        field_with_meta("clot", DataType::Float64, Some("m^3/s"), Some("Friction flow 1")),
+        field_with_meta(
+            "clot",
+            DataType::Float64,
+            Some("m^3/s"),
+            Some("Friction flow 1"),
+        ),
         field_with_meta(
             "slot",
             DataType::Float64,
@@ -316,8 +444,18 @@ pub fn hill_pass_schema(version: &VersionInfo) -> Schema {
             Some("%"),
             Some("% of exiting sediment in the sand size class"),
         ),
-        field_with_meta("gwbfv", DataType::Float64, None, Some("Groundwater baseflow")),
-        field_with_meta("gwdsv", DataType::Float64, None, Some("Groundwater deep seepage")),
+        field_with_meta(
+            "gwbfv",
+            DataType::Float64,
+            None,
+            Some("Groundwater baseflow"),
+        ),
+        field_with_meta(
+            "gwdsv",
+            DataType::Float64,
+            None,
+            Some("Groundwater deep seepage"),
+        ),
     ];
     schema_with_version(Schema::from(fields), version)
 }
@@ -326,7 +464,12 @@ pub fn hill_ebe_schema(version: &VersionInfo) -> Schema {
     let fields = vec![
         field_with_meta("wepp_id", DataType::Int32, None, None),
         field_with_meta("year", DataType::Int16, None, None),
-        field_with_meta("sim_day_index", DataType::Int32, None, Some("1-indexed simulation day")),
+        field_with_meta(
+            "sim_day_index",
+            DataType::Int32,
+            None,
+            Some("1-indexed simulation day"),
+        ),
         field_with_meta("month", DataType::Int8, None, None),
         field_with_meta("day_of_month", DataType::Int8, None, None),
         field_with_meta("julian", DataType::Int16, None, None),
@@ -438,7 +581,12 @@ pub fn hill_element_schema(version: &VersionInfo) -> Schema {
             Some("Peak runoff rate"),
         ),
         field_with_meta("EffDur", DataType::Float64, Some("h"), None),
-        field_with_meta("Enrich", DataType::Float64, None, Some("Sediment enrichment ratio")),
+        field_with_meta(
+            "Enrich",
+            DataType::Float64,
+            None,
+            Some("Sediment enrichment ratio"),
+        ),
         field_with_meta(
             "Keff",
             DataType::Float64,
@@ -447,9 +595,19 @@ pub fn hill_element_schema(version: &VersionInfo) -> Schema {
         ),
         field_with_meta("Sm", DataType::Float64, Some("mm"), None),
         field_with_meta("LeafArea", DataType::Float64, None, Some("Leaf area index")),
-        field_with_meta("CanHgt", DataType::Float64, Some("m"), Some("Canopy height")),
+        field_with_meta(
+            "CanHgt",
+            DataType::Float64,
+            Some("m"),
+            Some("Canopy height"),
+        ),
         field_with_meta("Cancov", DataType::Float64, Some("%"), Some("Canopy cover")),
-        field_with_meta("IntCov", DataType::Float64, Some("%"), Some("Interrill cover")),
+        field_with_meta(
+            "IntCov",
+            DataType::Float64,
+            Some("%"),
+            Some("Interrill cover"),
+        ),
         field_with_meta("RilCov", DataType::Float64, Some("%"), Some("Rill cover")),
         field_with_meta("LivBio", DataType::Float64, Some("kg/m^2"), None),
         field_with_meta("DeadBio", DataType::Float64, Some("kg/m^2"), None),
@@ -459,7 +617,12 @@ pub fn hill_element_schema(version: &VersionInfo) -> Schema {
             Some("kg s/m^4"),
             Some("Interrill erodibility"),
         ),
-        field_with_meta("Kr", DataType::Float64, Some("s/m"), Some("Rill erodibility")),
+        field_with_meta(
+            "Kr",
+            DataType::Float64,
+            Some("s/m"),
+            Some("Rill erodibility"),
+        ),
         field_with_meta("Tcrit", DataType::Float64, None, None),
         field_with_meta("RilWid", DataType::Float64, Some("m"), None),
         field_with_meta("SedLeave", DataType::Float64, Some("kg/m"), None),
@@ -518,9 +681,24 @@ pub fn hill_soil_schema(version: &VersionInfo) -> Schema {
             Some("mm"),
             Some("Suction across wetting front"),
         ),
-        field_with_meta("FC", DataType::Float64, Some("mm/mm"), Some("Field capacity")),
-        field_with_meta("WP", DataType::Float64, Some("mm/mm"), Some("Wilting point")),
-        field_with_meta("Rough", DataType::Float64, Some("mm"), Some("Surface roughness")),
+        field_with_meta(
+            "FC",
+            DataType::Float64,
+            Some("mm/mm"),
+            Some("Field capacity"),
+        ),
+        field_with_meta(
+            "WP",
+            DataType::Float64,
+            Some("mm/mm"),
+            Some("Wilting point"),
+        ),
+        field_with_meta(
+            "Rough",
+            DataType::Float64,
+            Some("mm"),
+            Some("Surface roughness"),
+        ),
         field_with_meta(
             "Ki",
             DataType::Float64,
@@ -545,7 +723,12 @@ pub fn hill_soil_schema(version: &VersionInfo) -> Schema {
             Some("frac"),
             Some("Saturation as fraction (10mm profile)"),
         ),
-        field_with_meta("TSW", DataType::Float64, Some("mm"), Some("Total soil water")),
+        field_with_meta(
+            "TSW",
+            DataType::Float64,
+            Some("mm"),
+            Some("Total soil water"),
+        ),
     ];
     schema_with_version(Schema::from(fields), version)
 }
@@ -567,27 +750,92 @@ pub fn hill_wat_schema(version: &VersionInfo) -> Schema {
         field_with_meta("water_year", DataType::Int16, None, None),
         field_with_meta("OFE", DataType::Int16, None, None),
         field_with_meta("P", DataType::Float64, Some("mm"), Some("Precipitation")),
-        field_with_meta("RM", DataType::Float64, Some("mm"), Some("Rainfall+Irrigation+Snowmelt")),
-        field_with_meta("Q", DataType::Float64, Some("mm"), Some("Daily runoff over eff length")),
-        field_with_meta("Ep", DataType::Float64, Some("mm"), Some("Plant transpiration")),
-        field_with_meta("Es", DataType::Float64, Some("mm"), Some("Soil evaporation")),
-        field_with_meta("Er", DataType::Float64, Some("mm"), Some("Residue evaporation")),
-        field_with_meta("Dp", DataType::Float64, Some("mm"), Some("Deep percolation")),
-        field_with_meta("UpStrmQ", DataType::Float64, Some("mm"), Some("Runon added to OFE")),
-        field_with_meta("SubRIn", DataType::Float64, Some("mm"), Some("Subsurface runon added to OFE")),
-        field_with_meta("latqcc", DataType::Float64, Some("mm"), Some("Lateral subsurface flow")),
+        field_with_meta(
+            "RM",
+            DataType::Float64,
+            Some("mm"),
+            Some("Rainfall+Irrigation+Snowmelt"),
+        ),
+        field_with_meta(
+            "Q",
+            DataType::Float64,
+            Some("mm"),
+            Some("Daily runoff over eff length"),
+        ),
+        field_with_meta(
+            "Ep",
+            DataType::Float64,
+            Some("mm"),
+            Some("Plant transpiration"),
+        ),
+        field_with_meta(
+            "Es",
+            DataType::Float64,
+            Some("mm"),
+            Some("Soil evaporation"),
+        ),
+        field_with_meta(
+            "Er",
+            DataType::Float64,
+            Some("mm"),
+            Some("Residue evaporation"),
+        ),
+        field_with_meta(
+            "Dp",
+            DataType::Float64,
+            Some("mm"),
+            Some("Deep percolation"),
+        ),
+        field_with_meta(
+            "UpStrmQ",
+            DataType::Float64,
+            Some("mm"),
+            Some("Runon added to OFE"),
+        ),
+        field_with_meta(
+            "SubRIn",
+            DataType::Float64,
+            Some("mm"),
+            Some("Subsurface runon added to OFE"),
+        ),
+        field_with_meta(
+            "latqcc",
+            DataType::Float64,
+            Some("mm"),
+            Some("Lateral subsurface flow"),
+        ),
         field_with_meta(
             "Total-Soil Water",
             DataType::Float64,
             Some("mm"),
             Some("Unfrozen water in soil profile"),
         ),
-        field_with_meta("frozwt", DataType::Float64, Some("mm"), Some("Frozen water in soil profile")),
-        field_with_meta("Snow-Water", DataType::Float64, Some("mm"), Some("Water in surface snow")),
-        field_with_meta("QOFE", DataType::Float64, Some("mm"), Some("Daily runoff scaled to single OFE")),
+        field_with_meta(
+            "frozwt",
+            DataType::Float64,
+            Some("mm"),
+            Some("Frozen water in soil profile"),
+        ),
+        field_with_meta(
+            "Snow-Water",
+            DataType::Float64,
+            Some("mm"),
+            Some("Water in surface snow"),
+        ),
+        field_with_meta(
+            "QOFE",
+            DataType::Float64,
+            Some("mm"),
+            Some("Daily runoff scaled to single OFE"),
+        ),
         field_with_meta("Tile", DataType::Float64, Some("mm"), Some("Tile drainage")),
         field_with_meta("Irr", DataType::Float64, Some("mm"), Some("Irrigation")),
-        field_with_meta("Area", DataType::Float64, Some("m^2"), Some("Area that depths apply over")),
+        field_with_meta(
+            "Area",
+            DataType::Float64,
+            Some("m^2"),
+            Some("Area that depths apply over"),
+        ),
     ];
     schema_with_version(Schema::from(fields), version)
 }

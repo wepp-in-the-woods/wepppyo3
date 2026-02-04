@@ -8,7 +8,9 @@ use arrow2::datatypes::{DataType, Field, Schema};
 use flate2::read::GzDecoder;
 
 use crate::arrays::dictionary_array_from_strings;
-use crate::calendar::{compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar};
+use crate::calendar::{
+    compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
+};
 use crate::errors::InterchangeError;
 use crate::floats::{parse_float_loose, parse_required_float, tokenize_numeric_line};
 use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
@@ -48,9 +50,10 @@ impl<R: BufRead> LineReader<R> {
 
     fn next_line(&mut self) -> Result<Option<(usize, String)>, InterchangeError> {
         let mut buffer = String::new();
-        let bytes = self.reader.read_line(&mut buffer).map_err(|err| {
-            InterchangeError::io("pass stream", err)
-        })?;
+        let bytes = self
+            .reader
+            .read_line(&mut buffer)
+            .map_err(|err| InterchangeError::io("pass stream", err))?;
         if bytes == 0 {
             return Ok(None);
         }
@@ -96,7 +99,9 @@ impl<R: BufRead> PassReader<R> {
         ))
     }
 
-    fn next_event_header(&mut self) -> Result<Option<(String, i32, i32, usize, String)>, InterchangeError> {
+    fn next_event_header(
+        &mut self,
+    ) -> Result<Option<(String, i32, i32, usize, String)>, InterchangeError> {
         while let Some((line_no, line)) = self.line_reader.next_line()? {
             let stripped = line.trim();
             if stripped.is_empty() {
@@ -206,11 +211,20 @@ fn parse_metadata(header_lines: &[String], path: &Path) -> Result<PassMetadata, 
                 version = parse_float_loose(token);
             }
         } else if stripped.ends_with("NUMBER OF UNIQUE HILLSLOPES IN WATERSHED") {
-            nhill = stripped.split_whitespace().next().and_then(|t| t.parse::<i32>().ok());
+            nhill = stripped
+                .split_whitespace()
+                .next()
+                .and_then(|t| t.parse::<i32>().ok());
         } else if stripped.ends_with("WATERSHED MAXIMUM SIMULATION TIME (YEARS)") {
-            max_years = stripped.split_whitespace().next().and_then(|t| t.parse::<i32>().ok());
+            max_years = stripped
+                .split_whitespace()
+                .next()
+                .and_then(|t| t.parse::<i32>().ok());
         } else if stripped.ends_with("BEGINNING YEAR OF WATERSHED CLIMATE FILE") {
-            begin_year = stripped.split_whitespace().next().and_then(|t| t.parse::<i32>().ok());
+            begin_year = stripped
+                .split_whitespace()
+                .next()
+                .and_then(|t| t.parse::<i32>().ok());
         } else if stripped.starts_with("HILLSLOPE") {
             let parts: Vec<&str> = stripped.split_whitespace().collect();
             if parts.len() < 2 {
@@ -228,7 +242,12 @@ fn parse_metadata(header_lines: &[String], path: &Path) -> Result<PassMetadata, 
                 ));
             }
             let wepp_id = parts[1].parse::<i32>().map_err(|_| {
-                InterchangeError::parse(path, None, "Invalid hillslope id", Some(truncate_line(stripped)))
+                InterchangeError::parse(
+                    path,
+                    None,
+                    "Invalid hillslope id",
+                    Some(truncate_line(stripped)),
+                )
             })?;
             let climate_file = parts[2].to_string();
 
@@ -267,16 +286,36 @@ fn parse_metadata(header_lines: &[String], path: &Path) -> Result<PassMetadata, 
     }
 
     let version = version.ok_or_else(|| {
-        InterchangeError::parse(path, None, "Missing version metadata in pass file header.", None)
+        InterchangeError::parse(
+            path,
+            None,
+            "Missing version metadata in pass file header.",
+            None,
+        )
     })?;
     let nhill = nhill.ok_or_else(|| {
-        InterchangeError::parse(path, None, "Missing hillslope count metadata in pass file header.", None)
+        InterchangeError::parse(
+            path,
+            None,
+            "Missing hillslope count metadata in pass file header.",
+            None,
+        )
     })?;
     let max_years = max_years.ok_or_else(|| {
-        InterchangeError::parse(path, None, "Missing max years metadata in pass file header.", None)
+        InterchangeError::parse(
+            path,
+            None,
+            "Missing max years metadata in pass file header.",
+            None,
+        )
     })?;
     let begin_year = begin_year.ok_or_else(|| {
-        InterchangeError::parse(path, None, "Missing begin year metadata in pass file header.", None)
+        InterchangeError::parse(
+            path,
+            None,
+            "Missing begin year metadata in pass file header.",
+            None,
+        )
     })?;
 
     if hillslope_ids.len() != nhill as usize {
@@ -341,7 +380,12 @@ fn build_event_schema(meta: &PassMetadata, version: &VersionInfo) -> Schema {
             Some("Overland flow alpha parameter"),
         ),
         field_with_meta("runoff", DataType::Float64, Some("m"), Some("Runoff depth")),
-        field_with_meta("runvol", DataType::Float64, Some("m^3"), Some("Runoff volume")),
+        field_with_meta(
+            "runvol",
+            DataType::Float64,
+            Some("m^3"),
+            Some("Runoff volume"),
+        ),
         field_with_meta(
             "sbrunf",
             DataType::Float64,
@@ -354,7 +398,12 @@ fn build_event_schema(meta: &PassMetadata, version: &VersionInfo) -> Schema {
             Some("m^3"),
             Some("Subsurface runoff volume"),
         ),
-        field_with_meta("drainq", DataType::Float64, Some("m/day"), Some("Drainage flux")),
+        field_with_meta(
+            "drainq",
+            DataType::Float64,
+            Some("m/day"),
+            Some("Drainage flux"),
+        ),
         field_with_meta(
             "drrunv",
             DataType::Float64,
@@ -367,10 +416,30 @@ fn build_event_schema(meta: &PassMetadata, version: &VersionInfo) -> Schema {
             Some("m^3/s"),
             Some("Peak runoff rate"),
         ),
-        field_with_meta("tdet", DataType::Float64, Some("kg"), Some("Total detachment")),
-        field_with_meta("tdep", DataType::Float64, Some("kg"), Some("Total deposition")),
-        field_with_meta("gwbfv", DataType::Float64, None, Some("Groundwater baseflow")),
-        field_with_meta("gwdsv", DataType::Float64, None, Some("Groundwater deep seepage")),
+        field_with_meta(
+            "tdet",
+            DataType::Float64,
+            Some("kg"),
+            Some("Total detachment"),
+        ),
+        field_with_meta(
+            "tdep",
+            DataType::Float64,
+            Some("kg"),
+            Some("Total deposition"),
+        ),
+        field_with_meta(
+            "gwbfv",
+            DataType::Float64,
+            None,
+            Some("Groundwater baseflow"),
+        ),
+        field_with_meta(
+            "gwdsv",
+            DataType::Float64,
+            None,
+            Some("Groundwater deep seepage"),
+        ),
     ];
 
     for idx in 0..meta.npart {
@@ -531,8 +600,8 @@ impl EventStore {
     fn to_chunk(&mut self, schema: &Schema) -> Chunk<Box<dyn Array>> {
         let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields.len());
         let event_values = std::mem::take(&mut self.event);
-        let event_array = dictionary_array_from_strings(event_values)
-            .expect("dictionary encoding for events");
+        let event_array =
+            dictionary_array_from_strings(event_values).expect("dictionary encoding for events");
         arrays.push(event_array.boxed());
         arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.year)).boxed());
         arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.sim_day_index)).boxed());
@@ -598,7 +667,8 @@ pub fn watershed_pass_to_parquet(
     while let Some((label, year, julian, _line_no, _line)) = pass_reader.next_event_header()? {
         let month_day = julian_to_calendar(year, julian, calendar_lookup.as_ref());
         let water_year = determine_wateryear(year, julian);
-        let sim_day_index = compute_sim_day_index(year, julian, meta.begin_year, calendar_lookup.as_ref());
+        let sim_day_index =
+            compute_sim_day_index(year, julian, meta.begin_year, calendar_lookup.as_ref());
         if sim_day_index < 1 {
             return Err(InterchangeError::parse(
                 pass_path,
@@ -795,7 +865,8 @@ pub fn watershed_pass_to_parquet(
 fn build_metadata_chunk(meta: &PassMetadata, schema: &Schema) -> Chunk<Box<dyn Array>> {
     let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields.len());
     arrays.push(PrimitiveArray::from_vec(meta.hillslope_ids.clone()).boxed());
-    let climate_array = dictionary_array_from_strings(meta.climate_files.clone()).expect("dictionary encoding for climate files");
+    let climate_array = dictionary_array_from_strings(meta.climate_files.clone())
+        .expect("dictionary encoding for climate files");
     arrays.push(climate_array.boxed());
     arrays.push(PrimitiveArray::from_vec(meta.areas.clone()).boxed());
     arrays.push(PrimitiveArray::from_vec(meta.srp.clone()).boxed());
@@ -817,7 +888,11 @@ fn build_metadata_chunk(meta: &PassMetadata, schema: &Schema) -> Chunk<Box<dyn A
 
 fn open_pass_reader(path: &Path) -> Result<Box<dyn BufRead>, InterchangeError> {
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
-    let is_gzip = path.extension().and_then(|ext| ext.to_str()).map(|ext| ext.eq_ignore_ascii_case("gz")).unwrap_or(false);
+    let is_gzip = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.eq_ignore_ascii_case("gz"))
+        .unwrap_or(false);
     if is_gzip {
         let decoder = GzDecoder::new(file);
         Ok(Box::new(BufReader::new(decoder)))

@@ -41,7 +41,14 @@ pub fn load_cli_calendar(path: &Path) -> Result<CalendarLookup, InterchangeError
     });
 
     let row_groups = metadata.row_groups.clone();
-    let mut file_reader = read::FileReader::new(reader, row_groups, schema.clone(), Some(1024 * 8), None, None);
+    let mut file_reader = read::FileReader::new(
+        reader,
+        row_groups,
+        schema.clone(),
+        Some(1024 * 8),
+        None,
+        None,
+    );
 
     let mut rows: Vec<(i32, i32, i32)> = Vec::new();
     for maybe_chunk in &mut file_reader {
@@ -55,11 +62,10 @@ pub fn load_cli_calendar(path: &Path) -> Result<CalendarLookup, InterchangeError
         let mut day_col: Option<Vec<Option<i32>>> = None;
 
         for (field, array) in schema.fields.iter().zip(chunk.arrays()) {
-            let values = primitive_to_i32(array.as_ref()).map_err(|message| {
-                InterchangeError::Calendar {
+            let values =
+                primitive_to_i32(array.as_ref()).map_err(|message| InterchangeError::Calendar {
                     message: format!("{} in {}", message, path.display()),
-                }
-            })?;
+                })?;
             match field.name.as_str() {
                 "year" => year_col = Some(values),
                 "month" | "mo" => month_col = Some(values),
@@ -73,7 +79,11 @@ pub fn load_cli_calendar(path: &Path) -> Result<CalendarLookup, InterchangeError
             _ => continue,
         };
 
-        for ((year, month), day) in years.into_iter().zip(months.into_iter()).zip(days.into_iter()) {
+        for ((year, month), day) in years
+            .into_iter()
+            .zip(months.into_iter())
+            .zip(days.into_iter())
+        {
             if let (Some(year), Some(month), Some(day)) = (year, month, day) {
                 rows.push((year, month, day));
             }
@@ -144,14 +154,35 @@ pub fn determine_wateryear(year: i32, julian: i32) -> i32 {
 
 fn primitive_to_i32(array: &dyn Array) -> Result<Vec<Option<i32>>, String> {
     match array.data_type() {
-        DataType::Int8 => Ok(downcast_numeric::<i8>(array).into_iter().map(|v| v.map(|v| v as i32)).collect()),
-        DataType::Int16 => Ok(downcast_numeric::<i16>(array).into_iter().map(|v| v.map(|v| v as i32)).collect()),
+        DataType::Int8 => Ok(downcast_numeric::<i8>(array)
+            .into_iter()
+            .map(|v| v.map(|v| v as i32))
+            .collect()),
+        DataType::Int16 => Ok(downcast_numeric::<i16>(array)
+            .into_iter()
+            .map(|v| v.map(|v| v as i32))
+            .collect()),
         DataType::Int32 => Ok(downcast_numeric::<i32>(array)),
-        DataType::Int64 => Ok(downcast_numeric::<i64>(array).into_iter().map(|v| v.map(|v| v as i32)).collect()),
-        DataType::UInt8 => Ok(downcast_numeric::<u8>(array).into_iter().map(|v| v.map(|v| v as i32)).collect()),
-        DataType::UInt16 => Ok(downcast_numeric::<u16>(array).into_iter().map(|v| v.map(|v| v as i32)).collect()),
-        DataType::UInt32 => Ok(downcast_numeric::<u32>(array).into_iter().map(|v| v.map(|v| v as i32)).collect()),
-        DataType::UInt64 => Ok(downcast_numeric::<u64>(array).into_iter().map(|v| v.map(|v| v as i32)).collect()),
+        DataType::Int64 => Ok(downcast_numeric::<i64>(array)
+            .into_iter()
+            .map(|v| v.map(|v| v as i32))
+            .collect()),
+        DataType::UInt8 => Ok(downcast_numeric::<u8>(array)
+            .into_iter()
+            .map(|v| v.map(|v| v as i32))
+            .collect()),
+        DataType::UInt16 => Ok(downcast_numeric::<u16>(array)
+            .into_iter()
+            .map(|v| v.map(|v| v as i32))
+            .collect()),
+        DataType::UInt32 => Ok(downcast_numeric::<u32>(array)
+            .into_iter()
+            .map(|v| v.map(|v| v as i32))
+            .collect()),
+        DataType::UInt64 => Ok(downcast_numeric::<u64>(array)
+            .into_iter()
+            .map(|v| v.map(|v| v as i32))
+            .collect()),
         other => Err(format!("Unsupported calendar column type: {other:?}")),
     }
 }

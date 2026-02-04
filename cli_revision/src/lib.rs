@@ -1,12 +1,12 @@
 #[macro_use]
 extern crate pyo3;
+use numpy::PyArrayMethods;
+use numpy::PyUntypedArrayMethods;
+use numpy::{PyReadonlyArray1, PyReadonlyArray3};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::fs::File;
-use std::io::{BufReader, BufWriter, Write, BufRead, Result};
-use numpy::{PyReadonlyArray1, PyReadonlyArray3};
-use numpy::PyUntypedArrayMethods;
-use numpy::PyArrayMethods;
+use std::io::{BufRead, BufReader, BufWriter, Result, Write};
 
 // ------------------ HELPER FUNCTIONS (unchanged) ------------------ //
 fn find_nearest_index(arr: &[f64], value: f64) -> usize {
@@ -54,11 +54,10 @@ fn find_linear_indices_and_t(arr: &[f64], value: f64) -> (usize, usize, f64) {
 fn catmull_rom_spline(f0: f64, f1: f64, f2: f64, f3: f64, t: f64) -> f64 {
     let t2 = t * t;
     let t3 = t2 * t;
-    0.5
-        * ((2.0 * f1)
-            + (-f0 + f2) * t
-            + (2.0 * f0 - 5.0 * f1 + 4.0 * f2 - f3) * t2
-            + (-f0 + 3.0 * f1 - 3.0 * f2 + f3) * t3)
+    0.5 * ((2.0 * f1)
+        + (-f0 + f2) * t
+        + (2.0 * f0 - 5.0 * f1 + 4.0 * f2 - f3) * t2
+        + (-f0 + 3.0 * f1 - 3.0 * f2 + f3) * t3)
 }
 
 fn cubic_neighbor_indices(idx: usize, max_idx: usize) -> (usize, usize, usize, usize) {
@@ -87,7 +86,11 @@ fn cubic_interpolate_1d(arr: &[f64], f: &[f64], value: f64) -> f64 {
     let x1 = arr[i1];
     let x2 = arr[i2];
     let span = x2 - x1;
-    let local_t = if span.abs() < 1e-12 { 0.0 } else { (value - x1) / span };
+    let local_t = if span.abs() < 1e-12 {
+        0.0
+    } else {
+        (value - x1) / span
+    };
     let f0 = f[i0];
     let f1 = f[i1];
     let f2 = f[i2];
@@ -111,7 +114,7 @@ fn interpolate_2d_slice(
             let ix = find_nearest_index(eastings, target_e);
             let iy = find_nearest_index(northings, target_n);
             slice_2d[ix * ny + iy]
-        },
+        }
         "linear" => {
             let (i0, i1, tx) = find_linear_indices_and_t(eastings, target_e);
             let (j0, j1, ty) = find_linear_indices_and_t(northings, target_n);
@@ -123,7 +126,7 @@ fn interpolate_2d_slice(
             let f0 = f00 * (1.0 - ty) + f01 * ty;
             let f1 = f10 * (1.0 - ty) + f11 * ty;
             f0 * (1.0 - tx) + f1 * tx
-        },
+        }
         "cubic" => {
             // Separable cubic in x, then y
             let mut intermediate = vec![0.0; ny];
@@ -136,7 +139,7 @@ fn interpolate_2d_slice(
             }
             // now interpolate in y
             cubic_interpolate_1d(northings, &intermediate, target_n)
-        },
+        }
         _ => panic!("Unknown interpolation method: {}", method),
     }
 }
@@ -191,8 +194,7 @@ fn interpolate_geospatial(
     method: &str,
     a_min: Option<f64>,
     a_max: Option<f64>,
-) -> PyResult<Vec<f64>>  {
-
+) -> PyResult<Vec<f64>> {
     // Convert from NumPy to owned Rust arrays (so we can reverse in-place).
     // We'll also ensure we have a contiguous standard layout for easy index manipulation.
     let mut e_vec = eastings.as_slice()?.to_vec();
@@ -222,8 +224,10 @@ fn interpolate_geospatial(
 
     // Now e_vec and n_vec are guaranteed ascending.
     // Domain checks are straightforward:
-    if target_easting < e_vec[0] || target_easting > e_vec[nx - 1]
-        || target_northing < n_vec[0] || target_northing > n_vec[ny - 1]
+    if target_easting < e_vec[0]
+        || target_easting > e_vec[nx - 1]
+        || target_northing < n_vec[0]
+        || target_northing > n_vec[ny - 1]
     {
         return Err(pyo3::exceptions::PyValueError::new_err(
             "Target easting/northing is outside the grid domain.",
@@ -348,9 +352,18 @@ pub fn rust_make_rhem_storm_file(src_fn: &str, dst_fn: &str) -> Result<()> {
         if prcp <= 0.0 {
             continue;
         }
-        let dur = tokens.get(4).and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0);
-        let tp = tokens.get(5).and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0);
-        let ip = tokens.get(6).and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0);
+        let dur = tokens
+            .get(4)
+            .and_then(|v| v.parse::<f64>().ok())
+            .unwrap_or(0.0);
+        let tp = tokens
+            .get(5)
+            .and_then(|v| v.parse::<f64>().ok())
+            .unwrap_or(0.0);
+        let ip = tokens
+            .get(6)
+            .and_then(|v| v.parse::<f64>().ok())
+            .unwrap_or(0.0);
 
         if let Some(current_min) = min_year {
             if year < current_min {
@@ -403,9 +416,15 @@ fn make_rhem_storm_file(src_fn: &str, dst_fn: &str) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn rust_cli_revision(src_fn: &str, dst_fn: &str, 
-    mut ws_ppts: [f64; 12], mut ws_tmaxs: [f64; 12], ws_tmins:  [f64; 12],
-    mut hill_ppts: [f64; 12], hill_tmaxs: [f64; 12], hill_tmins:  [f64; 12],
+pub fn rust_cli_revision(
+    src_fn: &str,
+    dst_fn: &str,
+    mut ws_ppts: [f64; 12],
+    mut ws_tmaxs: [f64; 12],
+    ws_tmins: [f64; 12],
+    mut hill_ppts: [f64; 12],
+    hill_tmaxs: [f64; 12],
+    hill_tmins: [f64; 12],
 ) -> Result<()> {
     // Clip ws_ppts and hill_ppts to minimum of 0.01
     for i in 0..12 {
@@ -442,7 +461,7 @@ pub fn rust_cli_revision(src_fn: &str, dst_fn: &str,
             let w_vl = tokens[10];
             let w_dir = tokens[11];
             let tdew = tokens[12];
-        
+
             let indx = (mo - 1) as usize;
             prcp_f = prcp_f * hill_ppts[indx] / ws_ppts[indx];
             tmax_f = tmax_f - ws_tmaxs[indx] + hill_tmaxs[indx];
@@ -458,10 +477,13 @@ pub fn rust_cli_revision(src_fn: &str, dst_fn: &str,
             let tmax = format!("{:.1}", tmax_f);
             let tmin = format!("{:.1}", tmin_f);
 
-            dst_w.write_all(format!(
-                "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
-                da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
-            ).as_bytes())?;
+            dst_w.write_all(
+                format!(
+                    "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
+                    da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
+                )
+                .as_bytes(),
+            )?;
         }
         line.clear();
     }
@@ -469,8 +491,7 @@ pub fn rust_cli_revision(src_fn: &str, dst_fn: &str,
 }
 
 #[pyfunction]
-pub fn rust_cli_p_scale_monthlies(src_fn: &str, dst_fn: &str, p_mults: [f64; 12]
-) -> Result<()> {
+pub fn rust_cli_p_scale_monthlies(src_fn: &str, dst_fn: &str, p_mults: [f64; 12]) -> Result<()> {
     let src_f = File::open(src_fn)?;
     let mut src_r = BufReader::new(src_f);
 
@@ -500,26 +521,27 @@ pub fn rust_cli_p_scale_monthlies(src_fn: &str, dst_fn: &str, p_mults: [f64; 12]
             let w_vl = tokens[10];
             let w_dir = tokens[11];
             let tdew = tokens[12];
-        
+
             let indx = (mo - 1) as usize;
             prcp_f = prcp_f * p_mults[indx];
 
             let prcp = format!("{:.1}", prcp_f);
 
-            dst_w.write_all(format!(
-                "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
-                da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
-            ).as_bytes())?;
+            dst_w.write_all(
+                format!(
+                    "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
+                    da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
+                )
+                .as_bytes(),
+            )?;
         }
         line.clear();
     }
     Ok(())
 }
 
-
 #[pyfunction]
-pub fn rust_cli_p_scale(src_fn: &str, dst_fn: &str, p_mult: f64
-) -> Result<()> {
+pub fn rust_cli_p_scale(src_fn: &str, dst_fn: &str, p_mult: f64) -> Result<()> {
     let src_f = File::open(src_fn)?;
     let mut src_r = BufReader::new(src_f);
 
@@ -549,27 +571,28 @@ pub fn rust_cli_p_scale(src_fn: &str, dst_fn: &str, p_mult: f64
             let w_vl = tokens[10];
             let w_dir = tokens[11];
             let tdew = tokens[12];
-        
+
             prcp_f = prcp_f * p_mult;
             let prcp = format!("{:.1}", prcp_f);
 
-            dst_w.write_all(format!(
-                "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
-                da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
-            ).as_bytes())?;
+            dst_w.write_all(
+                format!(
+                    "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
+                    da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
+                )
+                .as_bytes(),
+            )?;
         }
         line.clear();
     }
     Ok(())
 }
 
-
 #[pyfunction]
 pub fn rust_cli_calculate_p_annual_monthlies_from_lists(
     months: PyReadonlyArray1<i32>,
     precips: PyReadonlyArray1<f64>,
 ) -> PyResult<Vec<f64>> {
-
     let mut out: Vec<f64> = Vec::new();
 
     let mut mo_last: i32 = 0;
@@ -596,16 +619,14 @@ pub fn rust_cli_calculate_p_annual_monthlies_from_lists(
         n_days += 1;
         indx += 1;
     }
-    
+
     out.push(prcp_sum / n_days as f64);
-    
+
     Ok(out)
 }
 
-
 #[pyfunction]
-pub fn rust_cli_calculate_p_annual_monthlies(src_fn: &str
-) -> PyResult<Vec<f64>> {
+pub fn rust_cli_calculate_p_annual_monthlies(src_fn: &str) -> PyResult<Vec<f64>> {
     let src_f = File::open(src_fn)?;
     let mut src_r = BufReader::new(src_f);
 
@@ -624,21 +645,21 @@ pub fn rust_cli_calculate_p_annual_monthlies(src_fn: &str
     let mut n_days: i32 = 0;
     while src_r.read_line(&mut line)? > 0 {
         let tokens: Vec<&str> = line.split_whitespace().collect();
-    
+
         if tokens.len() == EXPECTED_TOKENS {
             let mo: i32 = tokens[1].parse().unwrap();
 
             if indx == 0 {
                 mo_last = mo;
             }
-    
+
             if mo != mo_last {
                 out.push(prcp_sum / n_days as f64);
                 mo_last = mo;
                 prcp_sum = 0.0;
                 n_days = 0;
             }
-    
+
             let prcp_f: f64 = tokens[3].parse().unwrap();
             prcp_sum += prcp_f;
             n_days += 1;
@@ -646,20 +667,18 @@ pub fn rust_cli_calculate_p_annual_monthlies(src_fn: &str
         }
         line.clear();
     }
-    
+
     out.push(prcp_sum / n_days as f64);
-    
+
     Ok(out)
 }
-
 
 pub fn c_to_f(c: f64) -> f64 {
     c * 9.0 / 5.0 + 32.0
 }
 
 #[pyfunction]
-pub fn rust_cli_calculate_monthlies(src_fn: &str
-) -> PyResult<[[f64; 12]; 4]> {
+pub fn rust_cli_calculate_monthlies(src_fn: &str) -> PyResult<[[f64; 12]; 4]> {
     let src_f = File::open(src_fn)?;
     let mut src_r = BufReader::new(src_f);
 
@@ -676,7 +695,7 @@ pub fn rust_cli_calculate_monthlies(src_fn: &str
 
     while src_r.read_line(&mut line)? > 0 {
         let tokens: Vec<&str> = line.split_whitespace().collect();
-    
+
         if tokens.len() == EXPECTED_TOKENS {
             let mo: usize = tokens[1].parse().unwrap();
             let year: i32 = tokens[2].parse().unwrap();
@@ -687,7 +706,7 @@ pub fn rust_cli_calculate_monthlies(src_fn: &str
             if year != yr_last {
                 n_years += 1.0;
             }
-    
+
             out[0][mo - 1] += prcp_f;
             out[1][mo - 1] += tmax_f;
             out[2][mo - 1] += tmin_f;
@@ -697,16 +716,17 @@ pub fn rust_cli_calculate_monthlies(src_fn: &str
             }
 
             yr_last = year;
-
         }
         line.clear();
     }
-    
-    let days_in_mo: [f64; 12] = [31.0, 28.25, 31.0, 30.0, 31.0, 30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0];
+
+    let days_in_mo: [f64; 12] = [
+        31.0, 28.25, 31.0, 30.0, 31.0, 30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0,
+    ];
 
     for i in 0..12 {
         out[0][i] /= n_years;
-        out[0][i] *= 0.0393701;  // convert to inches/month
+        out[0][i] *= 0.0393701; // convert to inches/month
 
         out[1][i] /= n_years * days_in_mo[i];
         out[1][i] = c_to_f(out[1][i]);
@@ -716,12 +736,15 @@ pub fn rust_cli_calculate_monthlies(src_fn: &str
 
         out[3][i] /= n_years;
     }
-    
+
     Ok(out)
 }
 
 #[pyfunction]
-pub fn rust_cli_p_scale_annual_monthlies(src_fn: &str, dst_fn: &str, p_mults: Vec<f64>
+pub fn rust_cli_p_scale_annual_monthlies(
+    src_fn: &str,
+    dst_fn: &str,
+    p_mults: Vec<f64>,
 ) -> Result<()> {
     let src_f = File::open(src_fn)?;
     let mut src_r = BufReader::new(src_f);
@@ -765,15 +788,18 @@ pub fn rust_cli_p_scale_annual_monthlies(src_fn: &str, dst_fn: &str, p_mults: Ve
             if mo != mo_last {
                 month_index += 1;
             }
-        
+
             prcp_f = prcp_f * p_mults[month_index];
 
             let prcp = format!("{:.1}", prcp_f);
 
-            dst_w.write_all(format!(
-                "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
-                da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
-            ).as_bytes())?;
+            dst_w.write_all(
+                format!(
+                    "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
+                    da, mo, year, prcp, dur, tp, ip, tmax, tmin, rad, w_vl, w_dir, tdew
+                )
+                .as_bytes(),
+            )?;
 
             mo_last = mo;
             indx += 1;
@@ -783,11 +809,9 @@ pub fn rust_cli_p_scale_annual_monthlies(src_fn: &str, dst_fn: &str, p_mults: Ve
     Ok(())
 }
 
-
-
-/// spatializes climate file by biasing between precip, tmin, and tmax values 
+/// spatializes climate file by biasing between precip, tmin, and tmax values
 /// of the watershed centroid and the hill centroid
-/// 
+///
 /// inputs:
 ///   src_fn: str
 ///       path to climate file to spatialize
@@ -805,19 +829,19 @@ pub fn rust_cli_p_scale_annual_monthlies(src_fn: &str, dst_fn: &str, p_mults: Ve
 ///       list of hill monthly tmax values
 ///   hill_tmins: list of floats
 ///       list of hill monthly tmin values
-/// 
+///
 /// returns:
 ///  None
 #[pyfunction]
 fn cli_revision(
-    src_fn: &str, 
-    dst_fn: &str, 
-    ws_ppts: Vec<f64>, 
-    ws_tmaxs: Vec<f64>, 
-    ws_tmins: Vec<f64>, 
-    hill_ppts: Vec<f64>, 
-    hill_tmaxs: Vec<f64>, 
-    hill_tmins: Vec<f64>
+    src_fn: &str,
+    dst_fn: &str,
+    ws_ppts: Vec<f64>,
+    ws_tmaxs: Vec<f64>,
+    ws_tmins: Vec<f64>,
+    hill_ppts: Vec<f64>,
+    hill_tmaxs: Vec<f64>,
+    hill_tmins: Vec<f64>,
 ) -> PyResult<()> {
     println!("{}", src_fn);
     println!("{}", dst_fn);
@@ -831,21 +855,24 @@ fn cli_revision(
             }
             Ok(arr)
         } else {
-            Err(pyo3::exceptions::PyValueError::new_err("Expected a list of length 12"))
+            Err(pyo3::exceptions::PyValueError::new_err(
+                "Expected a list of length 12",
+            ))
         }
     };
 
     // Call the original Rust function
     rust_cli_revision(
-        src_fn, 
-        dst_fn, 
-        convert_array(ws_ppts)?, 
-        convert_array(ws_tmaxs)?, 
-        convert_array(ws_tmins)?, 
-        convert_array(hill_ppts)?, 
-        convert_array(hill_tmaxs)?, 
-        convert_array(hill_tmins)?
-    ).map_err(|e| pyo3::exceptions::PyOSError::new_err(format!("{}", e)))?;
+        src_fn,
+        dst_fn,
+        convert_array(ws_ppts)?,
+        convert_array(ws_tmaxs)?,
+        convert_array(ws_tmins)?,
+        convert_array(hill_ppts)?,
+        convert_array(hill_tmaxs)?,
+        convert_array(hill_tmins)?,
+    )
+    .map_err(|e| pyo3::exceptions::PyOSError::new_err(format!("{}", e)))?;
 
     Ok(())
 }
@@ -860,7 +887,10 @@ fn cli_revision_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(rust_cli_p_scale_monthlies, m)?)?;
     m.add_function(wrap_pyfunction!(rust_cli_p_scale, m)?)?;
     m.add_function(wrap_pyfunction!(rust_cli_calculate_monthlies, m)?)?;
-    m.add_function(wrap_pyfunction!(rust_cli_calculate_p_annual_monthlies_from_lists, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        rust_cli_calculate_p_annual_monthlies_from_lists,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(rust_cli_calculate_p_annual_monthlies, m)?)?;
     m.add_function(wrap_pyfunction!(rust_cli_p_scale_annual_monthlies, m)?)?;
     Ok(())

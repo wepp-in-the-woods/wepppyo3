@@ -8,8 +8,8 @@ use pyo3::types::PyDict;
 mod arrays;
 mod calendar;
 mod catalog;
-mod chanwb;
 mod chan_peak;
+mod chanwb;
 mod chnwb;
 mod ebe;
 mod errors;
@@ -253,14 +253,18 @@ fn watershed_loss_to_parquet(
     let output_dir = PathBuf::from(output_dir);
 
     let start = Instant::now();
-    let outputs = loss::watershed_loss_to_parquet(&loss_path, &output_dir, &version)
-        .map_err(to_py_err)?;
+    let outputs =
+        loss::watershed_loss_to_parquet(&loss_path, &output_dir, &version).map_err(to_py_err)?;
 
     let elapsed_ms = start.elapsed().as_millis() as u64;
     let rows_written: usize = outputs.summaries.values().map(|s| s.rows_written).sum();
     let row_groups: usize = outputs.summaries.values().map(|s| s.row_groups).sum();
 
-    let mut output_paths = outputs.paths.values().map(|p| p.display().to_string()).collect::<Vec<_>>();
+    let mut output_paths = outputs
+        .paths
+        .values()
+        .map(|p| p.display().to_string())
+        .collect::<Vec<_>>();
     output_paths.sort();
 
     Ok(build_summary_dict(
@@ -324,8 +328,9 @@ fn hillslope_pass_to_columns(
     let pass_path = PathBuf::from(pass_path);
     let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
 
-    let columns = hill_pass::hillslope_pass_to_columns(&pass_path, cli_calendar_path.as_deref(), &version)
-        .map_err(to_py_err)?;
+    let columns =
+        hill_pass::hillslope_pass_to_columns(&pass_path, cli_calendar_path.as_deref(), &version)
+            .map_err(to_py_err)?;
     Ok(Python::with_gil(|py| columns.into_pydict(py)))
 }
 
@@ -417,11 +422,11 @@ fn hillslope_wat_to_columns(
     let wat_path = PathBuf::from(wat_path);
     let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
 
-    let columns = hill_wat::hillslope_wat_to_columns(&wat_path, cli_calendar_path.as_deref(), &version)
-        .map_err(to_py_err)?;
+    let columns =
+        hill_wat::hillslope_wat_to_columns(&wat_path, cli_calendar_path.as_deref(), &version)
+            .map_err(to_py_err)?;
     Ok(Python::with_gil(|py| columns.into_pydict(py)))
 }
-
 
 #[pyfunction]
 #[pyo3(signature = (base_path))]
@@ -462,7 +467,8 @@ fn build_summary_dict(
         dict.set_item("rows_written", rows_written).unwrap();
         dict.set_item("row_groups", row_groups).unwrap();
         dict.set_item("elapsed_ms", elapsed_ms).unwrap();
-        dict.set_item("schema_version", schema_version.to_string()).unwrap();
+        dict.set_item("schema_version", schema_version.to_string())
+            .unwrap();
         dict.set_item("output_paths", output_paths).unwrap();
         dict.into_py(py)
     })

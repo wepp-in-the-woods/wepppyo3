@@ -6,7 +6,9 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::Instant;
 
-use arrow2::array::{Array, BooleanArray, DictionaryArray, DictionaryKey, PrimitiveArray, Utf8Array};
+use arrow2::array::{
+    Array, BooleanArray, DictionaryArray, DictionaryKey, PrimitiveArray, Utf8Array,
+};
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::{DataType, Metadata, Schema};
 use arrow2::io::parquet::read;
@@ -248,11 +250,12 @@ fn swat_outputs_to_parquet(
     }
 
     let manifest_exists = manifest_path.exists();
-    let (candidates, mut skipped_by_order, include_missing) = if !manifest_exists && include.is_some() {
-        build_candidates_from_include(include.as_ref(), exclude.as_ref())
-    } else {
-        build_candidates(&manifest_entries, include.as_ref(), exclude.as_ref())
-    };
+    let (candidates, mut skipped_by_order, include_missing) =
+        if !manifest_exists && include.is_some() {
+            build_candidates_from_include(include.as_ref(), exclude.as_ref())
+        } else {
+            build_candidates(&manifest_entries, include.as_ref(), exclude.as_ref())
+        };
 
     let include_filtered_len = filtered_include_len(include.as_ref(), exclude.as_ref());
     let files_total = if include.is_some() {
@@ -286,7 +289,8 @@ fn swat_outputs_to_parquet(
 
     if fail_fast || ncpu <= 1 || work_items.len() <= 1 {
         for item in work_items.iter() {
-            let result = process_work_item(item, chunk_rows, compression, run_id.as_deref(), overwrite);
+            let result =
+                process_work_item(item, chunk_rows, compression, run_id.as_deref(), overwrite);
             match result {
                 Ok(WorkOutcome::Written(summary)) => {
                     files_written += 1;
@@ -314,7 +318,12 @@ fn swat_outputs_to_parquet(
                     );
                     log_event(&log_path, "skip", &item.candidate.filename, Some(reason))?;
                     if delete_after_interchange {
-                        log_event(&log_path, "delete_skipped", &item.candidate.filename, Some(reason))?;
+                        log_event(
+                            &log_path,
+                            "delete_skipped",
+                            &item.candidate.filename,
+                            Some(reason),
+                        )?;
                     }
                 }
                 Err(err) => {
@@ -383,7 +392,12 @@ fn swat_outputs_to_parquet(
                     );
                     log_event(&log_path, "skip", &item.candidate.filename, Some(reason))?;
                     if delete_after_interchange {
-                        log_event(&log_path, "delete_skipped", &item.candidate.filename, Some(reason))?;
+                        log_event(
+                            &log_path,
+                            "delete_skipped",
+                            &item.candidate.filename,
+                            Some(reason),
+                        )?;
                     }
                 }
                 Err(err) => {
@@ -422,7 +436,11 @@ fn swat_outputs_to_parquet(
 
     version.files_written = Some(files_written);
     version.files_skipped = Some(skipped.len());
-    version.errors = if errors.is_empty() { None } else { Some(errors) };
+    version.errors = if errors.is_empty() {
+        None
+    } else {
+        Some(errors)
+    };
     version.status = if had_error_class {
         "partial".to_string()
     } else {
@@ -540,8 +558,9 @@ fn swat_output_to_parquet(
 
     let schema = table_schema_from_file(&source_path, &spec, metadata)
         .map_err(|err| PyRuntimeError::new_err(err.display_message()))?;
-    let summary = parse_table_to_parquet(&source_path, &output_path, schema, chunk_rows, compression)
-        .map_err(|err| PyRuntimeError::new_err(err.display_message()))?;
+    let summary =
+        parse_table_to_parquet(&source_path, &output_path, schema, chunk_rows, compression)
+            .map_err(|err| PyRuntimeError::new_err(err.display_message()))?;
 
     if file_changed(&source_path, &before_meta)
         .map_err(|err| PyRuntimeError::new_err(err.display_message()))?
@@ -553,7 +572,9 @@ fn swat_output_to_parquet(
         ));
     }
 
-    if delete_after_interchange && source_path.file_name().and_then(|name| name.to_str()) != Some("files_out.out") {
+    if delete_after_interchange
+        && source_path.file_name().and_then(|name| name.to_str()) != Some("files_out.out")
+    {
         let log_name = source_path
             .file_name()
             .and_then(|name| name.to_str())
@@ -583,7 +604,10 @@ fn swat_output_to_parquet(
 
 #[pyfunction]
 #[pyo3(signature = (interchange_dir, *, to_readme_md=true))]
-fn generate_interchange_documentation(interchange_dir: String, to_readme_md: bool) -> PyResult<String> {
+fn generate_interchange_documentation(
+    interchange_dir: String,
+    to_readme_md: bool,
+) -> PyResult<String> {
     let base = PathBuf::from(interchange_dir);
     if !base.exists() {
         return Err(PyFileNotFoundError::new_err(format!(
@@ -649,8 +673,11 @@ fn build_single_summary(
         dict.set_item("elapsed_ms", elapsed_ms).unwrap();
         dict.set_item("source_path", source_path.to_string_lossy().into_owned())
             .unwrap();
-        dict.set_item("output_paths", vec![output_path.to_string_lossy().into_owned()])
-            .unwrap();
+        dict.set_item(
+            "output_paths",
+            vec![output_path.to_string_lossy().into_owned()],
+        )
+        .unwrap();
         dict.set_item("rows_written", rows_written).unwrap();
         dict.set_item("row_groups", row_groups).unwrap();
         dict.set_item("category", category).unwrap();
@@ -673,10 +700,16 @@ fn build_summary_dict(
     Python::with_gil(|py| {
         let dict = PyDict::new_bound(py);
         dict.set_item("elapsed_ms", elapsed_ms).unwrap();
-        dict.set_item("run_output_dir", run_output_dir.to_string_lossy().into_owned())
-            .unwrap();
-        dict.set_item("interchange_dir", interchange_dir.to_string_lossy().into_owned())
-            .unwrap();
+        dict.set_item(
+            "run_output_dir",
+            run_output_dir.to_string_lossy().into_owned(),
+        )
+        .unwrap();
+        dict.set_item(
+            "interchange_dir",
+            interchange_dir.to_string_lossy().into_owned(),
+        )
+        .unwrap();
         dict.set_item("files_total", files_total).unwrap();
         dict.set_item("files_written", files_written).unwrap();
         dict.set_item("files_skipped", files_skipped).unwrap();
@@ -722,7 +755,10 @@ fn find_manifest_entries(
     None
 }
 
-fn build_doc_entries(interchange_dir: &Path, manifest_entries: Option<&Vec<ManifestEntry>>) -> Vec<DocEntry> {
+fn build_doc_entries(
+    interchange_dir: &Path,
+    manifest_entries: Option<&Vec<ManifestEntry>>,
+) -> Vec<DocEntry> {
     let mut entries = Vec::new();
     let mut seen = HashSet::new();
 
@@ -863,13 +899,23 @@ fn table_preview_markdown(schema: &Schema, rows: &[Vec<String>]) -> String {
     lines.join("\n")
 }
 
-fn read_parquet_preview(path: &Path, max_rows: usize) -> Result<(Schema, Vec<Vec<String>>), SwatError> {
+fn read_parquet_preview(
+    path: &Path,
+    max_rows: usize,
+) -> Result<(Schema, Vec<Vec<String>>), SwatError> {
     let mut reader = File::open(path).map_err(|err| SwatError::io(path, err))?;
     let metadata = read::read_metadata(&mut reader)?;
     let schema = read::infer_schema(&metadata)?;
     let row_groups = metadata.row_groups.clone();
 
-    let mut file_reader = read::FileReader::new(reader, row_groups, schema.clone(), Some(1024 * 8), None, None);
+    let mut file_reader = read::FileReader::new(
+        reader,
+        row_groups,
+        schema.clone(),
+        Some(1024 * 8),
+        None,
+        None,
+    );
     let mut rows: Vec<Vec<String>> = Vec::new();
     if max_rows == 0 {
         return Ok((schema, rows));
@@ -1110,12 +1156,145 @@ mod tests {
         base
     }
 
+    fn manifest_entry(category: &str, filename: &str, line_no: usize) -> ManifestEntry {
+        ManifestEntry {
+            category: category.to_string(),
+            filename: filename.to_string(),
+            source_line: format!("{category} {filename}"),
+            line_no,
+        }
+    }
+
     #[test]
     fn filtered_include_len_dedup_and_exclude() {
         let include = vec!["a".to_string(), "b".to_string(), "a".to_string()];
         let exclude = vec!["b".to_string()];
         let count = filtered_include_len(Some(&include), Some(&exclude));
         assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn build_candidates_dedup_and_duplicate_reason() {
+        let entries = vec![
+            manifest_entry("CAT", "file1.txt", 2),
+            manifest_entry("CAT", "file1.txt", 3),
+        ];
+        let (candidates, skipped_by_order, include_missing) =
+            build_candidates(&entries, None, None);
+
+        assert_eq!(candidates.len(), 1);
+        assert_eq!(candidates[0].filename, "file1.txt");
+        let skipped = collect_skipped(skipped_by_order, include_missing);
+        assert_eq!(skipped.len(), 1);
+        assert_eq!(skipped[0].reason, Reason::Duplicate);
+    }
+
+    #[test]
+    fn build_candidates_path_invalid() {
+        let entries = vec![
+            manifest_entry("CAT", "../bad.txt", 2),
+            manifest_entry("CAT", "a/b.txt", 3),
+        ];
+        let (candidates, skipped_by_order, include_missing) =
+            build_candidates(&entries, None, None);
+
+        assert!(candidates.is_empty());
+        let skipped = collect_skipped(skipped_by_order, include_missing);
+        assert_eq!(skipped.len(), 2);
+        assert!(skipped
+            .iter()
+            .all(|entry| entry.reason == Reason::PathInvalid));
+    }
+
+    #[test]
+    fn build_candidates_include_missing_not_in_manifest() {
+        let entries = vec![manifest_entry("CAT", "file1.txt", 2)];
+        let include = vec!["file1.txt".to_string(), "missing.txt".to_string()];
+        let (candidates, skipped_by_order, include_missing) =
+            build_candidates(&entries, Some(&include), None);
+
+        assert_eq!(candidates.len(), 1);
+        let skipped = collect_skipped(skipped_by_order, include_missing);
+        assert_eq!(skipped.len(), 1);
+        assert_eq!(skipped[0].filename, "missing.txt");
+        assert_eq!(skipped[0].reason, Reason::NotInManifest);
+    }
+
+    #[test]
+    fn build_candidates_include_exclude_manifest_order() {
+        let entries = vec![
+            manifest_entry("CAT", "b.txt", 2),
+            manifest_entry("CAT", "a.txt", 3),
+        ];
+        let include = vec!["a.txt".to_string(), "b.txt".to_string()];
+        let (candidates, _, _) = build_candidates(&entries, Some(&include), None);
+
+        let names = candidates
+            .iter()
+            .map(|item| item.filename.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(names, vec!["b.txt", "a.txt"]);
+    }
+
+    #[test]
+    fn build_candidates_from_include_order_no_manifest() {
+        let include = vec![
+            "b.txt".to_string(),
+            "a.txt".to_string(),
+            "b.txt".to_string(),
+            "../bad.txt".to_string(),
+            "c.txt".to_string(),
+        ];
+        let exclude = vec!["c.txt".to_string()];
+        let (candidates, skipped_by_order, include_missing) =
+            build_candidates_from_include(Some(&include), Some(&exclude));
+
+        let names = candidates
+            .iter()
+            .map(|item| item.filename.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(names, vec!["b.txt", "a.txt"]);
+        let skipped = collect_skipped(skipped_by_order, include_missing);
+        assert_eq!(skipped.len(), 1);
+        assert_eq!(skipped[0].filename, "../bad.txt");
+        assert_eq!(skipped[0].reason, Reason::PathInvalid);
+    }
+
+    #[test]
+    fn manifest_empty_no_include_fallback() {
+        let entries: Vec<ManifestEntry> = Vec::new();
+        let include = vec!["file1.txt".to_string()];
+        let (candidates, skipped_by_order, include_missing) =
+            build_candidates(&entries, Some(&include), None);
+
+        assert!(candidates.is_empty());
+        let skipped = collect_skipped(skipped_by_order, include_missing);
+        assert_eq!(skipped.len(), 1);
+        assert_eq!(skipped[0].filename, "file1.txt");
+        assert_eq!(skipped[0].reason, Reason::NotInManifest);
+    }
+
+    #[test]
+    fn read_manifest_inline_comment_and_source_line() {
+        let base = temp_dir("manifest_inline_comment");
+        let manifest_path = base.join("files_out.out");
+        let manifest = concat!(
+            "files_out.out - OUTPUT FILES WRITTEN\n",
+            "CAT file1.txt  # trailing comment\n",
+            "CAT file2.txt#not_comment\n",
+            "   # full line comment\n",
+            "\n"
+        );
+        fs::write(&manifest_path, manifest).expect("write manifest");
+        let entries = read_manifest(&manifest_path).expect("read manifest");
+
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].filename, "file1.txt");
+        assert!(entries[0].source_line.contains("# trailing comment"));
+        assert_eq!(entries[1].filename, "file2.txt#not_comment");
+
+        let _ = fs::remove_file(&manifest_path);
+        let _ = fs::remove_dir_all(&base);
     }
 
     #[test]
@@ -1147,7 +1326,24 @@ mod tests {
                 .unwrap()
                 .extract()
                 .unwrap();
+            let files_written: usize = dict
+                .get_item("files_written")
+                .unwrap()
+                .unwrap()
+                .extract()
+                .unwrap();
+            let files_skipped: usize = dict
+                .get_item("files_skipped")
+                .unwrap()
+                .unwrap()
+                .extract()
+                .unwrap();
+            let output_paths_any = dict.get_item("output_paths").unwrap().unwrap();
+            let output_paths = output_paths_any.downcast::<PyList>().unwrap();
             assert_eq!(files_total, 2);
+            assert_eq!(files_written, 0);
+            assert_eq!(files_skipped, 2);
+            assert_eq!(output_paths.len(), 0);
             let skipped_any = dict.get_item("skipped").unwrap().unwrap();
             let skipped = skipped_any.downcast::<PyList>().unwrap();
             let mut reasons = Vec::new();
@@ -1163,7 +1359,9 @@ mod tests {
                 reasons.push(reason);
             }
             assert_eq!(reasons.len(), 2);
-            assert!(reasons.iter().all(|reason| reason == "interchange_complete"));
+            assert!(reasons
+                .iter()
+                .all(|reason| reason == "interchange_complete"));
         });
 
         let _ = fs::remove_file(&manifest_path);
@@ -1226,7 +1424,10 @@ fn build_dataset_metadata(
     run_id: Option<&str>,
 ) -> Metadata {
     let mut metadata = BTreeMap::new();
-    metadata.insert("swat_interchange_version".to_string(), SPEC_NAME.to_string());
+    metadata.insert(
+        "swat_interchange_version".to_string(),
+        SPEC_NAME.to_string(),
+    );
     metadata.insert("source_file".to_string(), source_file.to_string());
     if let Some(category) = category {
         metadata.insert("category".to_string(), category.to_string());
@@ -1241,17 +1442,24 @@ fn read_run_id(run_output_dir: &Path) -> Option<String> {
     let path = run_output_dir.join("index.json");
     let text = fs::read_to_string(path).ok()?;
     let value: serde_json::Value = serde_json::from_str(&text).ok()?;
-    value.get("run_id").and_then(|v| v.as_str()).map(|s| s.to_string())
+    value
+        .get("run_id")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
 }
 
 fn replace_extension(filename: &str, new_ext: &str) -> String {
     let path = Path::new(filename);
-    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or(filename);
+    let stem = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(filename);
     format!("{stem}.{new_ext}")
 }
 
 fn write_version(path: &Path, version: &InterchangeVersion) -> Result<(), SwatError> {
-    let data = serde_json::to_string_pretty(version).map_err(|err| SwatError::value(err.to_string()))?;
+    let data =
+        serde_json::to_string_pretty(version).map_err(|err| SwatError::value(err.to_string()))?;
     fs::write(path, data).map_err(|err| SwatError::io(path, err))
 }
 
@@ -1291,11 +1499,12 @@ fn summary_for_existing_complete(
     };
 
     let manifest_exists = manifest_path.exists();
-    let (candidates, mut skipped_by_order, include_missing) = if !manifest_exists && include.is_some() {
-        build_candidates_from_include(include, exclude)
-    } else {
-        build_candidates(&manifest_entries, include, exclude)
-    };
+    let (candidates, mut skipped_by_order, include_missing) =
+        if !manifest_exists && include.is_some() {
+            build_candidates_from_include(include, exclude)
+        } else {
+            build_candidates(&manifest_entries, include, exclude)
+        };
     let include_filtered_len = filtered_include_len(include, exclude);
     let files_total = if include.is_some() {
         include_filtered_len
@@ -1486,7 +1695,11 @@ fn set_skip(skipped_by_order: &mut Vec<Option<SkipEntry>>, index: usize, entry: 
 }
 
 fn count_skipped(skipped_by_order: &Vec<Option<SkipEntry>>, include_missing_len: usize) -> usize {
-    skipped_by_order.iter().filter(|entry| entry.is_some()).count() + include_missing_len
+    skipped_by_order
+        .iter()
+        .filter(|entry| entry.is_some())
+        .count()
+        + include_missing_len
 }
 
 fn collect_skipped(
@@ -1586,11 +1799,25 @@ fn handle_delete(
     Ok(())
 }
 
-fn log_event(log_path: &Path, action: &str, filename: &str, reason: Option<Reason>) -> PyResult<()> {
+fn log_event(
+    log_path: &Path,
+    action: &str,
+    filename: &str,
+    reason: Option<Reason>,
+) -> PyResult<()> {
     let mut event = serde_json::Map::new();
-    event.insert("timestamp".to_string(), serde_json::Value::String(now_rfc3339()));
-    event.insert("action".to_string(), serde_json::Value::String(action.to_string()));
-    event.insert("file".to_string(), serde_json::Value::String(filename.to_string()));
+    event.insert(
+        "timestamp".to_string(),
+        serde_json::Value::String(now_rfc3339()),
+    );
+    event.insert(
+        "action".to_string(),
+        serde_json::Value::String(action.to_string()),
+    );
+    event.insert(
+        "file".to_string(),
+        serde_json::Value::String(filename.to_string()),
+    );
     if let Some(reason) = reason {
         event.insert(
             "reason".to_string(),
@@ -1685,16 +1912,16 @@ fn write_manifest_parquet(
     ];
 
     let mut metadata = BTreeMap::new();
-    metadata.insert("swat_interchange_version".to_string(), SPEC_NAME.to_string());
+    metadata.insert(
+        "swat_interchange_version".to_string(),
+        SPEC_NAME.to_string(),
+    );
     metadata.insert("source_file".to_string(), "files_out.out".to_string());
     if let Some(run_id) = run_id {
         metadata.insert("run_id".to_string(), run_id.to_string());
     }
 
-    let schema = arrow2::datatypes::Schema {
-        fields,
-        metadata,
-    };
+    let schema = arrow2::datatypes::Schema { fields, metadata };
 
     let arrays: Vec<Box<dyn arrow2::array::Array>> = vec![
         arrow2::array::Utf8Array::<i32>::from(categories).boxed(),
@@ -1727,9 +1954,9 @@ fn runtime_error(reason: Reason, message: &str) -> PyErr {
 fn to_py_err(err: SwatError) -> PyErr {
     match err {
         SwatError::Io { .. } => PyIOError::new_err(err.display_message()),
-        SwatError::Parse { .. }
-        | SwatError::Value { .. }
-        | SwatError::Decode { .. } => PyValueError::new_err(err.display_message()),
+        SwatError::Parse { .. } | SwatError::Value { .. } | SwatError::Decode { .. } => {
+            PyValueError::new_err(err.display_message())
+        }
         _ => PyRuntimeError::new_err(err.display_message()),
     }
 }
@@ -1787,7 +2014,12 @@ fn prepare_work_items(
             );
             log_event(log_path, "skip", &candidate.filename, Some(Reason::Exists))?;
             if delete_after_interchange {
-                log_event(log_path, "delete_skipped", &candidate.filename, Some(Reason::Exists))?;
+                log_event(
+                    log_path,
+                    "delete_skipped",
+                    &candidate.filename,
+                    Some(Reason::Exists),
+                )?;
             }
             continue;
         }
@@ -1889,7 +2121,8 @@ fn run_parallel(
             let Some(item) = item else {
                 break;
             };
-            let result = process_work_item(&item, chunk_rows, compression, run_id.as_deref(), overwrite);
+            let result =
+                process_work_item(&item, chunk_rows, compression, run_id.as_deref(), overwrite);
             let _ = tx.send(WorkResult {
                 index: item.index,
                 result,

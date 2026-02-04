@@ -25,7 +25,12 @@ pub enum InterchangeError {
 }
 
 impl InterchangeError {
-    pub fn parse(path: impl Into<PathBuf>, line: Option<usize>, message: impl Into<String>, preview: Option<String>) -> Self {
+    pub fn parse(
+        path: impl Into<PathBuf>,
+        line: Option<usize>,
+        message: impl Into<String>,
+        preview: Option<String>,
+    ) -> Self {
         Self::Parse {
             path: path.into(),
             line,
@@ -43,14 +48,19 @@ impl InterchangeError {
 
     fn line_info(&self) -> String {
         match self {
-            Self::Parse { line: Some(line), .. } => format!(":{line}"),
+            Self::Parse {
+                line: Some(line), ..
+            } => format!(":{line}"),
             _ => String::new(),
         }
     }
 
     fn preview_info(&self) -> String {
         match self {
-            Self::Parse { preview: Some(preview), .. } => format!(" (line: {preview})"),
+            Self::Parse {
+                preview: Some(preview),
+                ..
+            } => format!(" (line: {preview})"),
             _ => String::new(),
         }
     }
@@ -58,7 +68,12 @@ impl InterchangeError {
     pub fn display_message(&self) -> String {
         match self {
             Self::Parse { path, message, .. } => {
-                format!("{}{}: {message}{}", path.display(), self.line_info(), self.preview_info())
+                format!(
+                    "{}{}: {message}{}",
+                    path.display(),
+                    self.line_info(),
+                    self.preview_info()
+                )
             }
             _ => self.to_string(),
         }

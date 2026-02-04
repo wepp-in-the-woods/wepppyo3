@@ -15,30 +15,9 @@ const ELEMENT_FIELD_WIDTHS: [usize; 24] = [
 ];
 
 const ELEMENT_COLUMN_NAMES: [&str; 24] = [
-    "OFE",
-    "DD",
-    "MM",
-    "YYYY",
-    "Precip",
-    "Runoff",
-    "EffInt",
-    "PeakRO",
-    "EffDur",
-    "Enrich",
-    "Keff",
-    "Sm",
-    "LeafArea",
-    "CanHgt",
-    "Cancov",
-    "IntCov",
-    "RilCov",
-    "LivBio",
-    "DeadBio",
-    "Ki",
-    "Kr",
-    "Tcrit",
-    "RilWid",
-    "SedLeave",
+    "OFE", "DD", "MM", "YYYY", "Precip", "Runoff", "EffInt", "PeakRO", "EffDur", "Enrich", "Keff",
+    "Sm", "LeafArea", "CanHgt", "Cancov", "IntCov", "RilCov", "LivBio", "DeadBio", "Ki", "Kr",
+    "Tcrit", "RilWid", "SedLeave",
 ];
 
 pub struct ElementColumns {
@@ -178,12 +157,8 @@ pub fn hillslope_element_to_columns(
             InterchangeError::parse(path, None, "Invalid year token", Some(raw_line.clone()))
         })?;
 
-        let (year, month, day, julian, water_year) = normalize_date_tokens(
-            year_token,
-            month,
-            day,
-            start_year,
-        );
+        let (year, month, day, julian, water_year) =
+            normalize_date_tokens(year_token, month, day, start_year);
 
         let mut row_values: Vec<f64> = Vec::with_capacity(ELEMENT_COLUMN_NAMES.len() - 4);
         for (col_idx, token) in tokens.iter().skip(4).enumerate() {
@@ -300,7 +275,13 @@ fn days_in_month(year: i32, month: i32) -> i32 {
     let leap = is_leap_year(year);
     match month {
         1 => 31,
-        2 => if leap { 29 } else { 28 },
+        2 => {
+            if leap {
+                29
+            } else {
+                28
+            }
+        }
         3 => 31,
         4 => 30,
         5 => 31,
@@ -357,7 +338,7 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
             Some(name.to_string()),
         ));
     }
-    digits
-        .parse::<i32>()
-        .map_err(|_| InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string())))
+    digits.parse::<i32>().map_err(|_| {
+        InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
+    })
 }

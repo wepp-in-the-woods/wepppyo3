@@ -4,7 +4,9 @@ use arrow2::array::{DictionaryArray, PrimitiveArray, Utf8Array};
 
 use crate::errors::InterchangeError;
 
-pub fn dictionary_array_from_strings(values: Vec<String>) -> Result<DictionaryArray<i32>, InterchangeError> {
+pub fn dictionary_array_from_strings(
+    values: Vec<String>,
+) -> Result<DictionaryArray<i32>, InterchangeError> {
     let optional = values.into_iter().map(Some).collect::<Vec<_>>();
     dictionary_array_from_optional_strings(optional)
 }

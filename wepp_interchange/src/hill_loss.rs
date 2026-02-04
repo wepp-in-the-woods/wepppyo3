@@ -66,13 +66,16 @@ impl LossColumns {
         dict.set_item("class_id", self.class_id).unwrap();
         dict.set_item("Class", self.class_val).unwrap();
         dict.set_item("Diameter", self.diameter).unwrap();
-        dict.set_item("Specific Gravity", self.specific_gravity).unwrap();
+        dict.set_item("Specific Gravity", self.specific_gravity)
+            .unwrap();
         dict.set_item("% Sand", self.sand).unwrap();
         dict.set_item("% Silt", self.silt).unwrap();
         dict.set_item("% Clay", self.clay).unwrap();
         dict.set_item("% O.M.", self.om).unwrap();
-        dict.set_item("Sediment Fraction", self.sediment_fraction).unwrap();
-        dict.set_item("In Flow Exiting", self.inflow_exiting).unwrap();
+        dict.set_item("Sediment Fraction", self.sediment_fraction)
+            .unwrap();
+        dict.set_item("In Flow Exiting", self.inflow_exiting)
+            .unwrap();
         dict.into_py(py)
     }
 }
@@ -126,9 +129,8 @@ pub fn hillslope_loss_to_columns(
         let mut values: HashMap<&str, f64> = HashMap::new();
         for (column_name, token) in MEASUREMENT_COLUMNS[1..].iter().zip(measurements.iter()) {
             let target = column_alias(column_name);
-            let value = parse_required_float(token).map_err(|msg| {
-                InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
-            })?;
+            let value = parse_required_float(token)
+                .map_err(|msg| InterchangeError::parse(path, None, msg, Some(raw_line.clone())))?;
             values.insert(target, value);
         }
 
@@ -136,13 +138,16 @@ pub fn hillslope_loss_to_columns(
         out.class_id.push(class_val as i8);
         out.class_val.push(class_val as i8);
         out.diameter.push(*values.get("Diameter").unwrap_or(&0.0));
-        out.specific_gravity.push(*values.get("Specific Gravity").unwrap_or(&0.0));
+        out.specific_gravity
+            .push(*values.get("Specific Gravity").unwrap_or(&0.0));
         out.sand.push(*values.get("% Sand").unwrap_or(&0.0));
         out.silt.push(*values.get("% Silt").unwrap_or(&0.0));
         out.clay.push(*values.get("% Clay").unwrap_or(&0.0));
         out.om.push(*values.get("% O.M.").unwrap_or(&0.0));
-        out.sediment_fraction.push(*values.get("Sediment Fraction").unwrap_or(&0.0));
-        out.inflow_exiting.push(*values.get("In Flow Exiting").unwrap_or(&0.0));
+        out.sediment_fraction
+            .push(*values.get("Sediment Fraction").unwrap_or(&0.0));
+        out.inflow_exiting
+            .push(*values.get("In Flow Exiting").unwrap_or(&0.0));
     }
 
     Ok(out)
@@ -178,7 +183,7 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
             Some(name.to_string()),
         ));
     }
-    digits
-        .parse::<i32>()
-        .map_err(|_| InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string())))
+    digits.parse::<i32>().map_err(|_| {
+        InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
+    })
 }

@@ -74,10 +74,7 @@ pub enum SwatError {
         reason: Reason,
     },
     #[error("Decode error at {path:?}: {message}")]
-    Decode {
-        path: PathBuf,
-        message: String,
-    },
+    Decode { path: PathBuf, message: String },
     #[error("Value error: {message}")]
     Value { message: String },
     #[error("Arrow error: {0}")]
@@ -166,7 +163,9 @@ impl SwatError {
         match self {
             SwatError::Parse { reason, .. } => *reason,
             SwatError::Decode { .. } => Reason::DecodeError,
-            SwatError::Io { .. } | SwatError::Arrow(_) | SwatError::Parquet(_) => Reason::ParseError,
+            SwatError::Io { .. } | SwatError::Arrow(_) | SwatError::Parquet(_) => {
+                Reason::ParseError
+            }
             SwatError::Value { .. } => Reason::ParseError,
         }
     }

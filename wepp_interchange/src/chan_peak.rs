@@ -23,7 +23,12 @@ pub fn chan_peak_schema(version: &VersionInfo) -> Schema {
             None,
             Some("Simulation year from chan.out"),
         ),
-        field_with_meta("julian", DataType::Int16, None, Some("Julian day reported by WEPP")),
+        field_with_meta(
+            "julian",
+            DataType::Int16,
+            None,
+            Some("Julian day reported by WEPP"),
+        ),
         field_with_meta(
             "month",
             DataType::Int8,
@@ -42,9 +47,24 @@ pub fn chan_peak_schema(version: &VersionInfo) -> Schema {
             None,
             Some("Water year computed from Julian day"),
         ),
-        field_with_meta("Elmt_ID", DataType::Int32, None, Some("Channel element identifier")),
-        field_with_meta("Chan_ID", DataType::Int32, None, Some("Channel ID reported by WEPP")),
-        field_with_meta("Time (s)", DataType::Float64, Some("s"), Some("Time to peak discharge")),
+        field_with_meta(
+            "Elmt_ID",
+            DataType::Int32,
+            None,
+            Some("Channel element identifier"),
+        ),
+        field_with_meta(
+            "Chan_ID",
+            DataType::Int32,
+            None,
+            Some("Channel ID reported by WEPP"),
+        ),
+        field_with_meta(
+            "Time (s)",
+            DataType::Float64,
+            Some("s"),
+            Some("Time to peak discharge"),
+        ),
         field_with_meta(
             "Peak_Discharge (m^3/s)",
             DataType::Float64,
@@ -123,7 +143,8 @@ pub fn watershed_chan_peak_to_parquet(
     let mut store = ChanPeakStore::new();
     let chunk_rows = chunk_rows.unwrap_or(CHUNK_SIZE);
 
-    let reader = BufReader::new(File::open(chan_path).map_err(|err| InterchangeError::io(chan_path, err))?);
+    let reader =
+        BufReader::new(File::open(chan_path).map_err(|err| InterchangeError::io(chan_path, err))?);
     let mut line_reader = LineReader::new(reader);
     let mut data_section = false;
     let mut row_counter: usize = 0;
@@ -145,22 +166,52 @@ pub fn watershed_chan_peak_to_parquet(
         }
 
         let sim_year = tokens[0].parse::<i16>().map_err(|_| {
-            InterchangeError::parse(chan_path, Some(line_no), "Invalid simulation year", Some(line.clone()))
+            InterchangeError::parse(
+                chan_path,
+                Some(line_no),
+                "Invalid simulation year",
+                Some(line.clone()),
+            )
         })?;
         let julian = tokens[1].parse::<i16>().map_err(|_| {
-            InterchangeError::parse(chan_path, Some(line_no), "Invalid julian day", Some(line.clone()))
+            InterchangeError::parse(
+                chan_path,
+                Some(line_no),
+                "Invalid julian day",
+                Some(line.clone()),
+            )
         })?;
         let elmt_id = tokens[2].parse::<i32>().map_err(|_| {
-            InterchangeError::parse(chan_path, Some(line_no), "Invalid element id", Some(line.clone()))
+            InterchangeError::parse(
+                chan_path,
+                Some(line_no),
+                "Invalid element id",
+                Some(line.clone()),
+            )
         })?;
         let chan_id = tokens[3].parse::<i32>().map_err(|_| {
-            InterchangeError::parse(chan_path, Some(line_no), "Invalid channel id", Some(line.clone()))
+            InterchangeError::parse(
+                chan_path,
+                Some(line_no),
+                "Invalid channel id",
+                Some(line.clone()),
+            )
         })?;
         let time_s = parse_float_loose(tokens[4]).ok_or_else(|| {
-            InterchangeError::parse(chan_path, Some(line_no), "Invalid time value", Some(line.clone()))
+            InterchangeError::parse(
+                chan_path,
+                Some(line_no),
+                "Invalid time value",
+                Some(line.clone()),
+            )
         })?;
         let peak_q = parse_float_loose(tokens[5]).ok_or_else(|| {
-            InterchangeError::parse(chan_path, Some(line_no), "Invalid peak discharge value", Some(line.clone()))
+            InterchangeError::parse(
+                chan_path,
+                Some(line_no),
+                "Invalid peak discharge value",
+                Some(line.clone()),
+            )
         })?;
 
         let year = if let Some(start_year) = start_year {
@@ -173,7 +224,8 @@ pub fn watershed_chan_peak_to_parquet(
             sim_year as i32
         };
 
-        let (month, day_of_month) = julian_to_calendar(year, julian as i32, calendar_lookup.as_ref());
+        let (month, day_of_month) =
+            julian_to_calendar(year, julian as i32, calendar_lookup.as_ref());
         let water_year = determine_wateryear(year, julian as i32);
 
         store.year.push(year as i16);
@@ -219,9 +271,10 @@ impl<R: BufRead> LineReader<R> {
 
     fn next_line(&mut self) -> Result<Option<(usize, String)>, InterchangeError> {
         let mut buffer = String::new();
-        let bytes = self.reader.read_line(&mut buffer).map_err(|err| {
-            InterchangeError::io("chan stream", err)
-        })?;
+        let bytes = self
+            .reader
+            .read_line(&mut buffer)
+            .map_err(|err| InterchangeError::io("chan stream", err))?;
         if bytes == 0 {
             return Ok(None);
         }

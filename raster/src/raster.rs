@@ -1,19 +1,17 @@
-use std::fmt;
-use std::error::Error;
 use std::collections::HashSet;
+use std::error::Error;
+use std::fmt;
 
 use core::any::Any;
 
-use gdal::raster::Buffer;
 use gdal::errors::GdalError;
+use gdal::raster::Buffer;
 use gdal::raster::GdalType;
 use gdal::spatial_ref::SpatialRef;
 
 use std::str::FromStr;
 
-
 use proj::Proj;
-
 
 /// Computes the circular mean of a slice of angles in radians.
 ///
@@ -44,8 +42,13 @@ pub fn circmean(angles: &[f64]) -> f64 {
     sum_sin.atan2(sum_cos)
 }
 
-fn transform_coords(x: f64, y: f64, s_srs: &str, t_srs: &str) -> Result<(f64, f64), Box<dyn Error>> {
-    let transformer: Proj= Proj::new_known_crs(&s_srs, &t_srs, None)?;
+fn transform_coords(
+    x: f64,
+    y: f64,
+    s_srs: &str,
+    t_srs: &str,
+) -> Result<(f64, f64), Box<dyn Error>> {
+    let transformer: Proj = Proj::new_known_crs(&s_srs, &t_srs, None)?;
     Ok(transformer.convert((x, y))?)
 }
 
@@ -78,26 +81,45 @@ impl FromStr for MapType {
         let s = s.to_ascii_uppercase();
 
         // Order longest/most-specific tokens first so partial overlaps don’t mis-fire.
-        if      s.contains("SUBWTA") { Ok(MapType::SUBWTA) }
-        else if s.contains("TASPEC") { Ok(MapType::TASPEC) }
-        else if s.contains("CHNJNT") { Ok(MapType::CHNJNT) }
-        else if s.contains("DISOUT") { Ok(MapType::DISOUT) }
-        else if s.contains("DISCHA") { Ok(MapType::DISCHA) }
-        else if s.contains("ELDOUT") { Ok(MapType::ELDOUT) }
-        else if s.contains("ELDCHA") { Ok(MapType::ELDCHA) }
-        else if s.contains("FLOPAT") { Ok(MapType::FLOPAT) }
-        else if s.contains("FLOVEC") { Ok(MapType::FLOVEC) }
-        else if s.contains("FVSLOP") { Ok(MapType::FVSLOP) }
-        else if s.contains("NETFUL") { Ok(MapType::NETFUL) }
-        else if s.contains("NETWE")  { Ok(MapType::NETWE)  }  // check longer token before NETW
-        else if s.contains("NETW")   { Ok(MapType::NETW)   }
-        else if s.contains("RELIEF") { Ok(MapType::RELIEF) }
-        else if s.contains("UPAREA") { Ok(MapType::UPAREA) }
-        else if s.contains("BOUND")  { Ok(MapType::BOUND)  }
-        else                         { Ok(MapType::OTHER)  }
+        if s.contains("SUBWTA") {
+            Ok(MapType::SUBWTA)
+        } else if s.contains("TASPEC") {
+            Ok(MapType::TASPEC)
+        } else if s.contains("CHNJNT") {
+            Ok(MapType::CHNJNT)
+        } else if s.contains("DISOUT") {
+            Ok(MapType::DISOUT)
+        } else if s.contains("DISCHA") {
+            Ok(MapType::DISCHA)
+        } else if s.contains("ELDOUT") {
+            Ok(MapType::ELDOUT)
+        } else if s.contains("ELDCHA") {
+            Ok(MapType::ELDCHA)
+        } else if s.contains("FLOPAT") {
+            Ok(MapType::FLOPAT)
+        } else if s.contains("FLOVEC") {
+            Ok(MapType::FLOVEC)
+        } else if s.contains("FVSLOP") {
+            Ok(MapType::FVSLOP)
+        } else if s.contains("NETFUL") {
+            Ok(MapType::NETFUL)
+        } else if s.contains("NETWE") {
+            Ok(MapType::NETWE)
+        }
+        // check longer token before NETW
+        else if s.contains("NETW") {
+            Ok(MapType::NETW)
+        } else if s.contains("RELIEF") {
+            Ok(MapType::RELIEF)
+        } else if s.contains("UPAREA") {
+            Ok(MapType::UPAREA)
+        } else if s.contains("BOUND") {
+            Ok(MapType::BOUND)
+        } else {
+            Ok(MapType::OTHER)
+        }
     }
 }
-
 
 #[derive(Debug)]
 pub struct Raster<T> {
@@ -116,7 +138,6 @@ pub struct Raster<T> {
 
 // impl new for Raster<T> without wgs_transform
 impl<T> Raster<T> {
-
     #[allow(dead_code)]
     pub fn new(
         width: usize,
@@ -131,7 +152,8 @@ impl<T> Raster<T> {
         map_type: MapType,
     ) -> Raster<T> {
         // check if proj4 is not None and build Proj transformer to wgs 84 epsg:4326
-        let wgs_transform = match &proj4 {  // Borrow here instead of moving
+        let wgs_transform = match &proj4 {
+            // Borrow here instead of moving
             Some(proj_str) => {
                 // find easting and northing of bottom left corner using geo_transform
                 let ll_x: f64 = geo_transform[0];
@@ -142,16 +164,24 @@ impl<T> Raster<T> {
                 let ur_y: f64 = geo_transform[3];
 
                 // transform ll_x, ll_y, ur_x, ur_y to wgs 84 epsg:4326
-                let ll_wgs: (f64, f64) = transform_coords(ll_x, ll_y, &proj_str, "+proj=longlat +datum=WGS84 +no_defs").unwrap();
-                let ur_wgs: (f64, f64) = transform_coords(ur_x, ur_y, &proj_str, "+proj=longlat +datum=WGS84 +no_defs").unwrap();
+                let ll_wgs: (f64, f64) =
+                    transform_coords(ll_x, ll_y, &proj_str, "+proj=longlat +datum=WGS84 +no_defs")
+                        .unwrap();
+                let ur_wgs: (f64, f64) =
+                    transform_coords(ur_x, ur_y, &proj_str, "+proj=longlat +datum=WGS84 +no_defs")
+                        .unwrap();
 
                 // build wgs_transform to approximate wgs coords from px coords (x, y)
                 // (0, 0) is upper left corner
                 // lon = ll_wgs.0 + x * (ur_wgs.0 - ll_wgs.0) / width
                 // lat = ur_wgs.1 - y * (ur_wgs.1 - ll_wgs.1) / height
-                [ll_wgs.0, ur_wgs.1, (ur_wgs.0 - ll_wgs.0) / width as f64, (ur_wgs.1 - ll_wgs.1) / height as f64]
-
-            },
+                [
+                    ll_wgs.0,
+                    ur_wgs.1,
+                    (ur_wgs.0 - ll_wgs.0) / width as f64,
+                    (ur_wgs.1 - ll_wgs.1) / height as f64,
+                ]
+            }
             None => [0.0, 0.0, 0.0, 0.0],
         };
 
@@ -229,7 +259,6 @@ impl FromF64 for f64 {
     }
 }
 
-
 pub trait ToF64 {
     fn to_f64(&self) -> f64;
 }
@@ -246,7 +275,6 @@ impl ToF64 for f64 {
     }
 }
 
-
 impl<T> Raster<T>
 where
     T: ToF64, // Constraint for types that can be converted to f64
@@ -257,9 +285,7 @@ where
     }
 }
 
-
 impl<T: GdalType + Default + Copy + FromF64> Raster<T> {
-
     #[allow(dead_code)]
     pub fn read(path: &str) -> Result<Raster<T>, GdalError> {
         let dataset = gdal::Dataset::open(path)?;
@@ -285,7 +311,14 @@ impl<T: GdalType + Default + Copy + FromF64> Raster<T> {
         let no_data = no_data_value.map(|v| T::from_f64(v));
 
         // find the name by spliting the path and removing the extension from the filename of the file
-        let name = path.split("/").last().unwrap().split(".").next().unwrap().to_string();
+        let name = path
+            .split("/")
+            .last()
+            .unwrap()
+            .split(".")
+            .next()
+            .unwrap()
+            .to_string();
 
         // find the map type from the name using from_str
         let map_type = MapType::from_str(&name).unwrap();
@@ -331,7 +364,14 @@ impl<T: GdalType + Default + Copy + FromF64> Raster<T> {
         let no_data = no_data_value.map(|v| T::from_f64(v));
 
         // find the name by spliting the path and removing the extension from the filename of the file
-        let name = path.split("/").last().unwrap().split(".").next().unwrap().to_string();
+        let name = path
+            .split("/")
+            .last()
+            .unwrap()
+            .split(".")
+            .next()
+            .unwrap()
+            .to_string();
 
         // find the map type from the name using from_str
         let map_type = MapType::from_str(&name).unwrap();
@@ -351,14 +391,18 @@ impl<T: GdalType + Default + Copy + FromF64> Raster<T> {
             map_type,
         ))
     }
-
 }
 
-impl<T: GdalType + Default + Copy  + ToF64> Raster<T> {
+impl<T: GdalType + Default + Copy + ToF64> Raster<T> {
     pub fn write(&self, path: &str) -> Result<(), GdalError> {
         // Create a new GDAL dataset
         let driver = gdal::DriverManager::get_driver_by_name("GTiff")?;
-        let mut dataset = driver.create_with_band_type::<T, &str>(path, self.width as isize, self.height as isize, 1)?;
+        let mut dataset = driver.create_with_band_type::<T, &str>(
+            path,
+            self.width as isize,
+            self.height as isize,
+            1,
+        )?;
 
         // Set the geotransform and projection
         dataset.set_geo_transform(&self.geo_transform)?;
@@ -382,7 +426,6 @@ impl<T: GdalType + Default + Copy  + ToF64> Raster<T> {
         Ok(())
     }
 }
-
 
 // method to transform usize index to x,y coordinates
 impl<T> Raster<T> {
@@ -418,20 +461,22 @@ impl<T> Raster<T> {
         let mut coords: Vec<Vec<f64>> = Vec::new();
         for index in indices {
             let (x, y) = self.index_to_xy(*index);
-            // apply geotransform to x, y 
-            let e: f64 = self.geo_transform[0] + x as f64 * self.geo_transform[1] + y as f64 * self.geo_transform[2];
-            let n: f64 = self.geo_transform[3] + x as f64 * self.geo_transform[4] + y as f64 * self.geo_transform[5];
+            // apply geotransform to x, y
+            let e: f64 = self.geo_transform[0]
+                + x as f64 * self.geo_transform[1]
+                + y as f64 * self.geo_transform[2];
+            let n: f64 = self.geo_transform[3]
+                + x as f64 * self.geo_transform[4]
+                + y as f64 * self.geo_transform[5];
             coords.push(vec![e, n]);
         }
         coords
     }
 }
 
-
 impl<T: std::hash::Hash + Eq + Copy> Raster<T> {
     #[allow(dead_code)]
     pub fn mask(&self) -> Vec<bool> {
-
         let mut the_mask = Vec::new();
 
         let no_data = self.no_data.as_ref();
@@ -448,10 +493,8 @@ impl<T: std::hash::Hash + Eq + Copy> Raster<T> {
     }
 }
 
-
 impl<T: std::hash::Hash + Eq + Copy> Raster<T> {
     pub fn unique_values(&self) -> HashSet<T> {
-
         let mut unique_values = HashSet::new();
 
         let no_data = self.no_data.as_ref();
@@ -471,7 +514,6 @@ impl<T: std::hash::Hash + Eq + Copy> Raster<T> {
 //impl<T: std::hash::Hash + Eq + Copy> Raster<T> {
 impl Raster<i32> {
     pub fn indices_of(&self, target: i32) -> HashSet<usize> {
-
         let mut indices = HashSet::<usize>::new();
 
         for y in 0..self.height {
@@ -504,7 +546,6 @@ impl ToIndices for Vec<usize> {
 }
 
 impl<T> Raster<T> {
-
     #[allow(dead_code)]
     pub fn centroid_of<I: ToIndices>(&self, indices: &I) -> (usize, usize) {
         let indices_vec = indices.to_indices();
@@ -520,32 +561,40 @@ impl<T> Raster<T> {
         let num_points = indices_vec.len() as f64;
         let centroid_x = (sum_x / num_points).round() as usize;
         let centroid_y = (sum_y / num_points).round() as usize;
-        
+
         (centroid_x, centroid_y)
     }
 
     #[allow(dead_code)]
     pub fn px_to_lnglat(&self, px: (usize, usize)) -> (f64, f64) {
-        let e: f64 = self.geo_transform[0] + px.0 as f64 * self.geo_transform[1] + px.1 as f64 * self.geo_transform[2];
-        let n: f64 = self.geo_transform[3] + px.0 as f64 * self.geo_transform[4] + px.1 as f64 * self.geo_transform[5];
-    
-        let (lng, lat) = transform_coords(e, n, &self.proj4.as_ref().unwrap(), "+proj=longlat +datum=WGS84 +no_defs").unwrap();
+        let e: f64 = self.geo_transform[0]
+            + px.0 as f64 * self.geo_transform[1]
+            + px.1 as f64 * self.geo_transform[2];
+        let n: f64 = self.geo_transform[3]
+            + px.0 as f64 * self.geo_transform[4]
+            + px.1 as f64 * self.geo_transform[5];
+
+        let (lng, lat) = transform_coords(
+            e,
+            n,
+            &self.proj4.as_ref().unwrap(),
+            "+proj=longlat +datum=WGS84 +no_defs",
+        )
+        .unwrap();
         (lng, lat)
     }
-    
-    
 }
 
-
 impl Raster<f64> {
-
     #[allow(dead_code)]
     pub fn determine_aspect<I: ToIndices>(&self, indices: &I) -> f64 {
-        assert!(self.map_type == MapType::TASPEC, 
-            "Raster must be TASPEC type to determine aspect");
-    
+        assert!(
+            self.map_type == MapType::TASPEC,
+            "Raster must be TASPEC type to determine aspect"
+        );
+
         let indices_vec = indices.to_indices();
-    
+
         let mut rad_aspects: Vec<f64> = Vec::new();
         for &index in &indices_vec {
             let deg_aspect = self.data[index];
@@ -560,8 +609,7 @@ impl Raster<f64> {
     }
 }
 
-
-impl<T: ToF64> Raster<T> { 
+impl<T: ToF64> Raster<T> {
     #[allow(dead_code)]
     pub fn compute_band_statistics(&self) -> BandStatistics {
         // Initialize stats variables. Normally, you'd get these values from your raster data.
@@ -574,7 +622,6 @@ impl<T: ToF64> Raster<T> {
         let no_data: Option<f64> = self.no_data.as_ref().map(|v| v.to_f64());
 
         for &value_f64 in &self.convert_data_to_f64() {
-
             if value_f64 < min {
                 min = value_f64;
             }
@@ -606,7 +653,6 @@ impl<T: ToF64> Raster<T> {
 }
 
 impl<T: std::fmt::Display + std::cmp::PartialEq + Any> Raster<T> {
-    
     #[allow(dead_code)]
     pub fn display_grid(&self) {
         match self.map_type {
@@ -614,10 +660,10 @@ impl<T: std::fmt::Display + std::cmp::PartialEq + Any> Raster<T> {
             MapType::NETFUL => self.display_grid_netful(),
             MapType::BOUND => self.display_grid_bound(),
             MapType::FLOVEC => self.display_grid_flowvec(),
-            _ =>  self.display_grid_default()
+            _ => self.display_grid_default(),
         }
     }
-    
+
     #[allow(dead_code)]
     fn display_grid_subwta(&self) {
         let no_data = self.no_data.as_ref();
@@ -701,7 +747,7 @@ impl<T: std::fmt::Display + std::cmp::PartialEq + Any> Raster<T> {
                         Some(7) => "↙",
                         Some(8) => "↓",
                         Some(9) => "↘",
-                        _ => " ",  // Default for non-matched values
+                        _ => " ", // Default for non-matched values
                     };
                     print!("{:<1} ", character);
                 } else {
@@ -730,7 +776,6 @@ impl<T: std::fmt::Display + std::cmp::PartialEq + Any> Raster<T> {
     }
 }
 
-
 impl<T: fmt::Display> fmt::Display for Raster<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let no_data_str = match &self.no_data {
@@ -743,11 +788,19 @@ impl<T: fmt::Display> fmt::Display for Raster<T> {
             None => "-".to_string(),
         };
 
-        write!(f, "Raster: {}\n Shape: {} x {}\nCellSize: {}\nTransform: {:?}\nNo Data: {}\nProj4: {}", 
-               self.name, self.width, self.height, self.cellsize, self.geo_transform, no_data_str, proj4_str)
+        write!(
+            f,
+            "Raster: {}\n Shape: {} x {}\nCellSize: {}\nTransform: {:?}\nNo Data: {}\nProj4: {}",
+            self.name,
+            self.width,
+            self.height,
+            self.cellsize,
+            self.geo_transform,
+            no_data_str,
+            proj4_str
+        )
     }
 }
-
 
 #[derive(Debug)]
 pub struct BandStatistics {
@@ -757,7 +810,6 @@ pub struct BandStatistics {
     std_dev: f64,
     valid_percent: f64,
 }
-
 
 impl fmt::Display for BandStatistics {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -773,9 +825,9 @@ impl fmt::Display for BandStatistics {
 mod tests {
     extern crate maplit;
 
-    use super::Raster;  // Assuming Raster is in the parent module
-    use std::collections::HashSet;
+    use super::Raster; // Assuming Raster is in the parent module
     use maplit::hashset;
+    use std::collections::HashSet;
 
     #[test]
     fn test_unique_values() {
@@ -783,7 +835,7 @@ mod tests {
         let raster = Raster::<i32>::read(&path).unwrap();
         let unique_vals = raster.unique_values();
 
-        let expected = hashset!{21, 22, 23, 24};
+        let expected = hashset! {21, 22, 23, 24};
 
         assert_eq!(unique_vals, expected);
     }
@@ -794,11 +846,10 @@ mod tests {
         let raster = Raster::<i32>::read(&path).unwrap();
         let indices = raster.indices_of(21);
 
-        let expected = hashset!{377, 177, 240, 113, 277, 544, 280, 209, 347, 540, 272, 411, 373, 577, 149, 208, 412, 307, 371, 276, 305, 146, 278, 281, 345, 313, 507, 346, 372, 545, 147, 379, 407, 148, 340, 214, 246, 476, 215, 478, 210, 181, 243, 443, 375, 445, 343, 508, 511, 212, 409, 182, 341, 311, 342, 82, 576, 475, 344, 473, 512, 114, 541, 116, 115, 178, 339, 542, 440, 474, 506, 338, 273, 543, 444, 306, 413, 509, 410, 446, 378, 274, 376, 510, 405, 275, 575, 248, 179, 310, 241, 242, 312, 244, 145, 406, 314, 247, 479, 380, 83, 81, 245, 574, 279, 309, 408, 442, 477, 374, 180, 308, 472, 211, 439, 441, 213, 337};
+        let expected = hashset! {377, 177, 240, 113, 277, 544, 280, 209, 347, 540, 272, 411, 373, 577, 149, 208, 412, 307, 371, 276, 305, 146, 278, 281, 345, 313, 507, 346, 372, 545, 147, 379, 407, 148, 340, 214, 246, 476, 215, 478, 210, 181, 243, 443, 375, 445, 343, 508, 511, 212, 409, 182, 341, 311, 342, 82, 576, 475, 344, 473, 512, 114, 541, 116, 115, 178, 339, 542, 440, 474, 506, 338, 273, 543, 444, 306, 413, 509, 410, 446, 378, 274, 376, 510, 405, 275, 575, 248, 179, 310, 241, 242, 312, 244, 145, 406, 314, 247, 479, 380, 83, 81, 245, 574, 279, 309, 408, 442, 477, 374, 180, 308, 472, 211, 439, 441, 213, 337};
 
         assert_eq!(indices, expected);
     }
-
 
     #[test]
     fn test_mask() {
@@ -806,7 +857,10 @@ mod tests {
         let raster = Raster::<i32>::read(&path).unwrap();
         let indices = raster.mask();
 
-        let expected = vec![true, true, true, true, true, true, false, false, false, false, false, false, true, true, false, false];
+        let expected = vec![
+            true, true, true, true, true, true, false, false, false, false, false, false, true,
+            true, false, false,
+        ];
 
         assert_eq!(indices, expected);
     }

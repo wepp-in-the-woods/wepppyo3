@@ -31,18 +31,7 @@ const RAW_HEADER: [&str; 14] = [
 ];
 
 const LEGACY_HEADER: [&str; 12] = [
-    "OFE",
-    "Day",
-    "Y",
-    "Poros",
-    "Keff",
-    "Suct",
-    "FC",
-    "WP",
-    "Rough",
-    "Ki",
-    "Kr",
-    "Tauc",
+    "OFE", "Day", "Y", "Poros", "Keff", "Suct", "FC", "WP", "Rough", "Ki", "Kr", "Tauc",
 ];
 
 const MEASUREMENT_COLUMNS: [&str; 11] = [
@@ -77,10 +66,30 @@ pub fn soil_schema(version: &VersionInfo) -> Schema {
             Some("mm/hr"),
             Some("Effective hydraulic conductivity"),
         ),
-        field_with_meta("Suct", DataType::Float64, Some("mm"), Some("Suction across wetting front")),
-        field_with_meta("FC", DataType::Float64, Some("mm/mm"), Some("Field capacity")),
-        field_with_meta("WP", DataType::Float64, Some("mm/mm"), Some("Wilting point")),
-        field_with_meta("Rough", DataType::Float64, Some("mm"), Some("Surface roughness")),
+        field_with_meta(
+            "Suct",
+            DataType::Float64,
+            Some("mm"),
+            Some("Suction across wetting front"),
+        ),
+        field_with_meta(
+            "FC",
+            DataType::Float64,
+            Some("mm/mm"),
+            Some("Field capacity"),
+        ),
+        field_with_meta(
+            "WP",
+            DataType::Float64,
+            Some("mm/mm"),
+            Some("Wilting point"),
+        ),
+        field_with_meta(
+            "Rough",
+            DataType::Float64,
+            Some("mm"),
+            Some("Surface roughness"),
+        ),
         field_with_meta(
             "Ki",
             DataType::Float64,
@@ -99,8 +108,18 @@ pub fn soil_schema(version: &VersionInfo) -> Schema {
             Some("adjsmt"),
             Some("Critical shear stress adjustment factor"),
         ),
-        field_with_meta("Saturation", DataType::Float64, Some("frac"), Some("Saturation as fraction")),
-        field_with_meta("TSW", DataType::Float64, Some("mm"), Some("Total soil water")),
+        field_with_meta(
+            "Saturation",
+            DataType::Float64,
+            Some("frac"),
+            Some("Saturation as fraction"),
+        ),
+        field_with_meta(
+            "TSW",
+            DataType::Float64,
+            Some("mm"),
+            Some("Total soil water"),
+        ),
     ]);
     schema_with_version(schema, version)
 }
@@ -208,8 +227,14 @@ pub fn watershed_soil_to_parquet(
                 header_found = true;
                 header_tokens = stripped.split_whitespace().map(|s| s.to_string()).collect();
                 if header_tokens == RAW_HEADER.iter().map(|s| s.to_string()).collect::<Vec<_>>() {
-                    measurement_columns = MEASUREMENT_COLUMNS.iter().map(|s| s.to_string()).collect();
-                } else if header_tokens == LEGACY_HEADER.iter().map(|s| s.to_string()).collect::<Vec<_>>() {
+                    measurement_columns =
+                        MEASUREMENT_COLUMNS.iter().map(|s| s.to_string()).collect();
+                } else if header_tokens
+                    == LEGACY_HEADER
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>()
+                {
                     measurement_columns = MEASUREMENT_COLUMNS[..MEASUREMENT_COLUMNS.len() - 2]
                         .iter()
                         .map(|s| s.to_string())
@@ -248,10 +273,20 @@ pub fn watershed_soil_to_parquet(
         }
 
         let ofe = tokens[0].parse::<i16>().map_err(|_| {
-            InterchangeError::parse(soil_path, Some(line_no), "Invalid OFE id", Some(line.clone()))
+            InterchangeError::parse(
+                soil_path,
+                Some(line_no),
+                "Invalid OFE id",
+                Some(line.clone()),
+            )
         })?;
         let julian = tokens[1].parse::<i16>().map_err(|_| {
-            InterchangeError::parse(soil_path, Some(line_no), "Invalid julian day", Some(line.clone()))
+            InterchangeError::parse(
+                soil_path,
+                Some(line_no),
+                "Invalid julian day",
+                Some(line.clone()),
+            )
         })?;
         let year = tokens[2].parse::<i16>().map_err(|_| {
             InterchangeError::parse(soil_path, Some(line_no), "Invalid year", Some(line.clone()))
@@ -260,12 +295,18 @@ pub fn watershed_soil_to_parquet(
         let mut values_map = std::collections::HashMap::new();
         for (column, token) in measurement_columns.iter().zip(tokens[3..].iter()) {
             let value = token.parse::<f64>().map_err(|_| {
-                InterchangeError::parse(soil_path, Some(line_no), "Invalid soil measurement", Some(line.clone()))
+                InterchangeError::parse(
+                    soil_path,
+                    Some(line_no),
+                    "Invalid soil measurement",
+                    Some(line.clone()),
+                )
             })?;
             values_map.insert(column.clone(), value);
         }
 
-        let (month, day_of_month) = julian_to_calendar(year as i32, julian as i32, calendar_lookup.as_ref());
+        let (month, day_of_month) =
+            julian_to_calendar(year as i32, julian as i32, calendar_lookup.as_ref());
         let water_year = determine_wateryear(year as i32, julian as i32);
 
         store.wepp_id.push(ofe as i32);
@@ -314,9 +355,10 @@ impl<R: BufRead> LineReader<R> {
 
     fn next_line(&mut self) -> Result<Option<(usize, String)>, InterchangeError> {
         let mut buffer = String::new();
-        let bytes = self.reader.read_line(&mut buffer).map_err(|err| {
-            InterchangeError::io("soil stream", err)
-        })?;
+        let bytes = self
+            .reader
+            .read_line(&mut buffer)
+            .map_err(|err| InterchangeError::io("soil stream", err))?;
         if bytes == 0 {
             return Ok(None);
         }
@@ -333,7 +375,11 @@ impl<R: BufRead> LineReader<R> {
 
 fn open_soil_reader(path: &Path) -> Result<Box<dyn BufRead>, InterchangeError> {
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
-    let is_gzip = path.extension().and_then(|ext| ext.to_str()).map(|ext| ext.eq_ignore_ascii_case("gz")).unwrap_or(false);
+    let is_gzip = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.eq_ignore_ascii_case("gz"))
+        .unwrap_or(false);
     if is_gzip {
         let decoder = GzDecoder::new(file);
         Ok(Box::new(BufReader::new(decoder)))

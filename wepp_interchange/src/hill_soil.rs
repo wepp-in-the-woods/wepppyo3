@@ -5,14 +5,28 @@ use std::path::Path;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-use crate::calendar::{compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar};
+use crate::calendar::{
+    compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
+};
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
 use crate::schema::VersionInfo;
 
 const RAW_HEADER: [&str; 14] = [
-    "OFE", "Day", "Y", "Poros", "Keff", "Suct", "FC", "WP", "Rough", "Ki", "Kr", "Tauc",
-    "Saturation", "TSW",
+    "OFE",
+    "Day",
+    "Y",
+    "Poros",
+    "Keff",
+    "Suct",
+    "FC",
+    "WP",
+    "Rough",
+    "Ki",
+    "Kr",
+    "Tauc",
+    "Saturation",
+    "TSW",
 ];
 
 const LEGACY_HEADER: [&str; 12] = [
@@ -20,8 +34,8 @@ const LEGACY_HEADER: [&str; 12] = [
 ];
 
 const RAW_UNITS: [&str; 14] = [
-    "", "", "", "%", "mm/hr", "mm", "mm/mm", "mm/mm", "mm", "adjsmt", "adjsmt", "adjsmt",
-    "frac", "mm",
+    "", "", "", "%", "mm/hr", "mm", "mm/mm", "mm/mm", "mm", "adjsmt", "adjsmt", "adjsmt", "frac",
+    "mm",
 ];
 
 const MEASUREMENT_COLUMNS: [&str; 11] = [
@@ -159,7 +173,8 @@ pub fn hillslope_soil_to_columns(
                     continue;
                 }
                 let tokens: Vec<&str> = stripped.split_whitespace().collect();
-                if tokens.len() >= 3 && tokens[0] == "OFE" && tokens[1] == "Day" && tokens[2] == "Y" {
+                if tokens.len() >= 3 && tokens[0] == "OFE" && tokens[1] == "Day" && tokens[2] == "Y"
+                {
                     let tokens_vec = tokens.iter().map(|t| t.to_string()).collect::<Vec<_>>();
                     let header_as_str: Vec<&str> = tokens_vec.iter().map(|s| s.as_str()).collect();
                     let compact_units: Vec<String> = RAW_UNITS
@@ -169,7 +184,8 @@ pub fn hillslope_soil_to_columns(
                         .collect();
                     if header_as_str == RAW_HEADER {
                         expected_units = compact_units.clone();
-                        measurement_columns = MEASUREMENT_COLUMNS.iter().map(|s| s.to_string()).collect();
+                        measurement_columns =
+                            MEASUREMENT_COLUMNS.iter().map(|s| s.to_string()).collect();
                     } else if header_as_str == LEGACY_HEADER {
                         expected_units = compact_units[..(LEGACY_HEADER.len() - 3)].to_vec();
                         measurement_columns = MEASUREMENT_COLUMNS[..(LEGACY_HEADER.len() - 3)]
@@ -193,7 +209,10 @@ pub fn hillslope_soil_to_columns(
                     continue;
                 }
                 let tokens: Vec<&str> = stripped.split_whitespace().collect();
-                if tokens.iter().any(|t| ["mm/hr", "frac", "adjsmt"].contains(t)) {
+                if tokens
+                    .iter()
+                    .any(|t| ["mm/hr", "frac", "adjsmt"].contains(t))
+                {
                     let unit_tokens = tokens.iter().map(|t| t.to_string()).collect::<Vec<_>>();
                     if unit_tokens != expected_units {
                         return Err(InterchangeError::parse(
@@ -258,7 +277,10 @@ pub fn hillslope_soil_to_columns(
 
             let mut values: Vec<Option<f64>> = vec![None; MEASUREMENT_COLUMNS.len()];
             for (idx, token) in measurement_columns.iter().zip(tokens.iter().skip(3)) {
-                if let Some(pos) = MEASUREMENT_COLUMNS.iter().position(|name| *name == idx.as_str()) {
+                if let Some(pos) = MEASUREMENT_COLUMNS
+                    .iter()
+                    .position(|name| *name == idx.as_str())
+                {
                     let value = parse_required_float(token).map_err(|msg| {
                         InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
                     })?;
@@ -331,7 +353,7 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
             Some(name.to_string()),
         ));
     }
-    digits
-        .parse::<i32>()
-        .map_err(|_| InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string())))
+    digits.parse::<i32>().map_err(|_| {
+        InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
+    })
 }

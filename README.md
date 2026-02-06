@@ -34,6 +34,32 @@ Rust/PyO3 extension modules for wepppy.
 - `reclassify_sbs_raster(path, *, breaks=None, ct=None, nodata=None, offset=0, color_map_path=None)`: reclassify SBS raster values to 4 classes (returns a uint8 NumPy array).
 - `export_sbs_4class(path, dst_path, *, breaks=None, ct=None, nodata=None, color_map_path=None)`: write a 4-class GeoTIFF with palette + nodata.
 
+### wepppyo3.wepp_interchange
+
+- `watershed_pass_to_parquet(...)`: convert watershed `pass` output to Parquet event + metadata tables.
+- `watershed_soil_to_parquet(...)`: convert watershed `soil` output to Parquet.
+- `watershed_loss_to_parquet(...)`: convert watershed `loss` output into multiple Parquet tables under `output_dir`.
+- `watershed_chan_peak_to_parquet(...)`: convert watershed channel peak output to Parquet.
+- `watershed_ebe_to_parquet(...)`: convert watershed `ebe` output to Parquet.
+- `watershed_chanwb_to_parquet(...)`: convert watershed `chanwb` output to Parquet.
+- `watershed_chnwb_to_parquet(...)`: convert watershed `chnwb` output to Parquet.
+- `hillslope_pass_to_columns(...)`: parse hillslope `pass` output into column dicts.
+- `hillslope_ebe_to_columns(...)`: parse hillslope `ebe` output into column dicts.
+- `hillslope_element_to_columns(...)`: parse hillslope `element` output into column dicts.
+- `hillslope_loss_to_columns(...)`: parse hillslope `loss` output into column dicts.
+- `hillslope_soil_to_columns(...)`: parse hillslope `soil` output into column dicts.
+- `hillslope_wat_to_columns(...)`: parse hillslope `wat` output into column dicts.
+- `catalog_scan(base_path)`: scan a run directory for supported files and return metadata (includes parquet schema when available).
+
+### wepppyo3.swat_interchange
+
+- `swat_outputs_to_parquet(...)`: convert a SWAT+ run output directory to Parquet, honoring manifest filters and interchange state.
+- `swat_output_to_parquet(...)`: convert a single SWAT+ output file to Parquet (single-file mode).
+
+### wepppyo3.swat_utils
+
+- `wepp_hillslope_pass_to_swat_recall(...)`: convert WEPP hillslope `pass` outputs into SWAT+ recall files (optional manifest output).
+
 ### wepppyo3.wepp_viz
 
 - `make_soil_loss_grid(...)`: builds a soil-loss grid from subwta IDs, discha, and WEPP plot outputs.
@@ -53,6 +79,9 @@ release/linux/py312/wepppyo3/
   climate/cli_revision_rust.so
   raster_characteristics/raster_characteristics_rust.so
   sbs_map/sbs_map_rust.so
+  swat_interchange/swat_interchange_rust.so
+  swat_utils/swat_utils_rust.so
+  wepp_interchange/wepp_interchange_rust.so
   wepp_viz/wepp_viz_rust.so
 ```
 
@@ -90,6 +119,12 @@ cp target/release/libwepp_viz_rust.so \
   release/linux/py312/wepppyo3/wepp_viz/wepp_viz_rust.so
 cp target/release/libsbs_map_rust.so \
   release/linux/py312/wepppyo3/sbs_map/sbs_map_rust.so
+cp target/release/libswat_interchange_rust.so \
+  release/linux/py312/wepppyo3/swat_interchange/swat_interchange_rust.so
+cp target/release/libswat_utils_rust.so \
+  release/linux/py312/wepppyo3/swat_utils/swat_utils_rust.so
+cp target/release/libwepp_interchange_rust.so \
+  release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
 ```
 
 If you only need one crate, build with `-p` and copy the corresponding `.so`:

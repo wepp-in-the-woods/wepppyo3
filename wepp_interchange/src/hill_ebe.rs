@@ -388,6 +388,14 @@ fn calendar_day_to_julian(
                     return Ok((idx + 1) as i32);
                 }
             }
+        } else if !lookup.by_year.is_empty() {
+            for days in lookup.by_year.values() {
+                for (idx, (m, d)) in days.iter().enumerate() {
+                    if *m == month && *d == day {
+                        return Ok((idx + 1) as i32);
+                    }
+                }
+            }
         }
         return Err(InterchangeError::Calendar {
             message: format!(
@@ -480,4 +488,20 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     digits.parse::<i32>().map_err(|_| {
         InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn calendar_day_to_julian_falls_back_to_any_year() {
+        let mut by_year: HashMap<i32, Vec<(i32, i32)>> = HashMap::new();
+        by_year.insert(1, vec![(1, 29)]);
+        let lookup = CalendarLookup { by_year };
+
+        let julian = calendar_day_to_julian(2000, 1, 29, Some(&lookup)).unwrap();
+        assert_eq!(julian, 1);
+    }
 }

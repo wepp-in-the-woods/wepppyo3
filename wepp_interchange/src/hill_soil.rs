@@ -29,16 +29,10 @@ const RAW_HEADER: [&str; 14] = [
     "TSW",
 ];
 
-const LEGACY_HEADER: [&str; 12] = [
-    "OFE", "Day", "Y", "Poros", "Keff", "Suct", "FC", "WP", "Rough", "Ki", "Kr", "Tauc",
-];
-
-const RAW_UNITS: [&str; 14] = [
-    "", "", "", "%", "mm/hr", "mm", "mm/mm", "mm/mm", "mm", "adjsmt", "adjsmt", "adjsmt", "frac",
-    "mm",
-];
-
-const MEASUREMENT_COLUMNS: [&str; 11] = [
+const TSMF_HEADER: [&str; 15] = [
+    "OFE",
+    "Day",
+    "Y",
     "Poros",
     "Keff",
     "Suct",
@@ -50,6 +44,54 @@ const MEASUREMENT_COLUMNS: [&str; 11] = [
     "Tauc",
     "Saturation",
     "TSW",
+    "TSMF",
+];
+
+const LEGACY_HEADER: [&str; 12] = [
+    "OFE", "Day", "Y", "Poros", "Keff", "Suct", "FC", "WP", "Rough", "Ki", "Kr", "Tauc",
+];
+
+const RAW_UNITS: [&str; 14] = [
+    "", "", "", "%", "mm/hr", "mm", "mm/mm", "mm/mm", "mm", "adjsmt", "adjsmt", "adjsmt", "frac",
+    "mm",
+];
+
+const TSMF_UNITS: [&str; 15] = [
+    "", "", "", "%", "mm/hr", "mm", "mm/mm", "mm/mm", "mm", "adjsmt", "adjsmt", "adjsmt", "frac",
+    "mm", "frac",
+];
+
+const MEASUREMENT_COLUMNS: [&str; 12] = [
+    "Poros",
+    "Keff",
+    "Suct",
+    "FC",
+    "WP",
+    "Rough",
+    "Ki",
+    "Kr",
+    "Tauc",
+    "Saturation",
+    "TSW",
+    "TSMF",
+];
+
+const RAW_MEASUREMENT_COLUMNS: [&str; 11] = [
+    "Poros",
+    "Keff",
+    "Suct",
+    "FC",
+    "WP",
+    "Rough",
+    "Ki",
+    "Kr",
+    "Tauc",
+    "Saturation",
+    "TSW",
+];
+
+const LEGACY_MEASUREMENT_COLUMNS: [&str; 9] = [
+    "Poros", "Keff", "Suct", "FC", "WP", "Rough", "Ki", "Kr", "Tauc",
 ];
 
 pub struct SoilColumns {
@@ -73,6 +115,7 @@ pub struct SoilColumns {
     tauc: Vec<Option<f64>>,
     saturation: Vec<Option<f64>>,
     tsw: Vec<Option<f64>>,
+    tsmf: Vec<Option<f64>>,
 }
 
 impl SoilColumns {
@@ -98,6 +141,7 @@ impl SoilColumns {
             tauc: Vec::new(),
             saturation: Vec::new(),
             tsw: Vec::new(),
+            tsmf: Vec::new(),
         }
     }
 
@@ -123,8 +167,60 @@ impl SoilColumns {
         dict.set_item("Tauc", self.tauc).unwrap();
         dict.set_item("Saturation", self.saturation).unwrap();
         dict.set_item("TSW", self.tsw).unwrap();
+        dict.set_item("TSMF", self.tsmf).unwrap();
         dict.into_py(py)
     }
+}
+
+fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option<Vec<String>> {
+    if expected_columns != LEGACY_HEADER.len()
+        && expected_columns != RAW_HEADER.len()
+        && expected_columns != TSMF_HEADER.len()
+    {
+        return None;
+    }
+
+    let mut idx: usize = 0;
+    let mut tokens: Vec<String> = Vec::with_capacity(expected_columns);
+
+    fn take<'a>(line: &'a str, idx: &mut usize, n: usize) -> Option<&'a str> {
+        let start = *idx;
+        let end = start.saturating_add(n);
+        let chunk = line.get(start..end)?;
+        *idx = end;
+        Some(chunk)
+    }
+
+    // Matches `watbal.for` / `watbal_hourly.for` soil output:
+    //   1x,i2,2x,i3,2x,i5,1x,9f7.2,[1x,f7.2,1x,f7.2,[1x,f7.4]]
+    take(raw_line, &mut idx, 1)?;
+    tokens.push(take(raw_line, &mut idx, 2)?.trim().to_string()); // OFE
+    take(raw_line, &mut idx, 2)?;
+    tokens.push(take(raw_line, &mut idx, 3)?.trim().to_string()); // Day
+    take(raw_line, &mut idx, 2)?;
+    tokens.push(take(raw_line, &mut idx, 5)?.trim().to_string()); // Y
+    take(raw_line, &mut idx, 1)?;
+
+    for _ in 0..9 {
+        tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string());
+    }
+
+    if expected_columns == LEGACY_HEADER.len() {
+        return Some(tokens);
+    }
+
+    take(raw_line, &mut idx, 1)?;
+    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // Saturation
+    take(raw_line, &mut idx, 1)?;
+    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSW
+
+    if expected_columns == RAW_HEADER.len() {
+        return Some(tokens);
+    }
+
+    take(raw_line, &mut idx, 1)?;
+    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSMF
+    Some(tokens)
 }
 
 pub fn hillslope_soil_to_columns(
@@ -182,13 +278,24 @@ pub fn hillslope_soil_to_columns(
                         .filter(|token| !token.is_empty())
                         .map(|t| t.to_string())
                         .collect();
+                    let tsmf_compact_units: Vec<String> = TSMF_UNITS
+                        .iter()
+                        .filter(|token| !token.is_empty())
+                        .map(|t| t.to_string())
+                        .collect();
                     if header_as_str == RAW_HEADER {
                         expected_units = compact_units.clone();
+                        measurement_columns = RAW_MEASUREMENT_COLUMNS
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect();
+                    } else if header_as_str == TSMF_HEADER {
+                        expected_units = tsmf_compact_units;
                         measurement_columns =
                             MEASUREMENT_COLUMNS.iter().map(|s| s.to_string()).collect();
                     } else if header_as_str == LEGACY_HEADER {
-                        expected_units = compact_units[..(LEGACY_HEADER.len() - 3)].to_vec();
-                        measurement_columns = MEASUREMENT_COLUMNS[..(LEGACY_HEADER.len() - 3)]
+                        expected_units = compact_units[..LEGACY_MEASUREMENT_COLUMNS.len()].to_vec();
+                        measurement_columns = LEGACY_MEASUREMENT_COLUMNS
                             .iter()
                             .map(|s| s.to_string())
                             .collect();
@@ -242,10 +349,23 @@ pub fn hillslope_soil_to_columns(
             if stripped.is_empty() {
                 continue;
             }
-            let tokens: Vec<&str> = stripped.split_whitespace().collect();
+            let mut tokens: Vec<String> = stripped
+                .split_whitespace()
+                .map(|token| token.to_string())
+                .collect();
             let expected_columns = header_tokens.as_ref().map(|t| t.len()).unwrap_or(0);
             if tokens.len() != expected_columns {
-                continue;
+                if let Some(recovered) = split_soil_row_fixed_width(&raw_line, expected_columns) {
+                    if recovered.len() == expected_columns
+                        && recovered.iter().all(|t| !t.is_empty())
+                    {
+                        tokens = recovered;
+                    } else {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
             }
 
             let ofe_val: i32 = tokens[0].parse().map_err(|_| {
@@ -281,7 +401,7 @@ pub fn hillslope_soil_to_columns(
                     .iter()
                     .position(|name| *name == idx.as_str())
                 {
-                    let value = parse_required_float(token).map_err(|msg| {
+                    let value = parse_required_float(token.as_str()).map_err(|msg| {
                         InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
                     })?;
                     values[pos] = Some(value);
@@ -308,6 +428,7 @@ pub fn hillslope_soil_to_columns(
             out.tauc.push(values[8]);
             out.saturation.push(values[9]);
             out.tsw.push(values[10]);
+            out.tsmf.push(values[11]);
         }
     }
 

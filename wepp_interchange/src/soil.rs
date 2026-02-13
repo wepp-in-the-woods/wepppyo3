@@ -30,11 +30,44 @@ const RAW_HEADER: [&str; 14] = [
     "TSW",
 ];
 
+const TSMF_HEADER: [&str; 15] = [
+    "OFE",
+    "Day",
+    "Y",
+    "Poros",
+    "Keff",
+    "Suct",
+    "FC",
+    "WP",
+    "Rough",
+    "Ki",
+    "Kr",
+    "Tauc",
+    "Saturation",
+    "TSW",
+    "TSMF",
+];
+
 const LEGACY_HEADER: [&str; 12] = [
     "OFE", "Day", "Y", "Poros", "Keff", "Suct", "FC", "WP", "Rough", "Ki", "Kr", "Tauc",
 ];
 
-const MEASUREMENT_COLUMNS: [&str; 11] = [
+const MEASUREMENT_COLUMNS: [&str; 12] = [
+    "Poros",
+    "Keff",
+    "Suct",
+    "FC",
+    "WP",
+    "Rough",
+    "Ki",
+    "Kr",
+    "Tauc",
+    "Saturation",
+    "TSW",
+    "TSMF",
+];
+
+const RAW_MEASUREMENT_COLUMNS: [&str; 11] = [
     "Poros",
     "Keff",
     "Suct",
@@ -47,6 +80,61 @@ const MEASUREMENT_COLUMNS: [&str; 11] = [
     "Saturation",
     "TSW",
 ];
+
+const LEGACY_MEASUREMENT_COLUMNS: [&str; 9] = [
+    "Poros", "Keff", "Suct", "FC", "WP", "Rough", "Ki", "Kr", "Tauc",
+];
+
+fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option<Vec<String>> {
+    if expected_columns != LEGACY_HEADER.len()
+        && expected_columns != RAW_HEADER.len()
+        && expected_columns != TSMF_HEADER.len()
+    {
+        return None;
+    }
+
+    let mut idx: usize = 0;
+    let mut tokens: Vec<String> = Vec::with_capacity(expected_columns);
+
+    fn take<'a>(line: &'a str, idx: &mut usize, n: usize) -> Option<&'a str> {
+        let start = *idx;
+        let end = start.saturating_add(n);
+        let chunk = line.get(start..end)?;
+        *idx = end;
+        Some(chunk)
+    }
+
+    // Matches `watbal.for` / `watbal_hourly.for` soil output:
+    //   1x,i2,2x,i3,2x,i5,1x,9f7.2,[1x,f7.2,1x,f7.2,[1x,f7.4]]
+    take(raw_line, &mut idx, 1)?;
+    tokens.push(take(raw_line, &mut idx, 2)?.trim().to_string()); // OFE
+    take(raw_line, &mut idx, 2)?;
+    tokens.push(take(raw_line, &mut idx, 3)?.trim().to_string()); // Day
+    take(raw_line, &mut idx, 2)?;
+    tokens.push(take(raw_line, &mut idx, 5)?.trim().to_string()); // Y
+    take(raw_line, &mut idx, 1)?;
+
+    for _ in 0..9 {
+        tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string());
+    }
+
+    if expected_columns == LEGACY_HEADER.len() {
+        return Some(tokens);
+    }
+
+    take(raw_line, &mut idx, 1)?;
+    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // Saturation
+    take(raw_line, &mut idx, 1)?;
+    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSW
+
+    if expected_columns == RAW_HEADER.len() {
+        return Some(tokens);
+    }
+
+    take(raw_line, &mut idx, 1)?;
+    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSMF
+    Some(tokens)
+}
 
 pub fn soil_schema(version: &VersionInfo) -> Schema {
     let schema = Schema::from(vec![
@@ -119,6 +207,12 @@ pub fn soil_schema(version: &VersionInfo) -> Schema {
             DataType::Float64,
             Some("mm"),
             Some("Total soil water"),
+        ),
+        field_with_meta(
+            "TSMF",
+            DataType::Float64,
+            Some("frac"),
+            Some("True soil moisture fraction (full profile)"),
         ),
     ]);
     schema_with_version(schema, version)
@@ -226,16 +320,28 @@ pub fn watershed_soil_to_parquet(
             if stripped.starts_with("OFE") {
                 header_found = true;
                 header_tokens = stripped.split_whitespace().map(|s| s.to_string()).collect();
-                if header_tokens == RAW_HEADER.iter().map(|s| s.to_string()).collect::<Vec<_>>() {
+                if header_tokens
+                    == TSMF_HEADER
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>()
+                {
                     measurement_columns =
                         MEASUREMENT_COLUMNS.iter().map(|s| s.to_string()).collect();
+                } else if header_tokens
+                    == RAW_HEADER.iter().map(|s| s.to_string()).collect::<Vec<_>>()
+                {
+                    measurement_columns = RAW_MEASUREMENT_COLUMNS
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect();
                 } else if header_tokens
                     == LEGACY_HEADER
                         .iter()
                         .map(|s| s.to_string())
                         .collect::<Vec<_>>()
                 {
-                    measurement_columns = MEASUREMENT_COLUMNS[..MEASUREMENT_COLUMNS.len() - 2]
+                    measurement_columns = LEGACY_MEASUREMENT_COLUMNS
                         .iter()
                         .map(|s| s.to_string())
                         .collect();
@@ -263,13 +369,27 @@ pub fn watershed_soil_to_parquet(
         if tokens.is_empty() || !tokens[0].chars().all(|c| c.is_ascii_digit()) {
             continue;
         }
+        let mut tokens: Vec<String> = stripped.split_whitespace().map(|s| s.to_string()).collect();
         if tokens.len() != expected_tokens {
-            return Err(InterchangeError::parse(
-                soil_path,
-                Some(line_no),
-                format!("Unexpected token count in soil row: {line}"),
-                None,
-            ));
+            if let Some(recovered) = split_soil_row_fixed_width(&line, expected_tokens) {
+                if recovered.len() == expected_tokens && recovered.iter().all(|t| !t.is_empty()) {
+                    tokens = recovered;
+                } else {
+                    return Err(InterchangeError::parse(
+                        soil_path,
+                        Some(line_no),
+                        format!("Unexpected token count in soil row: {line}"),
+                        None,
+                    ));
+                }
+            } else {
+                return Err(InterchangeError::parse(
+                    soil_path,
+                    Some(line_no),
+                    format!("Unexpected token count in soil row: {line}"),
+                    None,
+                ));
+            }
         }
 
         let ofe = tokens[0].parse::<i16>().map_err(|_| {

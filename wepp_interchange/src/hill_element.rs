@@ -14,11 +14,15 @@ const ELEMENT_FIELD_WIDTHS: [usize; 24] = [
     3, 3, 3, 5, 9, 9, 8, 8, 8, 6, 8, 8, 8, 7, 9, 9, 9, 9, 7, 7, 7, 7, 7, 9,
 ];
 
+const ELEMENT_OPTIONAL_FIELD_WIDTHS: [usize; 2] = [9, 9];
+
 const ELEMENT_COLUMN_NAMES: [&str; 24] = [
     "OFE", "DD", "MM", "YYYY", "Precip", "Runoff", "EffInt", "PeakRO", "EffDur", "Enrich", "Keff",
     "Sm", "LeafArea", "CanHgt", "Cancov", "IntCov", "RilCov", "LivBio", "DeadBio", "Ki", "Kr",
     "Tcrit", "RilWid", "SedLeave",
 ];
+
+const ELEMENT_OPTIONAL_COLUMN_NAMES: [&str; 2] = ["QRain", "QSnow"];
 
 pub struct ElementColumns {
     wepp_id: Vec<i32>,
@@ -49,6 +53,8 @@ pub struct ElementColumns {
     tcrit: Vec<f64>,
     rilwid: Vec<f64>,
     sedleave: Vec<f64>,
+    qrain: Vec<Option<f64>>,
+    qsnow: Vec<Option<f64>>,
 }
 
 impl ElementColumns {
@@ -82,6 +88,8 @@ impl ElementColumns {
             tcrit: Vec::new(),
             rilwid: Vec::new(),
             sedleave: Vec::new(),
+            qrain: Vec::new(),
+            qsnow: Vec::new(),
         }
     }
 
@@ -115,6 +123,8 @@ impl ElementColumns {
         dict.set_item("Tcrit", self.tcrit).unwrap();
         dict.set_item("RilWid", self.rilwid).unwrap();
         dict.set_item("SedLeave", self.sedleave).unwrap();
+        dict.set_item("QRain", self.qrain).unwrap();
+        dict.set_item("QSnow", self.qsnow).unwrap();
         dict.into_py(py)
     }
 }
@@ -128,7 +138,9 @@ pub fn hillslope_element_to_columns(
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
     let reader = BufReader::new(file);
     let mut out = ElementColumns::new();
-    let mut previous: Vec<f64> = vec![0.0; ELEMENT_COLUMN_NAMES.len() - 4];
+    let base_value_count = ELEMENT_COLUMN_NAMES.len() - 4;
+    let optional_offset = 4 + base_value_count;
+    let mut previous: Vec<f64> = vec![0.0; base_value_count];
     let mut non_empty_count = 0usize;
     let mut data_index = 0usize;
 
@@ -160,8 +172,8 @@ pub fn hillslope_element_to_columns(
         let (year, month, day, julian, water_year) =
             normalize_date_tokens(year_token, month, day, start_year);
 
-        let mut row_values: Vec<f64> = Vec::with_capacity(ELEMENT_COLUMN_NAMES.len() - 4);
-        for (col_idx, token) in tokens.iter().skip(4).enumerate() {
+        let mut row_values: Vec<f64> = Vec::with_capacity(base_value_count);
+        for (col_idx, token) in tokens.iter().skip(4).take(base_value_count).enumerate() {
             let value = if is_missing_token(token) {
                 if idx == 0 {
                     0.0
@@ -174,6 +186,19 @@ pub fn hillslope_element_to_columns(
                 })?
             };
             row_values.push(value);
+        }
+
+        let mut optional_values: Vec<Option<f64>> =
+            Vec::with_capacity(ELEMENT_OPTIONAL_COLUMN_NAMES.len());
+        for token in tokens.iter().skip(optional_offset) {
+            let trimmed = token.trim();
+            if trimmed.is_empty() || is_missing_token(trimmed) {
+                optional_values.push(None);
+                continue;
+            }
+            let value = parse_required_float(trimmed)
+                .map_err(|msg| InterchangeError::parse(path, None, msg, Some(raw_line.clone())))?;
+            optional_values.push(Some(value));
         }
 
         out.wepp_id.push(wepp_id);
@@ -204,6 +229,8 @@ pub fn hillslope_element_to_columns(
         out.tcrit.push(row_values[17]);
         out.rilwid.push(row_values[18]);
         out.sedleave.push(row_values[19]);
+        out.qrain.push(optional_values[0]);
+        out.qsnow.push(optional_values[1]);
 
         previous = row_values;
     }
@@ -211,21 +238,40 @@ pub fn hillslope_element_to_columns(
     Ok(out)
 }
 
-fn split_fixed_width_line(raw_line: &str, path: &Path) -> Result<Vec<String>, InterchangeError> {
-    let width: usize = ELEMENT_FIELD_WIDTHS.iter().sum();
+fn split_fixed_width_payload(raw_line: &str, field_widths: &[usize]) -> (Vec<String>, String) {
+    let width: usize = field_widths.iter().sum();
     let mut line = raw_line.to_string();
     if line.len() < width {
         line.push_str(&" ".repeat(width - line.len()));
     }
     let mut tokens = Vec::new();
     let mut idx = 0usize;
-    for width in ELEMENT_FIELD_WIDTHS {
+    for width in field_widths {
         let end = idx + width;
         let segment = line.get(idx..end).unwrap_or("");
         tokens.push(segment.trim().to_string());
         idx = end;
     }
-    if idx < line.len() && line[idx..].trim().len() > 0 {
+    let remainder = if idx < line.len() {
+        line[idx..].to_string()
+    } else {
+        String::new()
+    };
+    (tokens, remainder)
+}
+
+fn split_fixed_width_line(raw_line: &str, path: &Path) -> Result<Vec<String>, InterchangeError> {
+    let (mut tokens, remainder) = split_fixed_width_payload(raw_line, &ELEMENT_FIELD_WIDTHS);
+    if remainder.trim().is_empty() {
+        for _ in 0..ELEMENT_OPTIONAL_COLUMN_NAMES.len() {
+            tokens.push(String::new());
+        }
+        return Ok(tokens);
+    }
+
+    let (optional_tokens, tail) =
+        split_fixed_width_payload(&remainder, &ELEMENT_OPTIONAL_FIELD_WIDTHS);
+    if !tail.trim().is_empty() {
         return Err(InterchangeError::parse(
             path,
             None,
@@ -233,6 +279,7 @@ fn split_fixed_width_line(raw_line: &str, path: &Path) -> Result<Vec<String>, In
             Some(raw_line.to_string()),
         ));
     }
+    tokens.extend(optional_tokens);
     Ok(tokens)
 }
 

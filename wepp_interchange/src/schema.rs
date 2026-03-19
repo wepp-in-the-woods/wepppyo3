@@ -626,6 +626,8 @@ pub fn hill_element_schema(version: &VersionInfo) -> Schema {
         field_with_meta("Tcrit", DataType::Float64, None, None),
         field_with_meta("RilWid", DataType::Float64, Some("m"), None),
         field_with_meta("SedLeave", DataType::Float64, Some("kg/m"), None),
+        field_with_meta("QRain", DataType::Float64, Some("mm"), None),
+        field_with_meta("QSnow", DataType::Float64, Some("mm"), None),
     ];
     schema_with_version(Schema::from(fields), version)
 }

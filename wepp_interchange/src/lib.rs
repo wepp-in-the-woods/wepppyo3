@@ -18,6 +18,7 @@ mod hill_ebe;
 mod hill_element;
 mod hill_loss;
 mod hill_pass;
+mod hill_pass_combine;
 mod hill_soil;
 mod hill_wat;
 mod loss;
@@ -335,6 +336,25 @@ fn hillslope_pass_to_columns(
 }
 
 #[pyfunction]
+#[pyo3(signature = (base_pass, road_passes, out_pass, strategy="phase1"))]
+fn combine_hillslope_pass_files(
+    base_pass: String,
+    road_passes: Vec<String>,
+    out_pass: String,
+    strategy: &str,
+) -> PyResult<()> {
+    let base_pass = PathBuf::from(base_pass);
+    let road_passes = road_passes
+        .into_iter()
+        .map(PathBuf::from)
+        .collect::<Vec<_>>();
+    let out_pass = PathBuf::from(out_pass);
+
+    hill_pass_combine::combine_hillslope_pass_files(&base_pass, &road_passes, &out_pass, strategy)
+        .map_err(to_py_err)
+}
+
+#[pyfunction]
 #[pyo3(signature = (ebe_path, version_major, version_minor, cli_calendar_path=None, start_year=None))]
 fn hillslope_ebe_to_columns(
     ebe_path: String,
@@ -446,6 +466,7 @@ fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(watershed_chanwb_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_chnwb_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_pass_to_columns, m)?)?;
+    m.add_function(wrap_pyfunction!(combine_hillslope_pass_files, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_ebe_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_element_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_loss_to_columns, m)?)?;

@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "cli_revision",
+    "roads_flowpath",
     "raster",
     "raster_characteristics",
     "sbs_map",

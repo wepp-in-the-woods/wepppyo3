@@ -60,6 +60,10 @@ Rust/PyO3 extension modules for wepppy.
 
 - `wepp_hillslope_pass_to_swat_recall(...)`: convert WEPP hillslope `pass` outputs into SWAT+ recall files (optional manifest output).
 
+### wepppyo3.roads_flowpath
+
+- `trace_downslope_flowpath(...)`: trace one seed cell downslope with explicit termination reason and profile arrays.
+
 ### wepppyo3.wepp_viz
 
 - `make_soil_loss_grid(...)`: builds a soil-loss grid from subwta IDs, discha, and WEPP plot outputs.
@@ -78,6 +82,7 @@ release/linux/py312/wepppyo3/
   __init__.py
   climate/cli_revision_rust.so
   raster_characteristics/raster_characteristics_rust.so
+  roads_flowpath/roads_flowpath_rust.so
   sbs_map/sbs_map_rust.so
   swat_interchange/swat_interchange_rust.so
   swat_utils/swat_utils_rust.so
@@ -115,6 +120,8 @@ cp target/release/libraster_characteristics_rust.so \
   release/linux/py312/wepppyo3/raster_characteristics/raster_characteristics_rust.so
 cp target/release/libcli_revision_rust.so \
   release/linux/py312/wepppyo3/climate/cli_revision_rust.so
+cp target/release/libroads_flowpath_rust.so \
+  release/linux/py312/wepppyo3/roads_flowpath/roads_flowpath_rust.so
 cp target/release/libwepp_viz_rust.so \
   release/linux/py312/wepppyo3/wepp_viz/wepp_viz_rust.so
 cp target/release/libsbs_map_rust.so \

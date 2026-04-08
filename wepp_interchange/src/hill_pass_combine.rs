@@ -448,9 +448,17 @@ fn combine_peakro_phase1(rows: &[RowRef], sources: &[SourceData]) -> f64 {
         .fold(0.0_f64, f64::max)
 }
 
+fn combine_peakro_phase4(rows: &[RowRef], sources: &[SourceData]) -> f64 {
+    // Phase-4 replacement combines currently use the same hydrograph superposition
+    // reconstruction as phase-1 while retaining an explicit strategy hook for future
+    // divergence without changing Python-facing contracts.
+    combine_peakro_phase1(rows, sources)
+}
+
 fn combine_peakro(strategy: CombineStrategy, rows: &[RowRef], sources: &[SourceData]) -> f64 {
     match strategy {
-        CombineStrategy::Phase1 | CombineStrategy::Phase4 => combine_peakro_phase1(rows, sources),
+        CombineStrategy::Phase1 => combine_peakro_phase1(rows, sources),
+        CombineStrategy::Phase4 => combine_peakro_phase4(rows, sources),
     }
 }
 

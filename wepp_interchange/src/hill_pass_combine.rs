@@ -33,6 +33,31 @@ struct SourceData {
     columns: PassColumns,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum CombineStrategy {
+    Phase1,
+    Phase4,
+}
+
+fn parse_combine_strategy(
+    strategy: &str,
+    path: &Path,
+) -> Result<CombineStrategy, InterchangeError> {
+    if strategy.eq_ignore_ascii_case("phase1") {
+        return Ok(CombineStrategy::Phase1);
+    }
+    if strategy.eq_ignore_ascii_case("phase4") {
+        return Ok(CombineStrategy::Phase4);
+    }
+
+    Err(InterchangeError::parse(
+        path,
+        None,
+        format!("Unsupported pass combine strategy '{strategy}'"),
+        None,
+    ))
+}
+
 #[derive(Clone, Copy, Debug)]
 struct HydroTriangle {
     peak: f64,
@@ -77,14 +102,7 @@ pub fn combine_hillslope_pass_files(
     out_pass: &Path,
     strategy: &str,
 ) -> Result<(), InterchangeError> {
-    if !strategy.eq_ignore_ascii_case("phase1") {
-        return Err(InterchangeError::parse(
-            base_pass,
-            None,
-            format!("Unsupported pass combine strategy '{strategy}'"),
-            None,
-        ));
-    }
+    let strategy_kind = parse_combine_strategy(strategy, base_pass)?;
 
     let header_lines = read_pass_header(base_pass)?;
     let version = VersionInfo::new(1, 0);
@@ -123,6 +141,7 @@ pub fn combine_hillslope_pass_files(
             &row_refs,
             &sources,
             resolved_kind,
+            strategy_kind,
         ));
     }
 
@@ -429,6 +448,12 @@ fn combine_peakro_phase1(rows: &[RowRef], sources: &[SourceData]) -> f64 {
         .fold(0.0_f64, f64::max)
 }
 
+fn combine_peakro(strategy: CombineStrategy, rows: &[RowRef], sources: &[SourceData]) -> f64 {
+    match strategy {
+        CombineStrategy::Phase1 | CombineStrategy::Phase4 => combine_peakro_phase1(rows, sources),
+    }
+}
+
 fn build_hydro_triangle(runvol: f64, peakro: f64, tcs: f64) -> Option<HydroTriangle> {
     if runvol <= 0.0 || peakro <= 0.0 {
         return None;
@@ -473,6 +498,7 @@ fn combine_row_for_kind(
     rows: &[RowRef],
     sources: &[SourceData],
     kind: EventKind,
+    strategy: CombineStrategy,
 ) -> CombinedRow {
     let (year, julian) = if key.year > 0 && key.julian > 0 {
         (key.year, key.julian)
@@ -544,7 +570,7 @@ fn combine_row_for_kind(
         EventKind::Event => {
             let runvol = sum_field(rows, sources, |cols, idx| cols.runvol[idx]);
             let tcs = max_field(rows, sources, |cols, idx| cols.tcs[idx]);
-            let peakro = combine_peakro_phase1(rows, sources);
+            let peakro = combine_peakro(strategy, rows, sources);
             let oalpha = if runvol > 0.0 {
                 let tc_floor = tcs / 24.0;
                 let hydro_term = (peakro * 3600.0 * tcs) / runvol;
@@ -1049,6 +1075,38 @@ mod tests {
     }
 
     #[test]
+    fn accepts_phase4_strategy() {
+        let tmp_dir = make_temp_dir("phase4_strategy");
+        let base_path = tmp_dir.join("H40.pass.dat");
+        let road_path = tmp_dir.join("H940.pass.dat");
+        let out_path = tmp_dir.join("H40.combined.pass.dat");
+
+        write_pass(
+            &base_path,
+            &[event_line(
+                2000,
+                12,
+                [
+                    4.0, 1.0, 0.2, 0.5, 100.0, 0.1, 10.0, 0.2, 5.0, 2.0, 0.3, 0.1, 1.0, 0.5, 0.3,
+                    0.2, 0.1, 0.7, 0.6, 0.5, 0.4, 0.3, 2.0, 3.0,
+                ],
+            )],
+        );
+        write_pass(&road_path, &[noevent_line(2000, 12, [1.0, 2.0])]);
+
+        combine_hillslope_pass_files(&base_path, &[road_path], &out_path, "phase4")
+            .expect("phase4 combine should succeed");
+
+        let version = VersionInfo::new(1, 0);
+        let columns = hillslope_pass_to_columns(&out_path, None, &version)
+            .expect("combined pass parse failed");
+        assert_eq!(columns.len(), 1);
+        assert_eq!(columns.event[0], "EVENT");
+        assert!((columns.runvol[0] - 100.0).abs() < 1.0e-8);
+        assert!((columns.gwbfv[0] - 3.0).abs() < 1.0e-8);
+        assert!((columns.gwdsv[0] - 5.0).abs() < 1.0e-8);
+    }
+    #[test]
     fn rejects_unknown_strategy() {
         let tmp_dir = make_temp_dir("bad_strategy");
         let base_path = tmp_dir.join("H4.pass.dat");
@@ -1119,7 +1177,8 @@ mod tests {
     #[test]
     fn rejects_e11_5_exponent_overflow_values() {
         let out_path = PathBuf::from("synthetic.pass.dat");
-        let err = format_fortran_e11_5(1.0e120, &out_path).expect_err("overflow exponent should fail");
+        let err =
+            format_fortran_e11_5(1.0e120, &out_path).expect_err("overflow exponent should fail");
         assert!(err
             .display_message()
             .contains("cannot be represented in E11.5 format"));

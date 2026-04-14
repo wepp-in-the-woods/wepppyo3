@@ -8,6 +8,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Error, ErrorKind, Result, Write};
 
+mod geneva;
+
 // ------------------ HELPER FUNCTIONS (unchanged) ------------------ //
 fn find_nearest_index(arr: &[f64], value: f64) -> usize {
     let mut nearest_idx = 0;
@@ -400,7 +402,11 @@ fn wepp_dimensionless_hyetograph(
         }
 
         let diff = timedl[i + 1] - timedl[i];
-        intdl[i] = if diff > 0.0 { deltfq / diff } else { deltfq / 0.00001 };
+        intdl[i] = if diff > 0.0 {
+            deltfq / diff
+        } else {
+            deltfq / 0.00001
+        };
     }
 
     intdl[ninten - 1] = 0.0;
@@ -437,7 +443,8 @@ fn build_hyetograph_non_breakpoint_segments(
     let (timedl, intdl) = loop {
         let use_const = tp_adj >= 1.0 && ip_adj <= 1.0;
         let n = if ninten <= 2 { 2 } else { ninten };
-        let (timedl, intdl) = wepp_dimensionless_hyetograph(tp_adj, ip_adj, n, n == 2 || use_const)?;
+        let (timedl, intdl) =
+            wepp_dimensionless_hyetograph(tp_adj, ip_adj, n, n == 2 || use_const)?;
 
         let mut min_step = f64::MAX;
         for i in 0..(timedl.len() - 1) {
@@ -707,7 +714,9 @@ fn parse_cli_storms_for_static_r(
         }
     }
     let header_index = header_index.ok_or_else(|| {
-        make_invalid_data_error("Unable to locate CLI data header line starting with day/month/year")
+        make_invalid_data_error(
+            "Unable to locate CLI data header line starting with day/month/year",
+        )
     })?;
     let mut idx = header_index + 2;
 
@@ -781,8 +790,10 @@ fn parse_cli_storms_for_static_r(
                 breakpoint_cum_depth_mm.push(cum_depth_mm);
             }
 
-            let segments =
-                build_hyetograph_breakpoint_segments(&breakpoint_times_hr, &breakpoint_cum_depth_mm)?;
+            let segments = build_hyetograph_breakpoint_segments(
+                &breakpoint_times_hr,
+                &breakpoint_cum_depth_mm,
+            )?;
             let prcp_mm = breakpoint_cum_depth_mm.last().copied().unwrap_or(0.0);
             let dur_hr = breakpoint_times_hr.last().copied().unwrap_or(0.0);
             storms.push(ParsedStormEvent {
@@ -810,9 +821,9 @@ fn parse_cli_storms_for_static_r(
         let prcp_mm = tokens[3].parse::<f64>().map_err(|_| {
             make_invalid_data_error(format!("Invalid precipitation '{}'", tokens[3]))
         })?;
-        let dur_hr = tokens[4].parse::<f64>().map_err(|_| {
-            make_invalid_data_error(format!("Invalid duration '{}'", tokens[4]))
-        })?;
+        let dur_hr = tokens[4]
+            .parse::<f64>()
+            .map_err(|_| make_invalid_data_error(format!("Invalid duration '{}'", tokens[4])))?;
         let tp = tokens[5]
             .parse::<f64>()
             .map_err(|_| make_invalid_data_error(format!("Invalid tp '{}'", tokens[5])))?;
@@ -901,9 +912,15 @@ fn build_hyetograph_non_breakpoint(
     ip_correction: f64,
     min_step_minutes: f64,
 ) -> PyResult<Vec<(f64, f64, f64)>> {
-    let segments =
-        build_hyetograph_non_breakpoint_segments(prcp_mm, dur_hr, tp, ip, ip_correction, min_step_minutes)
-            .map_err(|err| pyo3::exceptions::PyValueError::new_err(format!("{}", err)))?;
+    let segments = build_hyetograph_non_breakpoint_segments(
+        prcp_mm,
+        dur_hr,
+        tp,
+        ip,
+        ip_correction,
+        min_step_minutes,
+    )
+    .map_err(|err| pyo3::exceptions::PyValueError::new_err(format!("{}", err)))?;
     Ok(convert_segments_to_tuples(&segments))
 }
 
@@ -1634,8 +1651,14 @@ fn cli_revision_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(make_rhem_storm_file, m)?)?;
     m.add_function(wrap_pyfunction!(build_hyetograph_non_breakpoint, m)?)?;
     m.add_function(wrap_pyfunction!(build_hyetograph_breakpoint, m)?)?;
-    m.add_function(wrap_pyfunction!(compute_peak_intensities_from_hyetograph, m)?)?;
-    m.add_function(wrap_pyfunction!(compute_peak_intensities_non_breakpoint, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        compute_peak_intensities_from_hyetograph,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        compute_peak_intensities_non_breakpoint,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(compute_peak_intensities_breakpoint, m)?)?;
     m.add_function(wrap_pyfunction!(compute_static_r_from_cli, m)?)?;
     m.add_function(wrap_pyfunction!(interpolate_geospatial, m)?)?;
@@ -1648,6 +1671,7 @@ fn cli_revision_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     m.add_function(wrap_pyfunction!(rust_cli_calculate_p_annual_monthlies, m)?)?;
     m.add_function(wrap_pyfunction!(rust_cli_p_scale_annual_monthlies, m)?)?;
+    geneva::register_python_functions(m)?;
     Ok(())
 }
 

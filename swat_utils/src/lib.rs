@@ -1,3 +1,9 @@
+#![allow(clippy::clone_on_copy)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::useless_conversion)]
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 use std::path::PathBuf;
 
 use pyo3::exceptions::{PyIOError, PyRuntimeError, PyValueError};

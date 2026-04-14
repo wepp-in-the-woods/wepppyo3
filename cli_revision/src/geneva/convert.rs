@@ -30,6 +30,7 @@ mod tests {
 
     #[test]
     fn map_geneva_error_to_pyerr_returns_value_error() {
+        pyo3::prepare_freethreaded_python();
         let pyerr = map_geneva_error_to_pyerr(GenevaError::InvalidInput("bad payload".to_string()));
         let rendered = pyerr.to_string();
         assert!(rendered.contains("invalid_input"));

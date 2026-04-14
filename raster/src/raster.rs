@@ -48,7 +48,7 @@ fn transform_coords(
     s_srs: &str,
     t_srs: &str,
 ) -> Result<(f64, f64), Box<dyn Error>> {
-    let transformer: Proj = Proj::new_known_crs(&s_srs, &t_srs, None)?;
+    let transformer: Proj = Proj::new_known_crs(s_srs, t_srs, None)?;
     Ok(transformer.convert((x, y))?)
 }
 
@@ -139,6 +139,7 @@ pub struct Raster<T> {
 // impl new for Raster<T> without wgs_transform
 impl<T> Raster<T> {
     #[allow(dead_code)]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         width: usize,
         height: usize,
@@ -165,10 +166,10 @@ impl<T> Raster<T> {
 
                 // transform ll_x, ll_y, ur_x, ur_y to wgs 84 epsg:4326
                 let ll_wgs: (f64, f64) =
-                    transform_coords(ll_x, ll_y, &proj_str, "+proj=longlat +datum=WGS84 +no_defs")
+                    transform_coords(ll_x, ll_y, proj_str, "+proj=longlat +datum=WGS84 +no_defs")
                         .unwrap();
                 let ur_wgs: (f64, f64) =
-                    transform_coords(ur_x, ur_y, &proj_str, "+proj=longlat +datum=WGS84 +no_defs")
+                    transform_coords(ur_x, ur_y, proj_str, "+proj=longlat +datum=WGS84 +no_defs")
                         .unwrap();
 
                 // build wgs_transform to approximate wgs coords from px coords (x, y)
@@ -186,17 +187,17 @@ impl<T> Raster<T> {
         };
 
         Raster {
-            width: width,
-            height: height,
-            cellsize: cellsize,
-            data: data,
-            no_data: no_data,
-            geo_transform: geo_transform,
-            proj4: proj4,
-            path: path,
-            name: name,
-            map_type: map_type,
-            wgs_transform: wgs_transform,
+            width,
+            height,
+            cellsize,
+            data,
+            no_data,
+            geo_transform,
+            proj4,
+            path,
+            name,
+            map_type,
+            wgs_transform,
         }
     }
 }
@@ -214,7 +215,7 @@ impl<T: Clone> Clone for Raster<T> {
             path: self.path.clone(),
             name: self.name.clone(),
             map_type: self.map_type.clone(),
-            wgs_transform: self.wgs_transform.clone(),
+            wgs_transform: self.wgs_transform,
         }
     }
 }
@@ -232,7 +233,7 @@ impl<T: Default + Clone> Raster<T> {
             path: self.path.clone(),
             name: self.name.clone(),
             map_type: self.map_type.clone(),
-            wgs_transform: self.wgs_transform.clone(),
+            wgs_transform: self.wgs_transform,
         }
     }
 }
@@ -407,7 +408,7 @@ impl<T: GdalType + Default + Copy + ToF64> Raster<T> {
         // Set the geotransform and projection
         dataset.set_geo_transform(&self.geo_transform)?;
         if let Some(proj) = &self.proj4 {
-            let spatial_ref = SpatialRef::from_proj4(&proj)?;
+            let spatial_ref = SpatialRef::from_proj4(proj)?;
             let wkt = spatial_ref.to_wkt()?;
             dataset.set_projection(&wkt)?;
         }
@@ -451,8 +452,7 @@ impl<T> Raster<T> {
         let (x2, y2) = self.index_to_xy(index2);
         let x_diff = (x2 as f64) - (x1 as f64);
         let y_diff = (y2 as f64) - (y1 as f64);
-        let distance = (x_diff.powi(2) + y_diff.powi(2)).sqrt() * self.cellsize;
-        distance
+        (x_diff.powi(2) + y_diff.powi(2)).sqrt() * self.cellsize
     }
 }
 
@@ -577,7 +577,7 @@ impl<T> Raster<T> {
         let (lng, lat) = transform_coords(
             e,
             n,
-            &self.proj4.as_ref().unwrap(),
+            self.proj4.as_ref().unwrap(),
             "+proj=longlat +datum=WGS84 +no_defs",
         )
         .unwrap();
@@ -827,12 +827,11 @@ mod tests {
 
     use super::Raster; // Assuming Raster is in the parent module
     use maplit::hashset;
-    use std::collections::HashSet;
 
     #[test]
     fn test_unique_values() {
         let path = "tests/fixtures/watershed_abstraction/litigious-sagacity/dem/topaz/SUBWTA.ARC";
-        let raster = Raster::<i32>::read(&path).unwrap();
+        let raster = Raster::<i32>::read(path).unwrap();
         let unique_vals = raster.unique_values();
 
         let expected = hashset! {21, 22, 23, 24};
@@ -843,7 +842,7 @@ mod tests {
     #[test]
     fn test_indices_of() {
         let path = "tests/fixtures/watershed_abstraction/litigious-sagacity/dem/topaz/SUBWTA.ARC";
-        let raster = Raster::<i32>::read(&path).unwrap();
+        let raster = Raster::<i32>::read(path).unwrap();
         let indices = raster.indices_of(21);
 
         let expected = hashset! {377, 177, 240, 113, 277, 544, 280, 209, 347, 540, 272, 411, 373, 577, 149, 208, 412, 307, 371, 276, 305, 146, 278, 281, 345, 313, 507, 346, 372, 545, 147, 379, 407, 148, 340, 214, 246, 476, 215, 478, 210, 181, 243, 443, 375, 445, 343, 508, 511, 212, 409, 182, 341, 311, 342, 82, 576, 475, 344, 473, 512, 114, 541, 116, 115, 178, 339, 542, 440, 474, 506, 338, 273, 543, 444, 306, 413, 509, 410, 446, 378, 274, 376, 510, 405, 275, 575, 248, 179, 310, 241, 242, 312, 244, 145, 406, 314, 247, 479, 380, 83, 81, 245, 574, 279, 309, 408, 442, 477, 374, 180, 308, 472, 211, 439, 441, 213, 337};
@@ -854,7 +853,7 @@ mod tests {
     #[test]
     fn test_mask() {
         let path = "tests/fixtures/watershed_abstraction/small/SUBWTA.ARC";
-        let raster = Raster::<i32>::read(&path).unwrap();
+        let raster = Raster::<i32>::read(path).unwrap();
         let indices = raster.mask();
 
         let expected = vec![

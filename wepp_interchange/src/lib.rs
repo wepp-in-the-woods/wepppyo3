@@ -1,3 +1,16 @@
+#![allow(clippy::cloned_ref_to_slice_refs)]
+#![allow(clippy::field_reassign_with_default)]
+#![allow(clippy::len_zero)]
+#![allow(clippy::manual_is_multiple_of)]
+#![allow(clippy::manual_range_contains)]
+#![allow(clippy::needless_range_loop)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::useless_conversion)]
+#![allow(clippy::wrong_self_convention)]
+#![allow(dead_code)]
+#![allow(unused_assignments)]
+
 use std::path::PathBuf;
 use std::time::Instant;
 

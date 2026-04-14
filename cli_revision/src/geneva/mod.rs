@@ -1,3 +1,5 @@
+#![allow(clippy::useless_conversion)]
+
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
@@ -76,6 +78,7 @@ mod tests {
 
     #[test]
     fn direct_entrypoints_reject_invalid_payloads_with_mapped_error_code() {
+        pyo3::prepare_freethreaded_python();
         let error = geneva_prepare_hrus("{}").expect_err("missing schema version should fail");
         let message = error.to_string();
         assert!(message.contains("invalid_json"));

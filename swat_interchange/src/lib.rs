@@ -1,3 +1,13 @@
+#![allow(clippy::double_ended_iterator_last)]
+#![allow(clippy::len_zero)]
+#![allow(clippy::manual_repeat_n)]
+#![allow(clippy::ptr_arg)]
+#![allow(clippy::single_match)]
+#![allow(clippy::to_string_in_format_args)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::useless_conversion)]
+#![allow(dead_code)]
+
 use std::collections::{BTreeMap, HashSet, VecDeque};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;

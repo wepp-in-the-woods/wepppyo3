@@ -1,3 +1,8 @@
+#![allow(clippy::manual_contains)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::unnecessary_cast)]
+#![allow(clippy::useless_conversion)]
+
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::fs;

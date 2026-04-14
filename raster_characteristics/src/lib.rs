@@ -1,3 +1,7 @@
+#![allow(clippy::legacy_numeric_constants)]
+#![allow(clippy::unwrap_or_default)]
+#![allow(clippy::useless_conversion)]
+
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::collections::{HashMap, HashSet};

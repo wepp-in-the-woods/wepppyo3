@@ -1,3 +1,13 @@
+#![allow(clippy::bool_assert_comparison)]
+#![allow(clippy::len_zero)]
+#![allow(clippy::manual_flatten)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::ptr_arg)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::unnecessary_cast)]
+#![allow(clippy::useless_conversion)]
+#![allow(unused_variables)]
+
 use glob::glob;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;

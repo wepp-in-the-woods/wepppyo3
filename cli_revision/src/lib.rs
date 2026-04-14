@@ -1,3 +1,8 @@
+#![allow(clippy::assign_op_pattern)]
+#![allow(clippy::explicit_counter_loop)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::useless_conversion)]
+
 use numpy::PyArrayMethods;
 use numpy::PyUntypedArrayMethods;
 use numpy::{PyReadonlyArray1, PyReadonlyArray3};

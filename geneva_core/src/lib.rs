@@ -7,18 +7,33 @@ pub mod hyetograph;
 pub mod types;
 pub mod uh;
 
-pub fn scaffold_response(api_name: &str) -> String {
-    format!(r#"{{"status":"stub","api":"{}"}}"#, api_name)
+use crate::error::GenevaError;
+use crate::types::{GenevaStubRequest, GenevaStubResponse};
+
+pub fn scaffold_response(
+    api_name: &str,
+    request: &GenevaStubRequest,
+) -> Result<String, GenevaError> {
+    let response = GenevaStubResponse::new(api_name, request.kernel_schema_version);
+    serde_json::to_string(&response).map_err(|err| GenevaError::Serialization(err.to_string()))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::GenevaStubRequest;
+    use serde_json::Value;
 
     #[test]
-    fn scaffold_response_contains_api_name() {
-        let response = scaffold_response("geneva_prepare_hrus");
-        assert!(response.contains("geneva_prepare_hrus"));
-        assert!(response.contains("\"status\":\"stub\""));
+    fn scaffold_response_contains_contract_fields() {
+        let request = GenevaStubRequest {
+            kernel_schema_version: 1,
+        };
+        let response =
+            scaffold_response("geneva_prepare_hrus", &request).expect("response serialization");
+        let parsed: Value = serde_json::from_str(&response).expect("response must be valid json");
+        assert_eq!(parsed["api"], "geneva_prepare_hrus");
+        assert_eq!(parsed["status"], "stub");
+        assert_eq!(parsed["kernel_schema_version"], 1);
     }
 }

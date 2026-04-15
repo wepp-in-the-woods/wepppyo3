@@ -5,6 +5,9 @@ pub enum GenevaError {
     InvalidInput(String),
     InvalidJson(String),
     Serialization(String),
+    RasterIo(String),
+    Alignment(String),
+    ContractViolation(String),
     NotImplemented(&'static str),
 }
 
@@ -14,6 +17,9 @@ impl Display for GenevaError {
             Self::InvalidInput(msg) => write!(f, "invalid input: {msg}"),
             Self::InvalidJson(msg) => write!(f, "invalid json: {msg}"),
             Self::Serialization(msg) => write!(f, "serialization error: {msg}"),
+            Self::RasterIo(msg) => write!(f, "raster io error: {msg}"),
+            Self::Alignment(msg) => write!(f, "alignment error: {msg}"),
+            Self::ContractViolation(msg) => write!(f, "contract violation: {msg}"),
             Self::NotImplemented(feature) => write!(f, "not implemented: {feature}"),
         }
     }
@@ -27,6 +33,9 @@ impl GenevaError {
             Self::InvalidInput(_) => "invalid_input",
             Self::InvalidJson(_) => "invalid_json",
             Self::Serialization(_) => "serialization_error",
+            Self::RasterIo(_) => "raster_io",
+            Self::Alignment(_) => "alignment_error",
+            Self::ContractViolation(_) => "contract_violation",
             Self::NotImplemented(_) => "not_implemented",
         }
     }
@@ -49,6 +58,15 @@ mod tests {
         assert_eq!(
             GenevaError::Serialization("bad".to_string()).code(),
             "serialization_error"
+        );
+        assert_eq!(GenevaError::RasterIo("bad".to_string()).code(), "raster_io");
+        assert_eq!(
+            GenevaError::Alignment("bad".to_string()).code(),
+            "alignment_error"
+        );
+        assert_eq!(
+            GenevaError::ContractViolation("bad".to_string()).code(),
+            "contract_violation"
         );
         assert_eq!(
             GenevaError::NotImplemented("feature").code(),

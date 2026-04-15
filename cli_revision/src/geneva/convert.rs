@@ -1,10 +1,20 @@
+use geneva_core::cn::RunBatchRequest;
 use geneva_core::error::GenevaError;
+use geneva_core::hru::PrepareHrusRequest;
 use geneva_core::types::GenevaStubRequest;
 use pyo3::exceptions::PyValueError;
 use pyo3::PyErr;
 
 pub fn parse_stub_request(payload_json: &str) -> Result<GenevaStubRequest, GenevaError> {
     GenevaStubRequest::from_payload_json(payload_json)
+}
+
+pub fn parse_prepare_hrus_request(payload_json: &str) -> Result<PrepareHrusRequest, GenevaError> {
+    PrepareHrusRequest::from_payload_json(payload_json)
+}
+
+pub fn parse_run_batch_request(payload_json: &str) -> Result<RunBatchRequest, GenevaError> {
+    RunBatchRequest::from_payload_json(payload_json)
 }
 
 pub fn map_geneva_error_to_pyerr(error: GenevaError) -> PyErr {
@@ -25,6 +35,27 @@ mod tests {
     #[test]
     fn parse_stub_request_accepts_minimal_payload() {
         let result = parse_stub_request(r#"{"kernel_schema_version":1}"#);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn parse_prepare_hrus_request_rejects_missing_required_paths() {
+        let payload = r#"{"kernel_schema_version":1}"#;
+        let result = parse_prepare_hrus_request(payload);
+        assert!(matches!(result, Err(GenevaError::InvalidJson(_))));
+    }
+
+    #[test]
+    fn parse_run_batch_request_accepts_minimal_valid_payload() {
+        let payload = r#"{
+            "kernel_schema_version": 1,
+            "storm_id": "storm_1",
+            "lambda_mode": "0.20",
+            "time_minutes": [0.0, 10.0],
+            "cumulative_rainfall_mm": [0.0, 5.0],
+            "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 75.0}]
+        }"#;
+        let result = parse_run_batch_request(payload);
         assert!(result.is_ok());
     }
 

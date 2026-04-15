@@ -1,5 +1,6 @@
 use geneva_core::cn::RunBatchRequest;
 use geneva_core::error::GenevaError;
+use geneva_core::frequency_panel::BuildFrequencyPanelRequest;
 use geneva_core::hru::PrepareHrusRequest;
 use geneva_core::types::GenevaStubRequest;
 use pyo3::exceptions::PyValueError;
@@ -15,6 +16,12 @@ pub fn parse_prepare_hrus_request(payload_json: &str) -> Result<PrepareHrusReque
 
 pub fn parse_run_batch_request(payload_json: &str) -> Result<RunBatchRequest, GenevaError> {
     RunBatchRequest::from_payload_json(payload_json)
+}
+
+pub fn parse_build_frequency_panel_request(
+    payload_json: &str,
+) -> Result<BuildFrequencyPanelRequest, GenevaError> {
+    BuildFrequencyPanelRequest::from_payload_json(payload_json)
 }
 
 pub fn map_geneva_error_to_pyerr(error: GenevaError) -> PyErr {
@@ -57,6 +64,39 @@ mod tests {
         }"#;
         let result = parse_run_batch_request(payload);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn parse_build_frequency_panel_request_accepts_minimal_valid_payload() {
+        let payload = r#"{
+            "kernel_schema_version": 1,
+            "durations_minutes": [10, 30],
+            "ari_years": [1, 2],
+            "distribution_type": "neh4_type_b",
+            "allow_duration_interpolation": false,
+            "sources": {
+                "cligen_freq": "/tmp/cligen.csv",
+                "noaa14_pds": "/tmp/noaa.csv"
+            }
+        }"#;
+        let result = parse_build_frequency_panel_request(payload);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn parse_build_frequency_panel_request_rejects_malformed_source_mapping() {
+        let payload = r#"{
+            "kernel_schema_version": 1,
+            "durations_minutes": [10],
+            "ari_years": [1],
+            "distribution_type": "neh4_type_b",
+            "allow_duration_interpolation": false,
+            "sources": {
+                "cligen_freq": 42
+            }
+        }"#;
+        let result = parse_build_frequency_panel_request(payload);
+        assert!(matches!(result, Err(GenevaError::InvalidJson(_))));
     }
 
     #[test]

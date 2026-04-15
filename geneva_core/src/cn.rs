@@ -1,4 +1,8 @@
+use crate::convolution::{
+    convolve_excess_to_hydrograph, HydrographDiagnostics, HydrographSeries, HydrographSummary,
+};
 use crate::error::GenevaError;
+use crate::uh::{build_unit_hydrograph, UhMethod, UnitHydrographResponse};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
@@ -35,6 +39,8 @@ pub struct RunBatchRequest {
     pub kernel_schema_version: u32,
     pub storm_id: String,
     pub lambda_mode: LambdaMode,
+    pub uh_method: UhMethod,
+    pub tc_hours: f64,
     pub time_minutes: Vec<f64>,
     pub cumulative_rainfall_mm: Vec<f64>,
     pub hru_rows: Vec<CnHruInput>,
@@ -70,9 +76,19 @@ impl RunBatchRequest {
                 "storm_id length must be <= {MAX_STORM_ID_LEN}"
             )));
         }
+        if !self.tc_hours.is_finite() || self.tc_hours <= 0.0 {
+            return Err(GenevaError::InvalidInput(
+                "tc_hours must be finite and > 0".to_string(),
+            ));
+        }
         if self.time_minutes.is_empty() {
             return Err(GenevaError::InvalidInput(
                 "time_minutes must not be empty".to_string(),
+            ));
+        }
+        if self.time_minutes.len() < 2 {
+            return Err(GenevaError::InvalidInput(
+                "time_minutes must contain at least two points".to_string(),
             ));
         }
         if self.time_minutes.len() > MAX_TIME_STEPS {
@@ -181,6 +197,8 @@ impl RunBatchRequest {
             validate_cn_domain(row.cn_lambda_020, "cn_lambda_020", &row.hru_id)?;
         }
 
+        infer_uniform_timestep_minutes(&self.time_minutes)?;
+
         Ok(())
     }
 }
@@ -200,11 +218,17 @@ pub struct RunBatchResponse {
     pub kernel_schema_version: u32,
     pub storm_id: String,
     pub lambda_mode: LambdaMode,
+    pub uh_method: UhMethod,
+    pub tc_hours: f64,
     pub time_minutes: Vec<f64>,
     pub cumulative_rainfall_mm: Vec<f64>,
     pub incremental_rainfall_mm: Vec<f64>,
     pub hru_excess: Vec<HruExcessSeries>,
     pub composite_excess: CompositeExcessSeries,
+    pub unit_hydrograph: UnitHydrographResponse,
+    pub hydrograph: HydrographSeries,
+    pub summary_metrics: HydrographSummary,
+    pub hydrograph_diagnostics: HydrographDiagnostics,
     pub diagnostics: CnDiagnostics,
     pub warnings: Vec<CnWarning>,
 }
@@ -411,12 +435,28 @@ pub fn run_batch_cn_excess(request: &RunBatchRequest) -> Result<RunBatchResponse
         ));
     }
 
+    let dt_minutes = infer_uniform_timestep_minutes(&request.time_minutes)?;
+    let unit_hydrograph = build_unit_hydrograph(
+        request.uh_method,
+        request.tc_hours,
+        total_area_m2 / 1_000_000.0,
+        dt_minutes,
+    )?;
+    let hydrograph_result = convolve_excess_to_hydrograph(
+        &request.time_minutes,
+        &composite_incremental_excess_mm,
+        &unit_hydrograph,
+        total_area_m2,
+    )?;
+
     Ok(RunBatchResponse {
         status: "ok".to_string(),
         phase: "run_batch".to_string(),
         kernel_schema_version: request.kernel_schema_version,
         storm_id: request.storm_id.clone(),
         lambda_mode: request.lambda_mode,
+        uh_method: request.uh_method,
+        tc_hours: request.tc_hours,
         time_minutes: request.time_minutes.clone(),
         cumulative_rainfall_mm: request.cumulative_rainfall_mm.clone(),
         incremental_rainfall_mm,
@@ -425,6 +465,10 @@ pub fn run_batch_cn_excess(request: &RunBatchRequest) -> Result<RunBatchResponse
             cumulative_excess_mm: composite_cumulative_excess_mm,
             incremental_excess_mm: composite_incremental_excess_mm,
         },
+        unit_hydrograph,
+        hydrograph: hydrograph_result.hydrograph,
+        summary_metrics: hydrograph_result.summary_metrics,
+        hydrograph_diagnostics: hydrograph_result.diagnostics,
         diagnostics: CnDiagnostics {
             total_area_m2,
             closure_error_mm,
@@ -467,6 +511,36 @@ fn cumulative_excess_depth_mm(
     (numerator / denominator).max(0.0)
 }
 
+fn infer_uniform_timestep_minutes(time_minutes: &[f64]) -> Result<f64, GenevaError> {
+    if time_minutes.len() < 2 {
+        return Err(GenevaError::InvalidInput(
+            "time_minutes must contain at least two points".to_string(),
+        ));
+    }
+    let dt_minutes = time_minutes[1] - time_minutes[0];
+    if !dt_minutes.is_finite() || dt_minutes <= 0.0 {
+        return Err(GenevaError::InvalidInput(
+            "time_minutes must use finite, strictly increasing values".to_string(),
+        ));
+    }
+
+    for idx in 1..time_minutes.len() {
+        let delta = time_minutes[idx] - time_minutes[idx - 1];
+        if !delta.is_finite() || delta <= 0.0 {
+            return Err(GenevaError::InvalidInput(
+                "time_minutes must be finite and strictly increasing".to_string(),
+            ));
+        }
+        if (delta - dt_minutes).abs() > FLOAT_TOLERANCE {
+            return Err(GenevaError::InvalidInput(
+                "time_minutes must use a uniform timestep for hydrograph convolution".to_string(),
+            ));
+        }
+    }
+
+    Ok(dt_minutes)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -484,6 +558,8 @@ mod tests {
             "kernel_schema_version": 1,
             "storm_id": "storm_01",
             "lambda_mode": "0.20",
+            "uh_method": "scs_triangular",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 10.0, 20.0, 30.0],
             "cumulative_rainfall_mm": [0.0, 5.0, 15.0, 35.0],
             "hru_rows": [
@@ -586,6 +662,8 @@ mod tests {
             "kernel_schema_version": 1,
             "storm_id": "storm_bad",
             "lambda_mode": "0.20",
+            "uh_method": "scs_triangular",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 10.0],
             "cumulative_rainfall_mm": [0.0, -0.1],
             "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 75.0}]
@@ -601,6 +679,8 @@ mod tests {
             "kernel_schema_version": 1,
             "storm_id": "storm_bad",
             "lambda_mode": "0.20",
+            "uh_method": "scs_triangular",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 30.0, 20.0],
             "cumulative_rainfall_mm": [0.0, 5.0, 10.0],
             "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 75.0}]
@@ -616,6 +696,8 @@ mod tests {
             "kernel_schema_version": 1,
             "storm_id": "storm_bad",
             "lambda_mode": "0.20",
+            "uh_method": "scs_triangular",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 10.0],
             "cumulative_rainfall_mm": [0.0, 5.0],
             "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 120.0}]
@@ -630,6 +712,8 @@ mod tests {
             "kernel_schema_version": 1,
             "storm_id": "storm_lambda_005",
             "lambda_mode": "0.05",
+            "uh_method": "scs_triangular",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 10.0, 20.0],
             "cumulative_rainfall_mm": [0.0, 5.0, 40.0],
             "hru_rows": [
@@ -682,6 +766,56 @@ mod tests {
         request.validate().expect("epsilon dip should be tolerated");
         let response = run_batch_cn_excess(&request).expect("run_batch should succeed");
         approx_eq(response.incremental_rainfall_mm[2], 0.0, 1e-12);
+    }
+
+    #[test]
+    fn run_batch_supports_both_uh_methods_and_closure_constraints() {
+        let mut triangular_request = valid_request();
+        triangular_request.uh_method = UhMethod::ScsTriangular;
+        triangular_request.tc_hours = 1.4;
+
+        let mut curvilinear_request = triangular_request.clone();
+        curvilinear_request.uh_method = UhMethod::ScsCurvilinear;
+
+        let triangular =
+            run_batch_cn_excess(&triangular_request).expect("triangular run should succeed");
+        let curvilinear =
+            run_batch_cn_excess(&curvilinear_request).expect("curvilinear run should succeed");
+
+        assert_eq!(
+            triangular.unit_hydrograph.method_id,
+            UhMethod::ScsTriangular
+        );
+        assert_eq!(
+            curvilinear.unit_hydrograph.method_id,
+            UhMethod::ScsCurvilinear
+        );
+        assert!(triangular.unit_hydrograph.closure_error <= 0.005);
+        assert!(curvilinear.unit_hydrograph.closure_error <= 0.005);
+        assert!(triangular.hydrograph_diagnostics.volume_closure_relative <= 0.01);
+        assert!(curvilinear.hydrograph_diagnostics.volume_closure_relative <= 0.01);
+        assert_ne!(
+            triangular.summary_metrics.peak_discharge,
+            curvilinear.summary_metrics.peak_discharge
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_tc_hours_and_non_uniform_timestep_for_hydrograph() {
+        let mut request = valid_request();
+        request.tc_hours = 0.0;
+        let error = request
+            .validate()
+            .expect_err("non-positive tc_hours should fail validation");
+        assert_eq!(error.code(), "invalid_input");
+
+        let mut request = valid_request();
+        request.time_minutes = vec![0.0, 10.0, 21.0, 31.0];
+        request.cumulative_rainfall_mm = vec![0.0, 4.0, 12.0, 15.0];
+        let error = request
+            .validate()
+            .expect_err("non-uniform timesteps should fail validation");
+        assert_eq!(error.code(), "invalid_input");
     }
 
     #[test]

@@ -14,7 +14,7 @@ fn run_prepare_hrus_api(payload_json: &str) -> PyResult<String> {
         .map_err(convert::map_geneva_error_to_pyerr)
 }
 
-fn run_batch_cn_api(payload_json: &str) -> PyResult<String> {
+fn run_batch_api(payload_json: &str) -> PyResult<String> {
     let request = convert::parse_run_batch_request(payload_json)
         .map_err(convert::map_geneva_error_to_pyerr)?;
     let response = geneva_core::cn::run_batch_cn_excess(&request)
@@ -53,7 +53,7 @@ fn geneva_build_frequency_panel(payload_json: &str) -> PyResult<String> {
 #[pyfunction]
 #[pyo3(signature = (payload_json = "{}"))]
 fn geneva_run_batch(payload_json: &str) -> PyResult<String> {
-    run_batch_cn_api(payload_json)
+    run_batch_api(payload_json)
 }
 
 #[pyfunction]
@@ -209,11 +209,13 @@ by duration for ARI (years):, 1,2
     }
 
     #[test]
-    fn run_batch_returns_cn_kernel_response() {
+    fn run_batch_returns_hydrograph_kernel_response() {
         let payload = r#"{
             "kernel_schema_version": 1,
             "storm_id": "storm_1",
             "lambda_mode": "0.05",
+            "uh_method": "scs_curvilinear",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 10.0, 20.0],
             "cumulative_rainfall_mm": [0.0, 5.0, 20.0],
             "hru_rows": [
@@ -228,6 +230,22 @@ by duration for ARI (years):, 1,2
         assert_eq!(parsed["phase"], "run_batch");
         assert_eq!(parsed["kernel_schema_version"], 1);
         assert_eq!(parsed["storm_id"], "storm_1");
+        assert_eq!(parsed["uh_method"], "scs_curvilinear");
+        assert_eq!(parsed["unit_hydrograph"]["method_id"], "scs_curvilinear");
+        assert!(parsed["summary_metrics"]["peak_discharge"]
+            .as_f64()
+            .is_some());
+        assert!(parsed["summary_metrics"]["time_to_peak"].as_f64().is_some());
+        assert!(parsed["summary_metrics"]["runoff_volume"]
+            .as_f64()
+            .is_some());
+        assert!(parsed["summary_metrics"]["runoff_depth"].as_f64().is_some());
+        assert!(
+            parsed["hydrograph_diagnostics"]["volume_closure_relative"]
+                .as_f64()
+                .expect("closure diagnostic should be present")
+                <= 0.01
+        );
         let hru_rows = parsed["hru_excess"]
             .as_array()
             .expect("hru_excess array should be present");
@@ -253,6 +271,8 @@ by duration for ARI (years):, 1,2
             "kernel_schema_version": 2,
             "storm_id": "storm_bad_schema",
             "lambda_mode": "0.20",
+            "uh_method": "scs_triangular",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 10.0],
             "cumulative_rainfall_mm": [0.0, 5.0],
             "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 75.0}]
@@ -268,11 +288,31 @@ by duration for ARI (years):, 1,2
             "kernel_schema_version": 1,
             "storm_id": "storm_bad",
             "lambda_mode": "0.20",
+            "uh_method": "scs_triangular",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 10.0],
             "cumulative_rainfall_mm": [0.0, -1.0],
             "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 75.0}]
         }"#;
         let error = geneva_run_batch(payload).expect_err("invalid rainfall payload should fail");
         assert!(error.to_string().contains("invalid_input"));
+    }
+
+    #[test]
+    fn run_batch_rejects_invalid_uh_method_with_typed_error() {
+        pyo3::prepare_freethreaded_python();
+        let payload = r#"{
+            "kernel_schema_version": 1,
+            "storm_id": "storm_bad_method",
+            "lambda_mode": "0.20",
+            "uh_method": "bad_method",
+            "tc_hours": 1.2,
+            "time_minutes": [0.0, 10.0],
+            "cumulative_rainfall_mm": [0.0, 5.0],
+            "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 75.0}]
+        }"#;
+        let error = geneva_run_batch(payload).expect_err("invalid method should fail");
+        let rendered = error.to_string();
+        assert!(rendered.contains("invalid_json") || rendered.contains("invalid_input"));
     }
 }

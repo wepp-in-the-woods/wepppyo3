@@ -58,12 +58,30 @@ mod tests {
             "kernel_schema_version": 1,
             "storm_id": "storm_1",
             "lambda_mode": "0.20",
+            "uh_method": "scs_triangular",
+            "tc_hours": 1.2,
             "time_minutes": [0.0, 10.0],
             "cumulative_rainfall_mm": [0.0, 5.0],
             "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 75.0}]
         }"#;
         let result = parse_run_batch_request(payload);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn parse_run_batch_request_rejects_invalid_uh_method_id() {
+        let payload = r#"{
+            "kernel_schema_version": 1,
+            "storm_id": "storm_1",
+            "lambda_mode": "0.20",
+            "uh_method": "invalid",
+            "tc_hours": 1.2,
+            "time_minutes": [0.0, 10.0],
+            "cumulative_rainfall_mm": [0.0, 5.0],
+            "hru_rows": [{"hru_id": "hru_1", "area_m2": 1000.0, "cn_lambda_020": 75.0}]
+        }"#;
+        let result = parse_run_batch_request(payload);
+        assert!(matches!(result, Err(GenevaError::InvalidJson(_))));
     }
 
     #[test]

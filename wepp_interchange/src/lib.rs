@@ -35,6 +35,7 @@ mod hill_pass_combine;
 mod hill_soil;
 mod hill_wat;
 mod loss;
+mod mofe;
 mod parquet;
 mod pass;
 mod schema;
@@ -469,6 +470,29 @@ fn catalog_scan(base_path: String) -> PyResult<PyObject> {
     Ok(Python::with_gil(|py| entries.into_py(py)))
 }
 
+#[pyfunction]
+#[pyo3(signature = (src_fn, dst_fn=None, target_length=50.0, apply_buffer=false, buffer_length=15.0, min_length=10.0, max_ofes=19))]
+fn segment_single_ofe_slope(
+    src_fn: String,
+    dst_fn: Option<String>,
+    target_length: f64,
+    apply_buffer: bool,
+    buffer_length: f64,
+    min_length: f64,
+    max_ofes: i64,
+) -> PyResult<i64> {
+    mofe::segment_single_ofe_slope(
+        &src_fn,
+        dst_fn.as_deref(),
+        target_length,
+        apply_buffer,
+        buffer_length,
+        min_length,
+        max_ofes,
+    )
+    .map_err(to_py_err)
+}
+
 #[pymodule]
 fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(watershed_pass_to_parquet, m)?)?;
@@ -486,6 +510,7 @@ fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hillslope_soil_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_wat_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(catalog_scan, m)?)?;
+    m.add_function(wrap_pyfunction!(segment_single_ofe_slope, m)?)?;
     Ok(())
 }
 

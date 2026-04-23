@@ -8,6 +8,7 @@ members = [
     "sbs_map",
     "swat_interchange",
     "swat_utils",
+    "watershed_abstraction",
     "wepp_viz",
     "wepp_interchange",
 ]

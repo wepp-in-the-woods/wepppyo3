@@ -2,11 +2,116 @@
 #![allow(clippy::unwrap_or_default)]
 #![allow(clippy::useless_conversion)]
 
+use pyo3::exceptions::{PyIOError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use raster::raster::Raster;
+
+fn read_i32_raster(path: &str) -> PyResult<Raster<i32>> {
+    Raster::<i32>::read(path)
+        .map_err(|err| PyIOError::new_err(format!("Failed to read raster '{}': {}", path, err)))
+}
+
+fn validate_equal_shape(
+    lhs_name: &str,
+    lhs: &Raster<i32>,
+    rhs_name: &str,
+    rhs: &Raster<i32>,
+) -> PyResult<()> {
+    if lhs.width != rhs.width || lhs.height != rhs.height {
+        return Err(PyValueError::new_err(format!(
+            "Raster shape mismatch: {} is {}x{} but {} is {}x{}",
+            lhs_name, lhs.width, lhs.height, rhs_name, rhs.width, rhs.height
+        )));
+    }
+
+    if lhs.data.len() != rhs.data.len() {
+        return Err(PyValueError::new_err(format!(
+            "Raster data length mismatch: {} has {} cells but {} has {} cells",
+            lhs_name,
+            lhs.data.len(),
+            rhs_name,
+            rhs.data.len()
+        )));
+    }
+
+    Ok(())
+}
+
+fn count_intersecting_pairs(
+    key_data: &[i32],
+    key2_data: &[i32],
+    ignore_channels: bool,
+    ignore_keys: &HashSet<i32>,
+    ignore_keys2: &HashSet<i32>,
+) -> BTreeMap<i32, BTreeMap<i32, usize>> {
+    let mut pair_counts: BTreeMap<i32, BTreeMap<i32, usize>> = BTreeMap::new();
+
+    for (key, key2) in key_data.iter().zip(key2_data.iter()) {
+        if ignore_channels && key % 10 == 4 {
+            continue;
+        }
+
+        if ignore_keys.contains(key) || ignore_keys2.contains(key2) {
+            continue;
+        }
+
+        *pair_counts
+            .entry(*key)
+            .or_default()
+            .entry(*key2)
+            .or_insert(0) += 1;
+    }
+
+    pair_counts
+}
+
+#[pyfunction]
+fn count_intersecting_raster_key_pairs(
+    key_fn: &str,
+    key2_fn: &str,
+    ignore_channels: bool,
+    mut ignore_keys: HashSet<i32>,
+    mut ignore_keys2: HashSet<i32>,
+) -> PyResult<BTreeMap<String, BTreeMap<String, usize>>> {
+    let key_map = read_i32_raster(key_fn)?;
+    let key2_map = read_i32_raster(key2_fn)?;
+    validate_equal_shape("key_fn", &key_map, "key2_fn", &key2_map)?;
+
+    if let Some(no_data_value) = key_map.no_data {
+        ignore_keys.insert(no_data_value);
+    }
+
+    if let Some(no_data_value) = key2_map.no_data {
+        ignore_keys2.insert(no_data_value);
+    }
+
+    ignore_keys.insert(i32::MIN);
+    ignore_keys.insert(i32::MAX);
+    ignore_keys2.insert(i32::MIN);
+    ignore_keys2.insert(i32::MAX);
+
+    let pair_counts = count_intersecting_pairs(
+        &key_map.data,
+        &key2_map.data,
+        ignore_channels,
+        &ignore_keys,
+        &ignore_keys2,
+    );
+
+    let mut result: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+    for (key, sub_map) in pair_counts {
+        let mut sub_result: BTreeMap<String, usize> = BTreeMap::new();
+        for (key2, count) in sub_map {
+            sub_result.insert(key2.to_string(), count);
+        }
+        result.insert(key.to_string(), sub_result);
+    }
+
+    Ok(result)
+}
 
 /// Identify the mode (most common) value of each key in a raster dataset.
 ///
@@ -538,6 +643,7 @@ fn calculate_median(mut values: Vec<f64>) -> f64 {
 /// This module is a container for the Python-callable functions we define
 #[pymodule]
 fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(count_intersecting_raster_key_pairs, m)?)?;
     m.add_function(wrap_pyfunction!(identify_mode_single_raster_key, m)?)?;
     m.add_function(wrap_pyfunction!(identify_mode_intersecting_raster_keys, m)?)?;
     m.add_function(wrap_pyfunction!(identify_median_single_raster_key, m)?)?;
@@ -546,4 +652,41 @@ fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn count_intersecting_pairs_counts_expected_pairs() {
+        let key_data = vec![11, 11, 12, 12, 12, 14, -9999];
+        let key2_data = vec![1, 2, 1, 1, 2, 1, 1];
+        let ignore_keys = HashSet::from([-9999]);
+        let ignore_keys2 = HashSet::new();
+
+        let counts =
+            count_intersecting_pairs(&key_data, &key2_data, false, &ignore_keys, &ignore_keys2);
+
+        let expected = BTreeMap::from([
+            (11, BTreeMap::from([(1, 1), (2, 1)])),
+            (12, BTreeMap::from([(1, 2), (2, 1)])),
+            (14, BTreeMap::from([(1, 1)])),
+        ]);
+        assert_eq!(counts, expected);
+    }
+
+    #[test]
+    fn count_intersecting_pairs_respects_ignore_channels_and_key_filters() {
+        let key_data = vec![11, 11, 12, 12, 14, 14];
+        let key2_data = vec![1, 2, 1, 2, 1, 2];
+        let ignore_keys = HashSet::from([12]);
+        let ignore_keys2 = HashSet::from([2]);
+
+        let counts =
+            count_intersecting_pairs(&key_data, &key2_data, true, &ignore_keys, &ignore_keys2);
+
+        let expected = BTreeMap::from([(11, BTreeMap::from([(1, 1)]))]);
+        assert_eq!(counts, expected);
+    }
 }

@@ -20,6 +20,7 @@ Rust/PyO3 extension modules for wepppy.
 
 ### wepppyo3.raster_characteristics
 
+- `count_intersecting_raster_key_pairs(...)`: one-pass count map for `(key, key2)` intersections with explicit ignore/no-data filtering.
 - `identify_mode_single_raster_key(...)`: mode parameter value per key; falls back to global mode when a key has only nodata.
 - `identify_mode_intersecting_raster_keys(...)`: mode parameter value per key/key2 intersection; falls back to global mode when empty.
 - `identify_median_single_raster_key(...)`: median parameter value per key.

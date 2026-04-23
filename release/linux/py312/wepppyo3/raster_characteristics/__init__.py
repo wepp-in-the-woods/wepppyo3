@@ -1,6 +1,7 @@
 from typing import Set, Dict, Optional
 
 from .raster_characteristics_rust import (
+    count_intersecting_raster_key_pairs as _count_intersecting_raster_key_pairs,
     identify_mode_intersecting_raster_keys as _identify_mode_intersecting_raster_keys,
     identify_mode_single_raster_key as _identify_mode_single_raster_key,
     identify_median_intersecting_raster_keys as _identify_median_intersecting_raster_keys,
@@ -33,6 +34,28 @@ def identify_mode_single_raster_key(
     )
     
 identify_mode_single_raster_key.__doc__ = _identify_mode_single_raster_key.__doc__
+
+
+def count_intersecting_raster_key_pairs(
+    key_fn: str,
+    key2_fn: str,
+    ignore_channels: bool = True,
+    ignore_keys: Optional[Set[int]] = None,
+    ignore_keys2: Optional[Set[int]] = None,
+) -> Dict[str, Dict[str, int]]:
+    ignore_keys = set() if ignore_keys is None else ignore_keys
+    ignore_keys2 = set() if ignore_keys2 is None else ignore_keys2
+
+    return _count_intersecting_raster_key_pairs(
+        key_fn=key_fn,
+        key2_fn=key2_fn,
+        ignore_channels=ignore_channels,
+        ignore_keys=ignore_keys,
+        ignore_keys2=ignore_keys2,
+    )
+
+
+count_intersecting_raster_key_pairs.__doc__ = _count_intersecting_raster_key_pairs.__doc__
 
 
 def identify_median_single_raster_key(
@@ -105,4 +128,3 @@ def identify_median_intersecting_raster_keys(
     )
     
 identify_median_intersecting_raster_keys.__doc__ = _identify_median_intersecting_raster_keys.__doc__
-

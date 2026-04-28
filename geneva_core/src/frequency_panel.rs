@@ -230,6 +230,10 @@ struct SourceMatrix {
 }
 
 impl SourceMatrix {
+    fn contains_cell(&self, duration_minutes: u32, ari_years: u32) -> bool {
+        self.cells.contains_key(&(duration_minutes, ari_years))
+    }
+
     fn insert(
         &mut self,
         duration_minutes: u32,
@@ -409,6 +413,8 @@ fn parse_cligen_frequency_csv(csv_text: &str) -> Result<SourceMatrix, GenevaErro
 
     let mut depth_values: Option<Vec<f64>> = None;
     let mut duration_values: Option<Vec<f64>> = None;
+    let mut intensity_rows: Vec<(u32, Vec<f64>)> = Vec::new();
+    let mut intensity_durations: BTreeSet<u32> = BTreeSet::new();
     let mut parsed_rows = false;
 
     for line in lines.iter().skip(header_index + 1) {
@@ -432,6 +438,15 @@ fn parse_cligen_frequency_csv(csv_text: &str) -> Result<SourceMatrix, GenevaErro
                 depth_values = Some(values);
             } else if label_lower.contains("storm duration") {
                 duration_values = Some(values);
+            } else if label_lower.contains("intensity") {
+                if let Some(duration_minutes) = parse_duration_label_minutes(&label) {
+                    if !intensity_durations.insert(duration_minutes) {
+                        return Err(GenevaError::InvalidInput(format!(
+                            "CLIGEN CSV includes duplicate intensity row for duration={duration_minutes} minutes"
+                        )));
+                    }
+                    intensity_rows.push((duration_minutes, values));
+                }
             }
         }
     }
@@ -461,6 +476,24 @@ fn parse_cligen_frequency_csv(csv_text: &str) -> Result<SourceMatrix, GenevaErro
         let duration_minutes = float_to_minutes(duration_hours * 60.0, "CLIGEN duration")?;
         let intensity_mm_per_hr = depth_mm / duration_hours;
         matrix.insert(duration_minutes, *ari_years, depth_mm, intensity_mm_per_hr)?;
+    }
+
+    for (duration_minutes, values) in intensity_rows {
+        let duration_hours = f64::from(duration_minutes) / 60.0;
+        for (index, ari_years) in recurrence.iter().enumerate() {
+            if matrix.contains_cell(duration_minutes, *ari_years) {
+                continue;
+            }
+
+            let intensity_mm_per_hr = values[index];
+            if !intensity_mm_per_hr.is_finite() || intensity_mm_per_hr < 0.0 {
+                return Err(GenevaError::InvalidInput(format!(
+                    "CLIGEN intensity must be finite and >= 0 at duration={duration_minutes} ari={ari_years}"
+                )));
+            }
+            let depth_mm = intensity_mm_per_hr * duration_hours;
+            matrix.insert(duration_minutes, *ari_years, depth_mm, intensity_mm_per_hr)?;
+        }
     }
 
     if matrix.cells.is_empty() {
@@ -760,15 +793,18 @@ mod tests {
 
     fn sample_cligen_csv() -> &'static str {
         r#"
-Point precipitation frequency estimates (mm, hours, mm/hour)
-PRECIPITATION FREQUENCY ESTIMATES
-by metric for ARI (years):, 1,2,5
-Storm depth (mm):, 5,12,24
-Storm duration (hours):, 0.1666667,0.5,1.0
-10-min intensity (mm/hour):, 30,24,24
+	Point precipitation frequency estimates (mm, hours, mm/hour)
+	PRECIPITATION FREQUENCY ESTIMATES
+	by metric for ARI (years):, 1,2,5
+	Storm depth (mm):, 120,144,168
+	Storm duration (hours):, 24,24,24
+	10-min intensity (mm/hour):, 30,36,42
+	15-min intensity (mm/hour):, 24,30,36
+	30-min intensity (mm/hour):, 20,24,28
+	60-min intensity (mm/hour):, 12,14,16
 
-Date/time (GMT): Tue Apr 14 00:00:00 2026
-"#
+	Date/time (GMT): Tue Apr 14 00:00:00 2026
+	"#
     }
 
     fn sample_noaa_csv() -> &'static str {
@@ -790,7 +826,7 @@ Date/time (GMT): Tue Apr 14 00:00:00 2026
     ) -> BuildFrequencyPanelRequest {
         BuildFrequencyPanelRequest {
             kernel_schema_version: FREQUENCY_PANEL_KERNEL_SCHEMA_VERSION,
-            durations_minutes: vec![10, 30, 60],
+            durations_minutes: vec![10, 15, 30, 60, 1440],
             ari_years: vec![1, 2, 5],
             distribution_type: DISTRIBUTION_NEH4_TYPE_B.to_string(),
             allow_duration_interpolation: false,
@@ -819,7 +855,7 @@ Date/time (GMT): Tue Apr 14 00:00:00 2026
                     && matches!(cell.availability, FrequencyCellAvailability::Available)
             })
             .count();
-        assert_eq!(cligen_available, 3);
+        assert_eq!(cligen_available, 15);
 
         let noaa_unavailable = response
             .cells
@@ -829,7 +865,7 @@ Date/time (GMT): Tue Apr 14 00:00:00 2026
                     && cell.reason_code == Some(FrequencyUnavailableReasonCode::SourceMissing)
             })
             .count();
-        assert_eq!(noaa_unavailable, 9);
+        assert_eq!(noaa_unavailable, 15);
     }
 
     #[test]
@@ -856,7 +892,46 @@ Date/time (GMT): Tue Apr 14 00:00:00 2026
             })
             .count();
         assert_eq!(noaa_available, 6);
-        assert_eq!(noaa_duration_unavailable, 3);
+        assert_eq!(noaa_duration_unavailable, 9);
+    }
+
+    #[test]
+    fn cligen_intensity_rows_materialize_available_duration_cells() {
+        let cligen_path = write_temp_file("wepp_cli.csv", sample_cligen_csv());
+        let request = request_with_sources(&cligen_path, None);
+        let response = build_frequency_panel(&request).expect("panel build should succeed");
+
+        let cligen_15m_2y = response
+            .cells
+            .iter()
+            .find(|cell| {
+                cell.datasource_id == DATASOURCE_CLIGEN
+                    && cell.duration_minutes == 15
+                    && cell.ari_years == 2
+            })
+            .expect("15-minute CLIGEN intensity cell should be materialized");
+        assert!(matches!(
+            cligen_15m_2y.availability,
+            FrequencyCellAvailability::Available
+        ));
+        assert_eq!(cligen_15m_2y.depth_mm, Some(7.5));
+        assert_eq!(cligen_15m_2y.intensity_mm_per_hr, Some(30.0));
+
+        let cligen_1440m_5y = response
+            .cells
+            .iter()
+            .find(|cell| {
+                cell.datasource_id == DATASOURCE_CLIGEN
+                    && cell.duration_minutes == 1440
+                    && cell.ari_years == 5
+            })
+            .expect("24-hour CLIGEN depth/duration cell should remain available");
+        assert!(matches!(
+            cligen_1440m_5y.availability,
+            FrequencyCellAvailability::Available
+        ));
+        assert_eq!(cligen_1440m_5y.depth_mm, Some(168.0));
+        assert_eq!(cligen_1440m_5y.intensity_mm_per_hr, Some(7.0));
     }
 
     #[test]

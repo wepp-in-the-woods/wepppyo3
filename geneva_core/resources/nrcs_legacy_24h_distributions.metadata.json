@@ -1,0 +1,170 @@
+{
+  "data1_cab_sha256": "ce375a4d5c491bd16629d5b9548c17ef1a0d2dd0e65d2196a44154211a37a581",
+  "decimal_precision": "Source table decimal values preserved up to the precision present in WinTR-20 .tbl files; normalized CSV trims insignificant trailing zeros",
+  "decompressed_msi_sha256": "fa6eee57978fd2ebdaa20ed6a08fa618fada4635a332eaef5af5f98ec7ad7cea",
+  "export_mode": "Official WinTR-20 installer table extraction; no secondary web tables or hand-transcribed ordinates used",
+  "generation_date_utc": "2026-04-28",
+  "installer_sha256": "c640b12dd11f36f4673efee6b8755fc2afbb8ebb1c32dbaf6765f1322ec5f58c",
+  "installer_url": "https://www.nrcs.usda.gov/publications/WinTR-20_Setup_Version3.30.1_7Sept2022.exe",
+  "monotonic_endpoint_checks": {
+    "type_i": {
+      "ends_at_one": true,
+      "monotonic_non_decreasing": true,
+      "starts_at_zero": true
+    },
+    "type_ia": {
+      "ends_at_one": true,
+      "monotonic_non_decreasing": true,
+      "starts_at_zero": true
+    },
+    "type_ii": {
+      "ends_at_one": true,
+      "monotonic_non_decreasing": true,
+      "starts_at_zero": true
+    },
+    "type_iii": {
+      "ends_at_one": true,
+      "monotonic_non_decreasing": true,
+      "starts_at_zero": true
+    }
+  },
+  "normalized_csv_filename": "nrcs_legacy_24h_distributions.csv",
+  "normalized_csv_sha256": "bb3265a092ee2f447416ef739627bf9cc38700209faaf2ba3da8e439fe849640",
+  "operator_agent": "Codex",
+  "post_processing_steps": [
+    "Downloaded official NRCS WinTR-20 3.30.1 installer.",
+    "Extracted InstallShield ISSetupStream to WinTR-20.msi.",
+    "Decompressed WinTR-20.msi and extracted Data1.cab.",
+    "Read type_i.tbl, type_ia.tbl, type_ii.tbl, and type_iii.tbl from Data1.cab.",
+    "Parsed header time increment 0.1 hours and 241 cumulative fraction ordinates per distribution.",
+    "Wrote combined raw table bundle and normalized CSV with time_hours from 0.0 to 24.0.",
+    "Validated monotonic endpoints and Type II embedded-duration ratios against NEH Chapter 4 Figure 4-31 targets."
+  ],
+  "raw_output_filename": "nrcs_legacy_24h_distributions.wintr20_raw.txt",
+  "raw_output_sha256": "39395fc5cfdf04a273f7690a13e0a056d214c3f6fa7ec9e9fd3177b230b14e06",
+  "rounding_policy": "No numeric rounding applied while parsing; CSV serialization preserves source decimal precision to five fractional digits, sufficient for all source values observed",
+  "row_count": 241,
+  "source_kind": "WinTR-20 installer built-in rainfall distribution table files extracted from official NRCS installer",
+  "source_table_files": {
+    "type_i.tbl": {
+      "distribution_id": "type_i",
+      "label": "Type I",
+      "row_count": 241,
+      "sha256": "ffe53a94b8cee0553a9285f6ff3447622c1fda781072d47eccaf373541ce9dd1",
+      "time_increment_hours": 0.1
+    },
+    "type_ia.tbl": {
+      "distribution_id": "type_ia",
+      "label": "Type IA",
+      "row_count": 241,
+      "sha256": "5b8a75d3e91919368b28f6607c6df66bd9688473d3aeda12cb51fc4aa769b9de",
+      "time_increment_hours": 0.1
+    },
+    "type_ii.tbl": {
+      "distribution_id": "type_ii",
+      "label": "Type II",
+      "row_count": 241,
+      "sha256": "6eaa1232905b3a9276e7c55f8ce85619381d0ae6012f17783abc9ca3c2f6a8ce",
+      "time_increment_hours": 0.1
+    },
+    "type_iii.tbl": {
+      "distribution_id": "type_iii",
+      "label": "Type III",
+      "row_count": 241,
+      "sha256": "d36a9fc255aa38770a52c5f3c351446655b03945b17a217e4b145d82051a7e8a",
+      "time_increment_hours": 0.1
+    }
+  },
+  "time_hours_max": 24.0,
+  "time_hours_min": 0.0,
+  "time_increment_hours": 0.1,
+  "title": "NRCS legacy 24-hour rainfall distributions for Geneva storm-shape dispatch",
+  "type_ii_neh_figure_4_31_validation": {
+    "maximum_absolute_difference": 0.00050333,
+    "passes": true,
+    "points": [
+      {
+        "absolute_difference": 0.000225,
+        "computed_ratio": 0.114225,
+        "duration_minutes": 5,
+        "extraction_start_hours": 11.81666667,
+        "passes_tolerance": true,
+        "target_ratio": 0.114
+      },
+      {
+        "absolute_difference": 0.00050333,
+        "computed_ratio": 0.20049667,
+        "duration_minutes": 10,
+        "extraction_start_hours": 11.8,
+        "passes_tolerance": true,
+        "target_ratio": 0.201
+      },
+      {
+        "absolute_difference": 0.000425,
+        "computed_ratio": 0.270425,
+        "duration_minutes": 15,
+        "extraction_start_hours": 11.75,
+        "passes_tolerance": true,
+        "target_ratio": 0.27
+      },
+      {
+        "absolute_difference": 0.0,
+        "computed_ratio": 0.38,
+        "duration_minutes": 30,
+        "extraction_start_hours": 11.5,
+        "passes_tolerance": true,
+        "target_ratio": 0.38
+      },
+      {
+        "absolute_difference": 0.00032,
+        "computed_ratio": 0.45368,
+        "duration_minutes": 60,
+        "extraction_start_hours": 11.4,
+        "passes_tolerance": true,
+        "target_ratio": 0.454
+      },
+      {
+        "absolute_difference": 0.00036,
+        "computed_ratio": 0.53764,
+        "duration_minutes": 120,
+        "extraction_start_hours": 10.9,
+        "passes_tolerance": true,
+        "target_ratio": 0.538
+      },
+      {
+        "absolute_difference": 0.00024,
+        "computed_ratio": 0.59524,
+        "duration_minutes": 180,
+        "extraction_start_hours": 10.4,
+        "passes_tolerance": true,
+        "target_ratio": 0.595
+      },
+      {
+        "absolute_difference": 0.00038,
+        "computed_ratio": 0.70662,
+        "duration_minutes": 360,
+        "extraction_start_hours": 8.9,
+        "passes_tolerance": true,
+        "target_ratio": 0.707
+      },
+      {
+        "absolute_difference": 0.0,
+        "computed_ratio": 0.841,
+        "duration_minutes": 720,
+        "extraction_start_hours": 6.0,
+        "passes_tolerance": true,
+        "target_ratio": 0.841
+      },
+      {
+        "absolute_difference": 0.0,
+        "computed_ratio": 1.0,
+        "duration_minutes": 1440,
+        "extraction_start_hours": 0.0,
+        "passes_tolerance": true,
+        "target_ratio": 1.0
+      }
+    ],
+    "tolerance_absolute_fraction": 0.003
+  },
+  "wintr20_version": "3.30.1"
+}

@@ -1,4 +1,5 @@
 use crate::error::GenevaError;
+use crate::storm_shape::{default_distribution_type, validate_distribution_type};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -12,7 +13,6 @@ const MAX_SOURCE_PATH_LEN: usize = 1024;
 
 const DATASOURCE_CLIGEN: &str = "cligen_freq";
 const DATASOURCE_NOAA: &str = "noaa14_pds";
-const DISTRIBUTION_NEH4_TYPE_B: &str = "neh4_type_b";
 const DEFAULT_CLIGEN_SOURCE: &str = "climate/wepp_cli_pds_mean_metric.csv";
 const DEFAULT_NOAA_SOURCE: &str = "climate/atlas14_intensity_pds_mean_metric.csv";
 
@@ -82,11 +82,7 @@ impl BuildFrequencyPanelRequest {
                 "ari_years must contain positive values".to_string(),
             ));
         }
-        if self.distribution_type != DISTRIBUTION_NEH4_TYPE_B {
-            return Err(GenevaError::InvalidInput(format!(
-                "distribution_type must equal '{DISTRIBUTION_NEH4_TYPE_B}' in v1"
-            )));
-        }
+        validate_distribution_type(&self.distribution_type)?;
         if self.allow_duration_interpolation {
             return Err(GenevaError::InvalidInput(
                 "allow_duration_interpolation must be false for panel materialization".to_string(),
@@ -241,14 +237,14 @@ impl SourceMatrix {
         depth_mm: f64,
         intensity_mm_per_hr: f64,
     ) -> Result<(), GenevaError> {
-        if !depth_mm.is_finite() || depth_mm < 0.0 {
+        if !depth_mm.is_finite() || depth_mm <= 0.0 {
             return Err(GenevaError::InvalidInput(
-                "depth_mm must be finite and >= 0".to_string(),
+                "depth_mm must be finite and > 0".to_string(),
             ));
         }
-        if !intensity_mm_per_hr.is_finite() || intensity_mm_per_hr < 0.0 {
+        if !intensity_mm_per_hr.is_finite() || intensity_mm_per_hr <= 0.0 {
             return Err(GenevaError::InvalidInput(
-                "intensity_mm_per_hr must be finite and >= 0".to_string(),
+                "intensity_mm_per_hr must be finite and > 0".to_string(),
             ));
         }
 
@@ -306,6 +302,7 @@ pub fn build_frequency_panel(
         &durations_minutes,
         &ari_years,
         Some(&cligen_matrix),
+        &request.distribution_type,
     );
     materialize_cells(
         &mut cells,
@@ -313,6 +310,7 @@ pub fn build_frequency_panel(
         &durations_minutes,
         &ari_years,
         noaa_matrix.as_ref(),
+        &request.distribution_type,
     );
 
     let mut warnings = Vec::new();
@@ -330,7 +328,7 @@ pub fn build_frequency_panel(
         phase: "build_frequency_panel".to_string(),
         kernel_schema_version: request.kernel_schema_version,
         datasource_ids: vec![DATASOURCE_CLIGEN.to_string(), DATASOURCE_NOAA.to_string()],
-        distribution_type: DISTRIBUTION_NEH4_TYPE_B.to_string(),
+        distribution_type: request.distribution_type.clone(),
         durations_minutes,
         ari_years,
         cells,
@@ -350,6 +348,7 @@ fn materialize_cells(
     durations_minutes: &[u32],
     ari_years: &[u32],
     source_matrix: Option<&SourceMatrix>,
+    distribution_type: &str,
 ) {
     for duration_minutes in durations_minutes {
         for ari_years in ari_years {
@@ -364,7 +363,7 @@ fn materialize_cells(
                             ari_years: *ari_years,
                             depth_mm: Some(available.depth_mm),
                             intensity_mm_per_hr: Some(available.intensity_mm_per_hr),
-                            distribution_type: DISTRIBUTION_NEH4_TYPE_B.to_string(),
+                            distribution_type: distribution_type.to_string(),
                             availability: FrequencyCellAvailability::Available,
                             reason_code: None,
                         });
@@ -384,7 +383,7 @@ fn materialize_cells(
                         ari_years: *ari_years,
                         depth_mm: None,
                         intensity_mm_per_hr: None,
-                        distribution_type: DISTRIBUTION_NEH4_TYPE_B.to_string(),
+                        distribution_type: distribution_type.to_string(),
                         availability: FrequencyCellAvailability::Unavailable,
                         reason_code: Some(reason),
                     });
@@ -396,7 +395,7 @@ fn materialize_cells(
                     ari_years: *ari_years,
                     depth_mm: None,
                     intensity_mm_per_hr: None,
-                    distribution_type: DISTRIBUTION_NEH4_TYPE_B.to_string(),
+                    distribution_type: distribution_type.to_string(),
                     availability: FrequencyCellAvailability::Unavailable,
                     reason_code: Some(FrequencyUnavailableReasonCode::SourceMissing),
                 }),
@@ -467,9 +466,9 @@ fn parse_cligen_frequency_csv(csv_text: &str) -> Result<SourceMatrix, GenevaErro
                 "CLIGEN storm duration must be finite and > 0 at ARI {ari_years}"
             )));
         }
-        if !depth_mm.is_finite() || depth_mm < 0.0 {
+        if !depth_mm.is_finite() || depth_mm <= 0.0 {
             return Err(GenevaError::InvalidInput(format!(
-                "CLIGEN storm depth must be finite and >= 0 at ARI {ari_years}"
+                "CLIGEN storm depth must be finite and > 0 at ARI {ari_years}"
             )));
         }
 
@@ -486,9 +485,9 @@ fn parse_cligen_frequency_csv(csv_text: &str) -> Result<SourceMatrix, GenevaErro
             }
 
             let intensity_mm_per_hr = values[index];
-            if !intensity_mm_per_hr.is_finite() || intensity_mm_per_hr < 0.0 {
+            if !intensity_mm_per_hr.is_finite() || intensity_mm_per_hr <= 0.0 {
                 return Err(GenevaError::InvalidInput(format!(
-                    "CLIGEN intensity must be finite and >= 0 at duration={duration_minutes} ari={ari_years}"
+                    "CLIGEN intensity must be finite and > 0 at duration={duration_minutes} ari={ari_years}"
                 )));
             }
             let depth_mm = intensity_mm_per_hr * duration_hours;
@@ -535,9 +534,9 @@ fn parse_noaa_frequency_csv(csv_text: &str) -> Result<SourceMatrix, GenevaError>
             parsed_rows = true;
             for (index, ari_years) in recurrence.iter().enumerate() {
                 let intensity_mm_per_hr = values[index];
-                if !intensity_mm_per_hr.is_finite() || intensity_mm_per_hr < 0.0 {
+                if !intensity_mm_per_hr.is_finite() || intensity_mm_per_hr <= 0.0 {
                     return Err(GenevaError::InvalidInput(format!(
-                        "NOAA intensity must be finite and >= 0 at duration={duration_minutes} ari={ari_years}"
+                        "NOAA intensity must be finite and > 0 at duration={duration_minutes} ari={ari_years}"
                     )));
                 }
                 let depth_mm = intensity_mm_per_hr * (f64::from(duration_minutes) / 60.0);
@@ -765,13 +764,10 @@ fn validate_source_path(path_value: &str, field_name: &str) -> Result<(), Geneva
     Ok(())
 }
 
-fn default_distribution_type() -> String {
-    DISTRIBUTION_NEH4_TYPE_B.to_string()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::storm_shape::{DISTRIBUTION_NEH4_TYPE_B, DISTRIBUTION_TYPE_II};
     use std::cmp::Ordering;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -802,6 +798,19 @@ mod tests {
 	15-min intensity (mm/hour):, 24,30,36
 	30-min intensity (mm/hour):, 20,24,28
 	60-min intensity (mm/hour):, 12,14,16
+
+	Date/time (GMT): Tue Apr 14 00:00:00 2026
+	"#
+    }
+
+    fn sample_cligen_zero_depth_csv() -> &'static str {
+        r#"
+	Point precipitation frequency estimates (mm, hours, mm/hour)
+	PRECIPITATION FREQUENCY ESTIMATES
+	by metric for ARI (years):, 1,2,5
+	Storm depth (mm):, 0,144,168
+	Storm duration (hours):, 24,24,24
+	10-min intensity (mm/hour):, 30,36,42
 
 	Date/time (GMT): Tue Apr 14 00:00:00 2026
 	"#
@@ -893,6 +902,33 @@ Date/time (GMT): Tue Apr 14 00:00:00 2026
             .count();
         assert_eq!(noaa_available, 6);
         assert_eq!(noaa_duration_unavailable, 9);
+    }
+
+    #[test]
+    fn selected_distribution_is_preserved_for_panel_traceability() {
+        let cligen_path = write_temp_file("wepp_cli.csv", sample_cligen_csv());
+        let mut request = request_with_sources(&cligen_path, None);
+        request.distribution_type = DISTRIBUTION_TYPE_II.to_string();
+
+        let response = build_frequency_panel(&request).expect("panel build should succeed");
+        assert_eq!(response.distribution_type, DISTRIBUTION_TYPE_II);
+        assert!(response
+            .cells
+            .iter()
+            .all(|cell| cell.distribution_type == DISTRIBUTION_TYPE_II));
+    }
+
+    #[test]
+    fn cligen_zero_depth_cells_are_rejected() {
+        let cligen_path =
+            write_temp_file("wepp_cli_zero_depth.csv", sample_cligen_zero_depth_csv());
+        let request = request_with_sources(&cligen_path, None);
+
+        let error = build_frequency_panel(&request).expect_err("zero-depth CLIGEN cells must fail");
+        assert_eq!(error.code(), "invalid_input");
+        assert!(error
+            .to_string()
+            .contains("CLIGEN storm depth must be finite and > 0"));
     }
 
     #[test]

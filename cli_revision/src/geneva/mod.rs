@@ -32,6 +32,15 @@ fn run_build_frequency_panel_api(payload_json: &str) -> PyResult<String> {
         .map_err(convert::map_geneva_error_to_pyerr)
 }
 
+fn run_build_hyetograph_api(payload_json: &str) -> PyResult<String> {
+    let request = convert::parse_hyetograph_request(payload_json)
+        .map_err(convert::map_geneva_error_to_pyerr)?;
+    let response = geneva_core::hyetograph::build_hyetograph_from_request(&request)
+        .map_err(convert::map_geneva_error_to_pyerr)?;
+    geneva_core::hyetograph::serialize_neh4_type_b_hyetograph_response(&response)
+        .map_err(convert::map_geneva_error_to_pyerr)
+}
+
 fn run_stub_api(api_name: &str, payload_json: &str) -> PyResult<String> {
     let request =
         convert::parse_stub_request(payload_json).map_err(convert::map_geneva_error_to_pyerr)?;
@@ -52,6 +61,12 @@ fn geneva_build_frequency_panel(payload_json: &str) -> PyResult<String> {
 
 #[pyfunction]
 #[pyo3(signature = (payload_json = "{}"))]
+fn geneva_build_hyetograph(payload_json: &str) -> PyResult<String> {
+    run_build_hyetograph_api(payload_json)
+}
+
+#[pyfunction]
+#[pyo3(signature = (payload_json = "{}"))]
 fn geneva_run_batch(payload_json: &str) -> PyResult<String> {
     run_batch_api(payload_json)
 }
@@ -65,6 +80,7 @@ fn geneva_validate_uh(payload_json: &str) -> PyResult<String> {
 pub fn register_python_functions(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(geneva_prepare_hrus, m)?)?;
     m.add_function(wrap_pyfunction!(geneva_build_frequency_panel, m)?)?;
+    m.add_function(wrap_pyfunction!(geneva_build_hyetograph, m)?)?;
     m.add_function(wrap_pyfunction!(geneva_run_batch, m)?)?;
     m.add_function(wrap_pyfunction!(geneva_validate_uh, m)?)?;
     Ok(())
@@ -154,6 +170,30 @@ by duration for ARI (years):, 1,2
             .map(|value| value.as_str().unwrap_or_default().to_string())
             .collect::<Vec<_>>();
         assert_eq!(datasources, vec!["cligen_freq", "noaa14_pds"]);
+    }
+
+    #[test]
+    fn build_hyetograph_entrypoint_returns_selected_shape_metadata() {
+        let payload = r#"{
+            "kernel_schema_version": 1,
+            "duration_minutes": 60.0,
+            "depth_mm": 25.0,
+            "time_step_minutes": 5.0,
+            "distribution_type": "type_ii"
+        }"#;
+
+        let response = geneva_build_hyetograph(payload).expect("hyetograph should build");
+        let parsed: Value = serde_json::from_str(&response).expect("response should be valid JSON");
+        assert_eq!(parsed["status"], "ok");
+        assert_eq!(parsed["phase"], "build_hyetograph");
+        assert_eq!(parsed["kernel_schema_version"], 1);
+        assert_eq!(parsed["distribution_type"], "type_ii");
+        assert_eq!(
+            parsed["source_metadata"]["source_distribution_type"],
+            "type_ii"
+        );
+        assert!(parsed["time_minutes"].as_array().is_some());
+        assert!(parsed["cumulative_rainfall_mm"].as_array().is_some());
     }
 
     #[test]

@@ -2,6 +2,7 @@ use geneva_core::cn::RunBatchRequest;
 use geneva_core::error::GenevaError;
 use geneva_core::frequency_panel::BuildFrequencyPanelRequest;
 use geneva_core::hru::PrepareHrusRequest;
+use geneva_core::hyetograph::Neh4TypeBHyetographRequest;
 use geneva_core::types::GenevaStubRequest;
 use pyo3::exceptions::PyValueError;
 use pyo3::PyErr;
@@ -22,6 +23,12 @@ pub fn parse_build_frequency_panel_request(
     payload_json: &str,
 ) -> Result<BuildFrequencyPanelRequest, GenevaError> {
     BuildFrequencyPanelRequest::from_payload_json(payload_json)
+}
+
+pub fn parse_hyetograph_request(
+    payload_json: &str,
+) -> Result<Neh4TypeBHyetographRequest, GenevaError> {
+    Neh4TypeBHyetographRequest::from_payload_json(payload_json)
 }
 
 pub fn map_geneva_error_to_pyerr(error: GenevaError) -> PyErr {
@@ -115,6 +122,19 @@ mod tests {
         }"#;
         let result = parse_build_frequency_panel_request(payload);
         assert!(matches!(result, Err(GenevaError::InvalidJson(_))));
+    }
+
+    #[test]
+    fn parse_hyetograph_request_accepts_supported_distribution() {
+        let payload = r#"{
+            "kernel_schema_version": 1,
+            "duration_minutes": 60.0,
+            "depth_mm": 25.0,
+            "time_step_minutes": 5.0,
+            "distribution_type": "type_ii"
+        }"#;
+        let result = parse_hyetograph_request(payload);
+        assert!(result.is_ok());
     }
 
     #[test]

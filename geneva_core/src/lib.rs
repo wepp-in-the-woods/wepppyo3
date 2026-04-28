@@ -4,6 +4,7 @@ pub mod error;
 pub mod frequency_panel;
 pub mod hru;
 pub mod hyetograph;
+pub mod storm_shape;
 pub mod types;
 pub mod uh;
 

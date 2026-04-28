@@ -8,7 +8,13 @@ Rust/PyO3 extension modules for wepppy.
 
 - `calculate_p_annual_monthlies(...)`: convenience wrapper; returns average monthly precipitation from a CLIGEN file or month/ppt arrays.
 - `calculate_monthlies(src_fn)`: returns monthly climate stats (`ppts`, `tmaxs`, `tmins`, `nwds`) from a CLIGEN file.
+- `build_hyetograph_non_breakpoint(...)`: build non-breakpoint WEPP hyetograph segments from storm depth/duration/shape parameters.
+- `build_hyetograph_breakpoint(...)`: build breakpoint WEPP hyetograph segments from cumulative breakpoint rows.
 - `cli_revision(...)`: spatializes a CLIGEN file by biasing precip/tmin/tmax between watershed and hillslope centroids.
+- `compute_peak_intensities_from_hyetograph(...)`: compute peak intensities for configured windows from pre-built hyetograph segments.
+- `compute_peak_intensities_non_breakpoint(...)`: compute peak intensities directly from non-breakpoint storm parameters.
+- `compute_peak_intensities_breakpoint(...)`: compute peak intensities directly from breakpoint storm rows.
+- `compute_static_r_from_cli(...)`: compute static annual R erosivity metrics from a CLIGEN file.
 - `interpolate_geospatial(...)`: interpolates a 3D grid at a target point (`nearest`, `linear`, `cubic`), with optional clipping.
 - `make_rhem_storm_file(src_fn, dst_fn)`: converts a CLIGEN file into a RHEM storm file.
 - `rust_cli_p_scale_monthlies(src_fn, dst_fn, p_mults)`: scales precipitation by per-month multipliers.
@@ -45,12 +51,14 @@ Rust/PyO3 extension modules for wepppy.
 - `watershed_chanwb_to_parquet(...)`: convert watershed `chanwb` output to Parquet.
 - `watershed_chnwb_to_parquet(...)`: convert watershed `chnwb` output to Parquet.
 - `hillslope_pass_to_columns(...)`: parse hillslope `pass` output into column dicts.
+- `combine_hillslope_pass_files(...)`: merge base + road hillslope `pass` files into one output `pass` file.
 - `hillslope_ebe_to_columns(...)`: parse hillslope `ebe` output into column dicts.
 - `hillslope_element_to_columns(...)`: parse hillslope `element` output into column dicts.
 - `hillslope_loss_to_columns(...)`: parse hillslope `loss` output into column dicts.
 - `hillslope_soil_to_columns(...)`: parse hillslope `soil` output into column dicts.
 - `hillslope_wat_to_columns(...)`: parse hillslope `wat` output into column dicts.
 - `catalog_scan(base_path)`: scan a run directory for supported files and return metadata (includes parquet schema when available).
+- `segment_single_ofe_slope(...)`: split a single-OFE slope profile into multiple OFEs (writes `dst_fn` when provided).
 
 ### wepppyo3.swat_interchange
 
@@ -64,6 +72,10 @@ Rust/PyO3 extension modules for wepppy.
 ### wepppyo3.roads_flowpath
 
 - `trace_downslope_flowpath(...)`: trace one seed cell downslope with explicit termination reason and profile arrays.
+
+### wepppyo3.watershed_abstraction
+
+- `assign_mofe_map(...)`: assign MOFE labels over a hillslope raster using `subwta`, `discha`, and Topaz-specific distance fractions.
 
 ### wepppyo3.wepp_viz
 
@@ -87,6 +99,7 @@ release/linux/py312/wepppyo3/
   sbs_map/sbs_map_rust.so
   swat_interchange/swat_interchange_rust.so
   swat_utils/swat_utils_rust.so
+  watershed_abstraction/watershed_abstraction_rust.so
   wepp_interchange/wepp_interchange_rust.so
   wepp_viz/wepp_viz_rust.so
 ```
@@ -131,6 +144,8 @@ cp target/release/libswat_interchange_rust.so \
   release/linux/py312/wepppyo3/swat_interchange/swat_interchange_rust.so
 cp target/release/libswat_utils_rust.so \
   release/linux/py312/wepppyo3/swat_utils/swat_utils_rust.so
+cp target/release/libwatershed_abstraction_rust.so \
+  release/linux/py312/wepppyo3/watershed_abstraction/watershed_abstraction_rust.so
 cp target/release/libwepp_interchange_rust.so \
   release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
 ```

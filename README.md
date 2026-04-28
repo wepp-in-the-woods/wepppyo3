@@ -1,96 +1,174 @@
 # wepppyo3
 
-Rust/PyO3 extension modules for wepppy.
+`wepppyo3` is WEPPpy's native kernel and interchange substrate.
+It is the Python-callable Rust layer for contract-sensitive climate, raster,
+WEPP/SWAT interchange, roads, MOFE, SBS, and visualization workloads where
+Python should keep orchestrating runs but the hot path belongs in owned Rust.
 
-## Module Catalog
+## Why This Matters
 
-### wepppyo3.climate
+WEPPpy coordinates long-running watershed modeling through Python controllers,
+RQ workers, run directories, and reports. Some parts of that workflow are too
+large, parser-sensitive, or raster-heavy to leave as ad hoc Python loops. This
+repo gives those paths a shared Rust substrate while preserving WEPPpy's Python
+APIs and operational model.
 
-- `calculate_p_annual_monthlies(...)`: convenience wrapper; returns average monthly precipitation from a CLIGEN file or month/ppt arrays.
-- `calculate_monthlies(src_fn)`: returns monthly climate stats (`ppts`, `tmaxs`, `tmins`, `nwds`) from a CLIGEN file.
-- `build_hyetograph_non_breakpoint(...)`: build non-breakpoint WEPP hyetograph segments from storm depth/duration/shape parameters.
-- `build_hyetograph_breakpoint(...)`: build breakpoint WEPP hyetograph segments from cumulative breakpoint rows.
-- `cli_revision(...)`: spatializes a CLIGEN file by biasing precip/tmin/tmax between watershed and hillslope centroids.
-- `compute_peak_intensities_from_hyetograph(...)`: compute peak intensities for configured windows from pre-built hyetograph segments.
-- `compute_peak_intensities_non_breakpoint(...)`: compute peak intensities directly from non-breakpoint storm parameters.
-- `compute_peak_intensities_breakpoint(...)`: compute peak intensities directly from breakpoint storm rows.
-- `compute_static_r_from_cli(...)`: compute static annual R erosivity metrics from a CLIGEN file.
-- `interpolate_geospatial(...)`: interpolates a 3D grid at a target point (`nearest`, `linear`, `cubic`), with optional clipping.
-- `make_rhem_storm_file(src_fn, dst_fn)`: converts a CLIGEN file into a RHEM storm file.
-- `rust_cli_p_scale_monthlies(src_fn, dst_fn, p_mults)`: scales precipitation by per-month multipliers.
-- `rust_cli_p_scale(src_fn, dst_fn, p_mult)`: scales precipitation by a single multiplier.
-- `rust_cli_p_scale_annual_monthlies(src_fn, dst_fn, p_mults)`: scales precipitation with an annual month sequence of multipliers.
-- `rust_cli_calculate_p_annual_monthlies(src_fn)`: computes average monthly precipitation from a CLIGEN file.
-- `rust_cli_calculate_p_annual_monthlies_from_lists(months, precips)`: computes average monthly precipitation from arrays.
-- `rust_cli_calculate_monthlies(src_fn)`: computes monthly precip/tmax/tmin/wet-day arrays from a CLIGEN file.
+The important shift is not "Rust is faster than Python" in the abstract. The
+shift is that selected WEPPpy contracts now have native implementations with
+bounded responsibilities, deployable shared objects, tests, and explicit release
+provenance expectations.
 
-### wepppyo3.raster_characteristics
+## Positioning
 
-- `count_intersecting_raster_key_pairs(...)`: one-pass count map for `(key, key2)` intersections with explicit ignore/no-data filtering.
-- `identify_mode_single_raster_key(...)`: mode parameter value per key; falls back to global mode when a key has only nodata.
-- `identify_mode_intersecting_raster_keys(...)`: mode parameter value per key/key2 intersection; falls back to global mode when empty.
-- `identify_median_single_raster_key(...)`: median parameter value per key.
-- `identify_median_intersecting_raster_keys(...)`: median parameter value per key/key2 intersection.
+| Legacy framing | Current posture |
+| --- | --- |
+| Rust/PyO3 extension modules for WEPPpy | WEPPpy native kernel and interchange substrate |
+| Optional accelerators where available | Owned native implementations for selected production contracts |
+| Flat list of functions | Module registry with maturity, callsites, release artifacts, tests, and evidence |
+| Per-module speedup anecdotes | Claim discipline using `confirmed`, `inference`, and `hypothesis` |
+| Manual copy instructions only | Release provenance contract with known gaps and follow-up path |
 
-### wepppyo3.sbs_map
+Clean claim statement:
 
-- `summarize_sbs_raster(path, *, color_map_path=None)`: single-pass SBS raster summary for sanity checks and fixtures.
-- `read_color_table(path, *, color_map_path=None)`: read the raster color table and map entries to SBS severities.
-- `unique_values(path)`: return sorted unique raster values (ints where possible).
-- `summarize_color_table(path, *, color_map_path=None)`: summarize color table severities without scanning pixels.
-- `reclassify_sbs_raster(path, *, breaks=None, ct=None, nodata=None, offset=0, color_map_path=None)`: reclassify SBS raster values to 4 classes (returns a uint8 NumPy array).
-- `export_sbs_4class(path, dst_path, *, breaks=None, ct=None, nodata=None, color_map_path=None)`: write a 4-class GeoTIFF with palette + nodata.
+> `wepppyo3` is WEPPpy's native kernel and interchange substrate: Python-callable
+> Rust modules for contract-sensitive hydrology, climate, raster, WEPP/SWAT
+> interchange, roads, MOFE, SBS, and visualization workloads where Python
+> orchestration should remain but the hot path belongs in owned Rust.
 
-### wepppyo3.wepp_interchange
+## Scope and Boundaries
 
-- `watershed_pass_to_parquet(...)`: convert watershed `pass` output to Parquet event + metadata tables.
-- `watershed_soil_to_parquet(...)`: convert watershed `soil` output to Parquet.
-- `watershed_loss_to_parquet(...)`: convert watershed `loss` output into multiple Parquet tables under `output_dir`.
-- `watershed_chan_peak_to_parquet(...)`: convert watershed channel peak output to Parquet.
-- `watershed_ebe_to_parquet(...)`: convert watershed `ebe` output to Parquet.
-- `watershed_chanwb_to_parquet(...)`: convert watershed `chanwb` output to Parquet.
-- `watershed_chnwb_to_parquet(...)`: convert watershed `chnwb` output to Parquet.
-- `hillslope_pass_to_columns(...)`: parse hillslope `pass` output into column dicts.
-- `combine_hillslope_pass_files(...)`: merge base + road hillslope `pass` files into one output `pass` file.
-- `hillslope_ebe_to_columns(...)`: parse hillslope `ebe` output into column dicts.
-- `hillslope_element_to_columns(...)`: parse hillslope `element` output into column dicts.
-- `hillslope_loss_to_columns(...)`: parse hillslope `loss` output into column dicts.
-- `hillslope_soil_to_columns(...)`: parse hillslope `soil` output into column dicts.
-- `hillslope_wat_to_columns(...)`: parse hillslope `wat` output into column dicts.
-- `catalog_scan(base_path)`: scan a run directory for supported files and return metadata (includes parquet schema when available).
-- `segment_single_ofe_slope(...)`: split a single-OFE slope profile into multiple OFEs (writes `dst_fn` when provided).
+`wepppyo3` owns narrow native kernels and file interchanges embedded in WEPPpy
+workflows. It does not own WEPPpy orchestration.
 
-### wepppyo3.swat_interchange
+| Area | Owner | Boundary |
+| --- | --- | --- |
+| Routes, sessions, NoDb state, RQ jobs, run directories, reports | WEPPpy | Python remains the application and orchestration layer. |
+| Climate parsing/scaling, raster scans, WEPP/SWAT interchanges, MOFE helpers, SBS helpers, visualization grids | `wepppyo3` | Python-callable Rust kernels with stable wrapper contracts. |
+| Watershed graph abstraction | Peridot | Standalone explicit-graph abstraction engine and CLI. |
+| WBT/TOPAZ-style delineation and hydrology tools | `weppcloud-wbt` | WhiteboxTools fork and command-line toolchain. |
+| WEPP and SWAT model execution | Model binaries plus WEPPpy wrappers | `wepppyo3` parses and transforms selected outputs; it does not replace the models. |
 
-- `swat_outputs_to_parquet(...)`: convert a SWAT+ run output directory to Parquet, honoring manifest filters and interchange state.
-- `swat_output_to_parquet(...)`: convert a single SWAT+ output file to Parquet (single-file mode).
+Boundary rule: new Rust code belongs in `wepppyo3` when it is a Python-callable
+kernel or interchange needed inside WEPPpy. Standalone watershed graph work
+belongs in Peridot. WBT/delineation tools belong in `weppcloud-wbt`.
 
-### wepppyo3.swat_utils
+## Canonical Docs
 
-- `wepp_hillslope_pass_to_swat_recall(...)`: convert WEPP hillslope `pass` outputs into SWAT+ recall files (optional manifest output).
+- [Module registry](docs/module-registry.md): module purpose, maturity, release artifact, WEPPpy callsites, tests, and evidence labels.
+- [Architecture and boundaries](docs/architecture-and-boundaries.md): what belongs in `wepppyo3` versus WEPPpy, Peridot, and `weppcloud-wbt`.
+- [Release provenance](docs/release-provenance.md): canonical `release/linux/py312/wepppyo3/` layout, manual refresh flow, and provenance gaps.
+- [Claim discipline](docs/claim-discipline.md): approved claim labels, communication kit, figure specification, and metrics definitions.
+- [SWAT+ interchange spec](docs/swat-interchange-spec.md): SWAT output-to-Parquet contract.
+- [WEPP hillslope pass to SWAT recall spec](docs/wepp-hill-pass-to-swat-rec-spec.md): SWAT recall conversion contract.
 
-### wepppyo3.roads_flowpath
+## Module Summary
 
-- `trace_downslope_flowpath(...)`: trace one seed cell downslope with explicit termination reason and profile arrays.
+| Python module | Posture | Primary contract |
+| --- | --- | --- |
+| `wepppyo3.climate` | Production-critical | CLIGEN parsing/scaling, geospatial interpolation, hyetograph and static-R helpers. |
+| `wepppyo3.raster_characteristics` | Production-critical | Raster key/mode/median/pair-count scans used by landuse, soils, disturbed, RAP, Omni, and related flows. |
+| `wepppyo3.wepp_interchange` | Production-critical | WEPP text outputs to Parquet, hillslope output parsers, pass combining, catalog scan, and slope segmentation. |
+| `wepppyo3.watershed_abstraction` | Production-critical helper | MOFE map assignment helper; not a Peridot replacement. |
+| `wepppyo3.swat_interchange` | Production-used | SWAT+ output directory/file conversion to Parquet. |
+| `wepppyo3.swat_utils` | Production-used | WEPP hillslope pass to SWAT+ recall conversion. |
+| `wepppyo3.roads_flowpath` | Production-used helper | Python-callable roads downslope tracing backed by Peridot logic. |
+| `wepppyo3.sbs_map` | Mixed support | SBS/BAER raster helpers; some WEPPpy paths retain explicit Python fallback behavior. |
+| `wepppyo3.wepp_viz` | Production-used | Soil-loss grid construction helpers for WEPP visualization. |
+| `geneva_core` | Internal support | Rust-only hydrology core used by climate/Geneva paths. |
+| `raster` | Internal support | Shared GDAL/PROJ raster foundation for raster-related modules. |
 
-### wepppyo3.watershed_abstraction
+See [docs/module-registry.md](docs/module-registry.md) for evidence and exact
+release artifact paths.
 
-- `assign_mofe_map(...)`: assign MOFE labels over a hillslope raster using `subwta`, `discha`, and Topaz-specific distance fractions.
+## API Surface
 
-### wepppyo3.wepp_viz
+### `wepppyo3.climate`
 
-- `make_soil_loss_grid(...)`: builds a soil-loss grid from subwta IDs, discha, and WEPP plot outputs.
-- `make_soil_loss_grid_fps(...)`: builds a soil-loss grid from discha and flowpath plot outputs.
+- `calculate_p_annual_monthlies(...)`
+- `calculate_monthlies(src_fn)`
+- `build_hyetograph_non_breakpoint(...)`
+- `build_hyetograph_breakpoint(...)`
+- `cli_revision(...)`
+- `compute_peak_intensities_from_hyetograph(...)`
+- `compute_peak_intensities_non_breakpoint(...)`
+- `compute_peak_intensities_breakpoint(...)`
+- `compute_static_r_from_cli(...)`
+- `interpolate_geospatial(...)`
+- `make_rhem_storm_file(src_fn, dst_fn)`
+- `rust_cli_p_scale_monthlies(src_fn, dst_fn, p_mults)`
+- `rust_cli_p_scale(src_fn, dst_fn, p_mult)`
+- `rust_cli_p_scale_annual_monthlies(src_fn, dst_fn, p_mults)`
+- `rust_cli_calculate_p_annual_monthlies(src_fn)`
+- `rust_cli_calculate_p_annual_monthlies_from_lists(months, precips)`
+- `rust_cli_calculate_monthlies(src_fn)`
 
-## Canonical release
+### `wepppyo3.raster_characteristics`
 
-`/workdir/wepppyo3/release/linux/py312/` is the canonical release output. It contains the
-`wepppyo3` Python package tree and is the only directory that should be deployed. When you
-rebuild, copy updated shared objects into this tree.
+- `count_intersecting_raster_key_pairs(...)`
+- `identify_mode_single_raster_key(...)`
+- `identify_mode_intersecting_raster_keys(...)`
+- `identify_median_single_raster_key(...)`
+- `identify_median_intersecting_raster_keys(...)`
+
+### `wepppyo3.sbs_map`
+
+- `summarize_sbs_raster(path, *, color_map_path=None)`
+- `read_color_table(path, *, color_map_path=None)`
+- `unique_values(path)`
+- `summarize_color_table(path, *, color_map_path=None)`
+- `reclassify_sbs_raster(path, *, breaks=None, ct=None, nodata=None, offset=0, color_map_path=None)`
+- `export_sbs_4class(path, dst_path, *, breaks=None, ct=None, nodata=None, color_map_path=None)`
+
+### `wepppyo3.wepp_interchange`
+
+- `watershed_pass_to_parquet(...)`
+- `watershed_soil_to_parquet(...)`
+- `watershed_loss_to_parquet(...)`
+- `watershed_chan_peak_to_parquet(...)`
+- `watershed_ebe_to_parquet(...)`
+- `watershed_chanwb_to_parquet(...)`
+- `watershed_chnwb_to_parquet(...)`
+- `hillslope_pass_to_columns(...)`
+- `combine_hillslope_pass_files(...)`
+- `hillslope_ebe_to_columns(...)`
+- `hillslope_element_to_columns(...)`
+- `hillslope_loss_to_columns(...)`
+- `hillslope_soil_to_columns(...)`
+- `hillslope_wat_to_columns(...)`
+- `catalog_scan(base_path)`
+- `segment_single_ofe_slope(...)`
+
+### `wepppyo3.swat_interchange`
+
+- `swat_outputs_to_parquet(...)`
+- `swat_output_to_parquet(...)`
+
+### `wepppyo3.swat_utils`
+
+- `wepp_hillslope_pass_to_swat_recall(...)`
+
+### `wepppyo3.roads_flowpath`
+
+- `trace_downslope_flowpath(...)`
+
+### `wepppyo3.watershed_abstraction`
+
+- `assign_mofe_map(...)`
+
+### `wepppyo3.wepp_viz`
+
+- `make_soil_loss_grid(...)`
+- `make_soil_loss_grid_fps(...)`
+
+## Canonical Release
+
+`release/linux/py312/` is the canonical release output. It contains the
+`wepppyo3` Python package tree and is the only directory that should be deployed
+from this repository.
 
 Expected layout:
 
-```
+```text
 release/linux/py312/wepppyo3/
   __init__.py
   climate/cli_revision_rust.so
@@ -104,10 +182,19 @@ release/linux/py312/wepppyo3/
   wepp_viz/wepp_viz_rust.so
 ```
 
+Current provenance gap: the package exposes `__version__`, but the release tree
+does not yet include a manifest tying each shared object to a source commit,
+build timestamp, Python ABI, GDAL/PROJ versions, and artifact hash. Treat that
+as a documented follow-up, not a reason to change binaries in documentation-only
+work.
+
+See [docs/release-provenance.md](docs/release-provenance.md) before refreshing
+or deploying release artifacts.
+
 ## Install (Linux)
 
-Copy the canonical release into your Python site-packages (adjust the destination for your
-environment):
+Copy the canonical release into your Python site-packages. Adjust the
+destination for your environment:
 
 ```sh
 sudo rsync -av --progress /workdir/wepppyo3/release/linux/py312/wepppyo3/ \
@@ -116,10 +203,11 @@ sudo rsync -av --progress /workdir/wepppyo3/release/linux/py312/wepppyo3/ \
 
 ## Build (Linux)
 
-Prereqs:
+Prerequisites:
+
 - Rust toolchain
 - Python 3.12 interpreter
-- `gdal-config` on PATH (GDAL/PROJ dev packages installed)
+- `gdal-config` on `PATH` from GDAL/PROJ development packages
 
 Build and refresh the canonical release:
 
@@ -156,61 +244,26 @@ If you only need one crate, build with `-p` and copy the corresponding `.so`:
 cargo build -p raster_characteristics_rust --release
 ```
 
-## ARM64 Mac Build (M1/M2)
+## ARM64 Mac Build Notes
 
-### Building PyO3 extension on macOS (M1/M2)
+When building a Rust library that uses PyO3 as a Python extension module on
+macOS, linker errors for `_Py...` symbols usually mean the extension is trying
+to resolve Python symbols at build time. Extension modules should allow dynamic
+lookup from the Python process.
 
-[Chat GPT](https://chatgpt.com/share/67dbaf2b-e038-8009-b3cb-4c277b34dcdd)
+Checklist:
 
-### Context
-When building a Rust library that uses [pyo3](https://pyo3.rs/) as a Python extension module, on macOS you can encounter linker errors like:
+1. Confirm the Rust toolchain is arm64 with `rustc --version --verbose`.
+2. Confirm the Python interpreter is arm64 with `file $(which python)`.
+3. Ensure the extension crate uses `crate-type = ["cdylib"]` and PyO3's
+   `extension-module` feature where required.
+4. Build with dynamic lookup flags:
 
+```sh
+export RUSTFLAGS="-C link-arg=-undefined -C link-arg=dynamic_lookup"
+cargo clean
+cargo build
 ```
-Undefined symbols for architecture arm64:
-  "_PyBool_Type", referenced from:
-  ...
-```
 
-This typically happens because the linker is trying to resolve `_Py...` symbols at build time, while on macOS extension modules should allow dynamic lookup from the Python process.
-
-### Steps to Fix
-
-1. **Ensure** your Rust toolchain is arm64. For example, run:
-
-   ```bash
-   rustc --version --verbose
-   # Should say: host: aarch64-apple-darwin
-   ```
-
-2. **Ensure** your Python interpreter is also arm64:
-
-   ```bash
-   file $(which python)
-   # Should say: Mach-O 64-bit executable arm64
-   ```
-
-3. In your `Cargo.toml` for the extension module:
-
-   ```toml
-   [lib]
-   crate-type = ["cdylib"]
-
-   [dependencies.pyo3]
-   version = "0.22"
-   features = ["extension-module"]
-   ```
-
-   This ensures pyo3 sets up the extension properly.
-
-4. **Set** the environment variable for dynamic lookup:
-
-   ```bash
-   export RUSTFLAGS="-C link-arg=-undefined -C link-arg=dynamic_lookup"
-   cargo clean
-   cargo build
-   ```
-
-   The flags `-undefined dynamic_lookup` tell macOS to allow undefined `_Py...` symbols, which will be resolved at runtime by the Python interpreter.
-
-### Key Takeaway
-On macOS, building a PyO3 extension module requires ignoring undefined Python symbols at build time. Setting `RUSTFLAGS` to include `-undefined dynamic_lookup` resolves the undefined `_Py...` references, because the Python runtime will supply them at import time.
+On Linux production hosts, use the canonical Linux release path instead of macOS
+artifacts.

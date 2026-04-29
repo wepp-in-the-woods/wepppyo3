@@ -1,13 +1,18 @@
 use crate::error::GenevaError;
-use raster::raster::Raster;
+use raster::raster::{MapType, Raster};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::fs;
+use std::path::Path;
 
 const MIN_HRU_AREA_HA_FLOOR: f64 = 2.0;
 const SQUARE_METERS_PER_HECTARE: f64 = 10_000.0;
 const SQUARE_METERS_TO_ACRES: f64 = 0.000_247_105_381_467_165_3;
 const FLOAT_TOLERANCE: f64 = 1e-9;
+const HRU_MAP_NODATA_VALUE: i32 = 0;
+const HRU_MAP_LEGEND_SCHEMA_VERSION: u32 = 1;
+const HRU_MAP_DEFAULT_RELPATH: &str = "hru_map.tif";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -56,6 +61,10 @@ pub struct PrepareHrusRequest {
     pub hydrophobic_shrub_high: bool,
     #[serde(default)]
     pub hydrophobic_shrub_moderate: bool,
+    #[serde(default)]
+    pub hru_map_output_tif: Option<String>,
+    #[serde(default)]
+    pub hru_map_legend_output_json: Option<String>,
 }
 
 impl PrepareHrusRequest {
@@ -112,6 +121,21 @@ impl PrepareHrusRequest {
             }
         }
 
+        if let Some(output_tif) = self.hru_map_output_tif.as_deref() {
+            if output_tif.trim().is_empty() {
+                return Err(GenevaError::InvalidInput(
+                    "hru_map_output_tif must not be blank when provided".to_string(),
+                ));
+            }
+        }
+        if let Some(output_json) = self.hru_map_legend_output_json.as_deref() {
+            if output_json.trim().is_empty() {
+                return Err(GenevaError::InvalidInput(
+                    "hru_map_legend_output_json must not be blank when provided".to_string(),
+                ));
+            }
+        }
+
         Ok(())
     }
 }
@@ -123,6 +147,7 @@ pub struct PrepareHrusResponse {
     pub kernel_schema_version: u32,
     pub hru_rows: Vec<HruOutputRow>,
     pub diagnostics: HruDiagnostics,
+    pub hru_map: HruMapSummary,
     pub warnings: Vec<KernelWarning>,
 }
 
@@ -177,6 +202,19 @@ pub struct HruDiagnostics {
     pub collapse_unmerged_count: usize,
     pub area_closure_error_m2: f64,
     pub alignment: AlignmentDiagnostics,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct HruMapSummary {
+    pub nodata_value: i32,
+    pub hru_value_count: usize,
+    pub fallback_id_match_count: usize,
+    pub mapping_status: String,
+    pub active_cell_count: usize,
+    pub mapped_cell_count: usize,
+    pub unmapped_cell_count: usize,
+    pub unresolved_component_count: usize,
+    pub unresolved_component_samples: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -295,6 +333,39 @@ struct HruAggregate {
     hsg_source_counts: BTreeMap<HsgSource, usize>,
     collapsed_from_hru_ids: Vec<String>,
     warnings: BTreeSet<String>,
+}
+
+#[derive(Debug, Clone)]
+struct InitialHruBuild {
+    rows: Vec<HruAggregate>,
+    component_index_by_cell: Vec<Option<usize>>,
+    component_hru_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct HruMapLegendPayload {
+    schema_version: u32,
+    hru_map_relpath: String,
+    nodata_value: i32,
+    mapping_status: String,
+    active_cell_count: usize,
+    mapped_cell_count: usize,
+    unmapped_cell_count: usize,
+    unresolved_component_count: usize,
+    unresolved_component_samples: Vec<String>,
+    rows: Vec<HruMapLegendRow>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct HruMapLegendRow {
+    hru_value: i32,
+    hru_id: String,
+    landuse_class: i32,
+    hsg_group: String,
+    burn_severity_class: String,
+    hydrophobic_class: bool,
+    is_water: bool,
+    collapsed_from_hru_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -572,7 +643,9 @@ fn prepare_hrus_from_grids(
         ));
     }
 
-    let mut rows = build_initial_hrus(&cell_attributes, bound.width, bound.height, cell_area_m2);
+    let mut initial_hru_build =
+        build_initial_hrus(&cell_attributes, bound.width, bound.height, cell_area_m2);
+    let mut rows = initial_hru_build.rows;
     collapse_small_hrus(
         &mut rows,
         min_hru_area_m2,
@@ -628,12 +701,23 @@ fn prepare_hrus_from_grids(
         })
         .collect();
 
+    let hru_map = generate_hru_map_artifacts(
+        request,
+        bound,
+        &initial_hru_build.component_index_by_cell,
+        &initial_hru_build.component_hru_ids,
+        &hru_rows,
+    )?;
+    initial_hru_build.component_index_by_cell.clear();
+    initial_hru_build.component_hru_ids.clear();
+
     Ok(PrepareHrusResponse {
         status: "ok".to_string(),
         phase: "prepare_hrus".to_string(),
         kernel_schema_version: request.kernel_schema_version,
         hru_rows,
         diagnostics,
+        hru_map,
         warnings: warning_accumulator.into_sorted_vec(),
     })
 }
@@ -779,11 +863,13 @@ fn build_initial_hrus(
     width: usize,
     height: usize,
     cell_area_m2: f64,
-) -> Vec<HruAggregate> {
+) -> InitialHruBuild {
     let mut visited = vec![false; cell_attributes.len()];
     let mut queue: VecDeque<usize> = VecDeque::new();
     let mut component_seq_by_key: BTreeMap<HruKey, usize> = BTreeMap::new();
     let mut rows: Vec<HruAggregate> = Vec::new();
+    let mut component_index_by_cell: Vec<Option<usize>> = vec![None; cell_attributes.len()];
+    let mut component_hru_ids: Vec<String> = Vec::new();
 
     for idx in 0..cell_attributes.len() {
         if visited[idx] || cell_attributes[idx].is_none() {
@@ -797,6 +883,7 @@ fn build_initial_hrus(
         queue.push_back(idx);
 
         let mut component_cell_count: usize = 0;
+        let mut component_cells: Vec<usize> = Vec::new();
         let mut hsg_source_counts: BTreeMap<HsgSource, usize> = BTreeMap::new();
 
         while let Some(current_idx) = queue.pop_front() {
@@ -810,6 +897,7 @@ fn build_initial_hrus(
             }
 
             component_cell_count += 1;
+            component_cells.push(current_idx);
             *hsg_source_counts
                 .entry(current_cell.hsg_source)
                 .or_insert(0) += 1;
@@ -866,6 +954,11 @@ fn build_initial_hrus(
             if key.hydrophobic_class { 1 } else { 0 },
             *sequence
         );
+        let component_index = component_hru_ids.len();
+        component_hru_ids.push(hru_id.clone());
+        for cell_idx in component_cells {
+            component_index_by_cell[cell_idx] = Some(component_index);
+        }
 
         rows.push(HruAggregate {
             hru_id,
@@ -878,7 +971,11 @@ fn build_initial_hrus(
         });
     }
 
-    rows
+    InitialHruBuild {
+        rows,
+        component_index_by_cell,
+        component_hru_ids,
+    }
 }
 
 fn maybe_enqueue_neighbor(
@@ -1065,6 +1162,227 @@ fn classify_row_hsg_source(source_counts: &BTreeMap<HsgSource, usize>) -> String
         }
     }
     "mixed".to_string()
+}
+
+fn generate_hru_map_artifacts(
+    request: &PrepareHrusRequest,
+    bound: &GridData,
+    component_index_by_cell: &[Option<usize>],
+    component_hru_ids: &[String],
+    hru_rows: &[HruOutputRow],
+) -> Result<HruMapSummary, GenevaError> {
+    let mut final_id_by_initial: BTreeMap<String, String> = BTreeMap::new();
+    let mut ordered_final_ids: Vec<String> = Vec::new();
+
+    for row in hru_rows {
+        if !ordered_final_ids.iter().any(|id| id == &row.hru_id) {
+            ordered_final_ids.push(row.hru_id.clone());
+        }
+        final_id_by_initial.insert(row.hru_id.clone(), row.hru_id.clone());
+    }
+    for row in hru_rows {
+        for donor_id in &row.collapsed_from_hru_ids {
+            if !donor_id.trim().is_empty() {
+                final_id_by_initial.insert(donor_id.clone(), row.hru_id.clone());
+            }
+        }
+    }
+
+    let mut hru_value_by_id: BTreeMap<String, i32> = BTreeMap::new();
+    for (index, hru_id) in ordered_final_ids.iter().enumerate() {
+        hru_value_by_id.insert(hru_id.clone(), index as i32 + 1);
+    }
+
+    let mut hru_map_data = vec![HRU_MAP_NODATA_VALUE; bound.len()];
+    let mut unresolved_component_ids: BTreeSet<String> = BTreeSet::new();
+    let mut active_cell_count: usize = 0;
+    let mut mapped_cell_count: usize = 0;
+
+    for (cell_idx, component_opt) in component_index_by_cell.iter().enumerate() {
+        let Some(component_index) = component_opt else {
+            continue;
+        };
+        active_cell_count += 1;
+
+        let Some(initial_hru_id) = component_hru_ids.get(*component_index) else {
+            return Err(GenevaError::ContractViolation(format!(
+                "component index {component_index} out of bounds for HRU map generation"
+            )));
+        };
+
+        let Some(final_hru_id) = final_id_by_initial.get(initial_hru_id) else {
+            unresolved_component_ids.insert(initial_hru_id.clone());
+            continue;
+        };
+        let Some(hru_value) = hru_value_by_id.get(final_hru_id) else {
+            unresolved_component_ids.insert(initial_hru_id.clone());
+            continue;
+        };
+
+        hru_map_data[cell_idx] = *hru_value;
+        mapped_cell_count += 1;
+    }
+
+    let unresolved_component_count = unresolved_component_ids.len();
+    let unresolved_component_samples: Vec<String> =
+        unresolved_component_ids.into_iter().take(8).collect();
+    let mapping_status = if unresolved_component_count == 0 {
+        "complete".to_string()
+    } else {
+        "partial".to_string()
+    };
+    let unmapped_cell_count = active_cell_count.saturating_sub(mapped_cell_count);
+
+    if let Some(map_path) = request.hru_map_output_tif.as_deref() {
+        write_hru_map_raster(bound, &hru_map_data, map_path)?;
+    }
+    if let Some(legend_path) = request.hru_map_legend_output_json.as_deref() {
+        write_hru_map_legend(
+            legend_path,
+            &mapping_status,
+            active_cell_count,
+            mapped_cell_count,
+            unmapped_cell_count,
+            unresolved_component_count,
+            &unresolved_component_samples,
+            hru_rows,
+            &hru_value_by_id,
+        )?;
+    }
+
+    Ok(HruMapSummary {
+        nodata_value: HRU_MAP_NODATA_VALUE,
+        hru_value_count: ordered_final_ids.len(),
+        fallback_id_match_count: 0,
+        mapping_status,
+        active_cell_count,
+        mapped_cell_count,
+        unmapped_cell_count,
+        unresolved_component_count,
+        unresolved_component_samples,
+    })
+}
+
+fn write_hru_map_raster(
+    bound: &GridData,
+    hru_map_data: &[i32],
+    output_path: &str,
+) -> Result<(), GenevaError> {
+    let output_path = output_path.trim();
+    if output_path.is_empty() {
+        return Err(GenevaError::InvalidInput(
+            "hru_map_output_tif must not be blank".to_string(),
+        ));
+    }
+    if let Some(parent) = Path::new(output_path).parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent).map_err(|err| {
+                GenevaError::RasterIo(format!(
+                    "failed to create parent directory for hru map raster '{}': {}",
+                    output_path, err
+                ))
+            })?;
+        }
+    }
+
+    let raster_name = Path::new(output_path)
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .unwrap_or("hru_map")
+        .to_string();
+
+    let hru_raster = Raster::<i32>::new(
+        bound.width,
+        bound.height,
+        bound.geo_transform[1].abs(),
+        hru_map_data.to_vec(),
+        Some(HRU_MAP_NODATA_VALUE),
+        bound.geo_transform,
+        bound.projection.clone(),
+        output_path.to_string(),
+        raster_name,
+        MapType::OTHER,
+    );
+    hru_raster.write(output_path).map_err(|err| {
+        GenevaError::RasterIo(format!(
+            "failed to write hru map raster at '{}': {}",
+            output_path, err
+        ))
+    })?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn write_hru_map_legend(
+    output_path: &str,
+    mapping_status: &str,
+    active_cell_count: usize,
+    mapped_cell_count: usize,
+    unmapped_cell_count: usize,
+    unresolved_component_count: usize,
+    unresolved_component_samples: &[String],
+    hru_rows: &[HruOutputRow],
+    hru_value_by_id: &BTreeMap<String, i32>,
+) -> Result<(), GenevaError> {
+    let output_path = output_path.trim();
+    if output_path.is_empty() {
+        return Err(GenevaError::InvalidInput(
+            "hru_map_legend_output_json must not be blank".to_string(),
+        ));
+    }
+    if let Some(parent) = Path::new(output_path).parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent).map_err(|err| {
+                GenevaError::Serialization(format!(
+                    "failed to create parent directory for hru map legend '{}': {}",
+                    output_path, err
+                ))
+            })?;
+        }
+    }
+
+    let mut rows: Vec<HruMapLegendRow> = Vec::new();
+    for row in hru_rows {
+        let Some(hru_value) = hru_value_by_id.get(&row.hru_id) else {
+            return Err(GenevaError::ContractViolation(format!(
+                "missing hru value for row '{}'",
+                row.hru_id
+            )));
+        };
+        rows.push(HruMapLegendRow {
+            hru_value: *hru_value,
+            hru_id: row.hru_id.clone(),
+            landuse_class: row.landuse_class,
+            hsg_group: row.hsg_group.clone(),
+            burn_severity_class: row.burn_severity_class.clone(),
+            hydrophobic_class: row.hydrophobic_class,
+            is_water: row.is_water,
+            collapsed_from_hru_ids: row.collapsed_from_hru_ids.clone(),
+        });
+    }
+
+    let payload = HruMapLegendPayload {
+        schema_version: HRU_MAP_LEGEND_SCHEMA_VERSION,
+        hru_map_relpath: HRU_MAP_DEFAULT_RELPATH.to_string(),
+        nodata_value: HRU_MAP_NODATA_VALUE,
+        mapping_status: mapping_status.to_string(),
+        active_cell_count,
+        mapped_cell_count,
+        unmapped_cell_count,
+        unresolved_component_count,
+        unresolved_component_samples: unresolved_component_samples.to_vec(),
+        rows,
+    };
+
+    let content = serde_json::to_string_pretty(&payload)
+        .map_err(|err| GenevaError::Serialization(err.to_string()))?;
+    fs::write(output_path, format!("{content}\n")).map_err(|err| {
+        GenevaError::Serialization(format!(
+            "failed to write hru map legend at '{}': {}",
+            output_path, err
+        ))
+    })?;
+    Ok(())
 }
 
 fn estimate_cn_arc_ii(key: HruKey) -> f64 {
@@ -1294,6 +1612,9 @@ fn compare_f64(lhs: f64, rhs: f64) -> Ordering {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     fn default_request() -> PrepareHrusRequest {
         PrepareHrusRequest {
@@ -1312,6 +1633,8 @@ mod tests {
             hydrophobic_forest_moderate: false,
             hydrophobic_shrub_high: true,
             hydrophobic_shrub_moderate: false,
+            hru_map_output_tif: None,
+            hru_map_legend_output_json: None,
         }
     }
 
@@ -1474,6 +1797,20 @@ mod tests {
         }
     }
 
+    fn temp_output_path(name: &str) -> PathBuf {
+        let suffix = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock should be monotonic")
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!(
+            "geneva_hru_map_test_{}_{}",
+            std::process::id(),
+            suffix
+        ));
+        fs::create_dir_all(&dir).expect("temp output directory should be created");
+        dir.join(name)
+    }
+
     #[test]
     fn parse_prepare_request_requires_minimum_threshold() {
         let payload = r#"{
@@ -1535,6 +1872,54 @@ mod tests {
 
         assert_eq!(first_ids, second_ids);
         assert_eq!(first.hru_rows, second.hru_rows);
+    }
+
+    #[test]
+    fn prepare_hrus_includes_hru_map_summary() {
+        let request = default_request();
+        let response =
+            run_prepare_from_arrays(&request, 2, 1, vec![1, 1], vec![41, 41], vec![2, 2], None)
+                .expect("prepare should succeed");
+
+        assert_eq!(response.hru_map.nodata_value, 0);
+        assert_eq!(response.hru_map.active_cell_count, 2);
+        assert_eq!(response.hru_map.mapped_cell_count, 2);
+        assert_eq!(response.hru_map.unmapped_cell_count, 0);
+        assert_eq!(response.hru_map.unresolved_component_count, 0);
+        assert_eq!(response.hru_map.mapping_status, "complete");
+        assert!(response.hru_map.hru_value_count >= 1);
+    }
+
+    #[test]
+    fn prepare_hrus_writes_hru_map_and_legend_when_output_paths_are_provided() {
+        let map_path = temp_output_path("hru_map.tif");
+        let legend_path = temp_output_path("hru_map_legend.json");
+
+        let mut request = default_request();
+        request.hru_map_output_tif = Some(map_path.to_string_lossy().to_string());
+        request.hru_map_legend_output_json = Some(legend_path.to_string_lossy().to_string());
+
+        let response =
+            run_prepare_from_arrays(&request, 2, 1, vec![1, 1], vec![41, 41], vec![2, 2], None)
+                .expect("prepare should succeed");
+
+        assert!(map_path.exists());
+        assert!(legend_path.exists());
+        assert_eq!(response.hru_map.unresolved_component_count, 0);
+
+        let legend_text = fs::read_to_string(&legend_path).expect("legend json should be readable");
+        let legend_payload: serde_json::Value =
+            serde_json::from_str(&legend_text).expect("legend json should parse");
+        assert_eq!(legend_payload["schema_version"], 1);
+        assert_eq!(legend_payload["hru_map_relpath"], "hru_map.tif");
+        assert_eq!(legend_payload["mapped_cell_count"], 2);
+        assert_eq!(
+            legend_payload["rows"]
+                .as_array()
+                .expect("legend rows should be an array")
+                .len(),
+            response.hru_map.hru_value_count
+        );
     }
 
     #[test]

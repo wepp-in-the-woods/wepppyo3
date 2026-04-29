@@ -238,6 +238,23 @@ cp target/release/libwepp_interchange_rust.so \
   release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
 ```
 
+Verify imports from the canonical release tree:
+
+```sh
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 - <<'PY'
+import wepppyo3.climate.cli_revision_rust
+import wepppyo3.raster_characteristics.raster_characteristics_rust
+import wepppyo3.roads_flowpath.roads_flowpath_rust
+import wepppyo3.sbs_map.sbs_map_rust
+import wepppyo3.swat_interchange.swat_interchange_rust
+import wepppyo3.swat_utils.swat_utils_rust
+import wepppyo3.watershed_abstraction.watershed_abstraction_rust
+import wepppyo3.wepp_interchange.wepp_interchange_rust
+import wepppyo3.wepp_viz.wepp_viz_rust
+print("ok")
+PY
+```
+
 If you only need one crate, build with `-p` and copy the corresponding `.so`:
 
 ```sh

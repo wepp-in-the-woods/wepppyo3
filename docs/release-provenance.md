@@ -60,6 +60,52 @@ Then copy each `target/release/lib*_rust.so` into its corresponding
 
 This package intentionally does not rebuild or replace shared objects.
 
+## Latest Refresh Evidence (py312)
+
+`confirmed`: release tree refreshed from local source commit `34ab963842c8` at
+`2026-04-29T03:47:15Z` using:
+
+```sh
+cd /workdir/wepppyo3
+export PYO3_PYTHON=/usr/bin/python3.12
+export PYTHON_SYS_EXECUTABLE=$PYO3_PYTHON
+cargo build --release
+```
+
+`confirmed`: shared objects copied from `target/release/` to
+`release/linux/py312/wepppyo3/` module paths.
+
+`confirmed`: import verification succeeded from the release tree:
+
+```sh
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 - <<'PY'
+import wepppyo3.climate.cli_revision_rust
+import wepppyo3.raster_characteristics.raster_characteristics_rust
+import wepppyo3.roads_flowpath.roads_flowpath_rust
+import wepppyo3.sbs_map.sbs_map_rust
+import wepppyo3.swat_interchange.swat_interchange_rust
+import wepppyo3.swat_utils.swat_utils_rust
+import wepppyo3.watershed_abstraction.watershed_abstraction_rust
+import wepppyo3.wepp_interchange.wepp_interchange_rust
+import wepppyo3.wepp_viz.wepp_viz_rust
+print("ok")
+PY
+```
+
+`confirmed`: `sha256sum` for refreshed shared objects:
+
+| Shared object | SHA256 |
+| --- | --- |
+| `climate/cli_revision_rust.so` | `7acca8329b28e321004395d8d6c9bd20848ab2e686391d4a93e767a60c51e02c` |
+| `raster_characteristics/raster_characteristics_rust.so` | `84d249db1d8818756944f189a7116afd08b8789a4bf3887bb04b8983c506fcd2` |
+| `roads_flowpath/roads_flowpath_rust.so` | `974e031ccdb2c7450bc1267f98dd6669d5a3f4bdd731ca2bdfa76374fcdfcd3d` |
+| `sbs_map/sbs_map_rust.so` | `17a255f2f72dba49fa9d2d7c41125c82538227ac1b0eff1cf8cef0130fe4ea84` |
+| `swat_interchange/swat_interchange_rust.so` | `0f7e69c6e79ae9b0d75976d47fbc674019e5d29ee931f50680fc291f2a57de9f` |
+| `swat_utils/swat_utils_rust.so` | `2280b027bc97863ff51f33269efc3e08283f2a4be29185f10af8d4f414c44057` |
+| `watershed_abstraction/watershed_abstraction_rust.so` | `fdfc13683d700a9456a517d30f4d2b359f8b8529598704aca686c11c2117dc80` |
+| `wepp_interchange/wepp_interchange_rust.so` | `2ec361a47c278d1e9259393434ee225b4cf49d4852855d8c1c55fc3342a091a2` |
+| `wepp_viz/wepp_viz_rust.so` | `a0e06b79c8ecd7b13616eecb1280e41543939d7114e1532f09bf95494160d301` |
+
 ## Required Pre-Deployment Checks
 
 Before deploying a refreshed release tree, verify:

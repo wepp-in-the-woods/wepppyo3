@@ -69,9 +69,9 @@ pub fn segment_single_ofe_slope(
         } else if slope.length <= effective_buffer_length + target_length {
             n_mofes = 2;
         } else {
-            n_mofes =
-                round_half_even((slope.length - effective_buffer_length) / target_length) as i64
-                    + 1;
+            n_mofes = round_half_even((slope.length - effective_buffer_length) / target_length)
+                as i64
+                + 1;
             if n_mofes < 2 {
                 return Err(InterchangeError::parse(
                     src_fn,
@@ -205,7 +205,8 @@ fn resolve_dst_path(src_fn: &str, dst_fn: Option<&str>) -> PathBuf {
 
 fn parse_single_ofe_slope(src_fn: &str) -> Result<SingleOfeSlope, InterchangeError> {
     let src_path = Path::new(src_fn);
-    let text = std::fs::read_to_string(src_path).map_err(|err| InterchangeError::io(src_path, err))?;
+    let text =
+        std::fs::read_to_string(src_path).map_err(|err| InterchangeError::io(src_path, err))?;
     let lines = text
         .lines()
         .map(str::trim)
@@ -217,7 +218,10 @@ fn parse_single_ofe_slope(src_fn: &str) -> Result<SingleOfeSlope, InterchangeErr
         return Err(InterchangeError::parse(
             src_fn,
             None,
-            format!("expected at least 5 non-comment lines; found {}", lines.len()),
+            format!(
+                "expected at least 5 non-comment lines; found {}",
+                lines.len()
+            ),
             None,
         ));
     }

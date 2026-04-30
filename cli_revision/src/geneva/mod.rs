@@ -295,6 +295,14 @@ by duration for ARI (years):, 1,2
             .expect("hru_1 should be present");
         assert_eq!(hru_1["cn_lambda_005"], 99.0);
         assert_eq!(hru_1["selected_cn"], 99.0);
+        assert!(hru_1["peak_runoff_m3_s"].as_f64().is_some());
+        assert!(hru_1["time_to_peak_minutes"].as_f64().is_some());
+        assert!(
+            hru_1["peak_runoff_m3_s"]
+                .as_f64()
+                .expect("hru peak runoff should be numeric")
+                >= 0.0
+        );
         assert_eq!(
             parsed["composite_excess"]["incremental_excess_mm"]
                 .as_array()

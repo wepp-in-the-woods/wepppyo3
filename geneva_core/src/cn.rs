@@ -245,6 +245,8 @@ pub struct HruExcessSeries {
     pub initial_abstraction_mm: f64,
     pub cumulative_excess_mm: Vec<f64>,
     pub incremental_excess_mm: Vec<f64>,
+    pub peak_runoff_m3_s: f64,
+    pub time_to_peak_minutes: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -411,6 +413,8 @@ pub fn run_batch_cn_excess(request: &RunBatchRequest) -> Result<RunBatchResponse
             initial_abstraction_mm: transform.initial_abstraction_mm,
             cumulative_excess_mm,
             incremental_excess_mm,
+            peak_runoff_m3_s: 0.0,
+            time_to_peak_minutes: 0.0,
         });
     }
 
@@ -442,6 +446,19 @@ pub fn run_batch_cn_excess(request: &RunBatchRequest) -> Result<RunBatchResponse
         total_area_m2 / 1_000_000.0,
         dt_minutes,
     )?;
+    for hru_row in &mut hru_excess {
+        let hru_hydrograph_result = convolve_excess_to_hydrograph(
+            &request.time_minutes,
+            &hru_row.incremental_excess_mm,
+            &unit_hydrograph,
+            hru_row.area_m2,
+        )?;
+        hru_row.peak_runoff_m3_s = hru_hydrograph_result
+            .summary_metrics
+            .peak_discharge
+            .max(0.0);
+        hru_row.time_to_peak_minutes = hru_hydrograph_result.summary_metrics.time_to_peak.max(0.0);
+    }
     let hydrograph_result = convolve_excess_to_hydrograph(
         &request.time_minutes,
         &composite_incremental_excess_mm,
@@ -654,6 +671,72 @@ mod tests {
         assert_eq!(first, second);
         assert_eq!(first.hru_excess[0].hru_id, "hru_a");
         assert_eq!(first.hru_excess[1].hru_id, "hru_b");
+    }
+
+    #[test]
+    fn one_hru_peak_runoff_matches_watershed_peak_discharge() {
+        let mut request = valid_request();
+        request.hru_rows = vec![CnHruInput {
+            hru_id: "hru_only".to_string(),
+            area_m2: 2_500.0,
+            cn_lambda_020: 82.0,
+        }];
+
+        let response = run_batch_cn_excess(&request).expect("run_batch should succeed");
+        assert_eq!(response.hru_excess.len(), 1);
+        approx_eq(
+            response.hru_excess[0].peak_runoff_m3_s,
+            response.summary_metrics.peak_discharge,
+            1e-12,
+        );
+        approx_eq(
+            response.hru_excess[0].time_to_peak_minutes,
+            response.summary_metrics.time_to_peak,
+            1e-12,
+        );
+    }
+
+    #[test]
+    fn multi_hru_local_peaks_are_not_area_split_watershed_peak() {
+        let request = RunBatchRequest::from_payload_json(
+            r#"{
+                "kernel_schema_version": 1,
+                "storm_id": "storm_non_area_split",
+                "lambda_mode": "0.20",
+                "uh_method": "scs_curvilinear",
+                "tc_hours": 1.1,
+                "time_minutes": [0.0, 10.0, 20.0, 30.0, 40.0],
+                "cumulative_rainfall_mm": [0.0, 4.0, 20.0, 34.0, 48.0],
+                "hru_rows": [
+                    {"hru_id": "hru_fast", "area_m2": 1000.0, "cn_lambda_020": 95.0},
+                    {"hru_id": "hru_slow", "area_m2": 1000.0, "cn_lambda_020": 70.0}
+                ]
+            }"#,
+        )
+        .expect("payload should parse");
+        let response = run_batch_cn_excess(&request).expect("run_batch should succeed");
+        assert_eq!(response.hru_excess.len(), 2);
+
+        let naive_area_split_peak = response.summary_metrics.peak_discharge * 0.5;
+        let fast_peak = response
+            .hru_excess
+            .iter()
+            .find(|row| row.hru_id == "hru_fast")
+            .expect("hru_fast should exist")
+            .peak_runoff_m3_s;
+        let slow_peak = response
+            .hru_excess
+            .iter()
+            .find(|row| row.hru_id == "hru_slow")
+            .expect("hru_slow should exist")
+            .peak_runoff_m3_s;
+
+        assert!(
+            (fast_peak - naive_area_split_peak).abs() > 1e-9
+                || (slow_peak - naive_area_split_peak).abs() > 1e-9
+        );
+        assert!(fast_peak > naive_area_split_peak);
+        assert!(slow_peak < naive_area_split_peak);
     }
 
     #[test]

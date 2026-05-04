@@ -838,6 +838,42 @@ pub fn hill_wat_schema(version: &VersionInfo) -> Schema {
             Some("m^2"),
             Some("Area that depths apply over"),
         ),
+        field_with_meta(
+            "SoilWaterTotal",
+            DataType::Float64,
+            Some("mm"),
+            Some("Full-profile soil water depth (watcon + frozwt), optional producer-authoritative term"),
+        ),
+        field_with_meta(
+            "ProfileDepth",
+            DataType::Float64,
+            Some("mm"),
+            Some("Full soil profile depth (solthk(nsl)), optional producer-authoritative term"),
+        ),
+        field_with_meta(
+            "ProfilePorosityCap",
+            DataType::Float64,
+            Some("mm"),
+            Some("Full-profile porosity storage capacity (sum(por * dg)), optional producer-authoritative term"),
+        ),
+        field_with_meta(
+            "ProfileFCStore",
+            DataType::Float64,
+            Some("mm"),
+            Some("Full-profile field-capacity storage (sum(thetfc * dg)), optional producer-authoritative term"),
+        ),
+        field_with_meta(
+            "ProfileWPStore",
+            DataType::Float64,
+            Some("mm"),
+            Some("Full-profile wilting-point storage (sum(thetdr * dg)), optional producer-authoritative term"),
+        ),
+        field_with_meta(
+            "InterceptionStorage",
+            DataType::Float64,
+            Some("mm"),
+            Some("Plant/residue interception carryover storage (pintlv + resint), optional producer-authoritative term"),
+        ),
     ];
     schema_with_version(Schema::from(fields), version)
 }

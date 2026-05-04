@@ -62,6 +62,46 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: `wepp_interchange` (WB-06 downstream compatibility)
+
+`confirmed`: `wepp_interchange` shared object was rebuilt from local source
+commit `df4b8a7` at `2026-05-04T16:21:27Z` using:
+
+```sh
+cd /workdir/wepppyo3
+cargo build -p wepp_interchange_rust --release
+```
+
+`confirmed`: copied refreshed artifact:
+
+```sh
+cp target/release/libwepp_interchange_rust.so \
+  release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+```
+
+`confirmed`: runtime verification from release tree:
+
+```sh
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 - <<'PY'
+from wepppyo3.wepp_interchange import wepp_interchange_rust as wr
+print(wr.__file__)
+PY
+```
+
+`confirmed`: `hillslope_wat_to_columns` runtime checks passed for both enriched
+layouts:
+
+- with trailing `InterceptionStorage`,
+- without `InterceptionStorage` (legacy enriched optional columns only).
+
+`confirmed`: refreshed `wepp_interchange` SHA256:
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `3fe8dfd05ad248fa7a49b6f8810ed9bd1a06e8519bd163670df6f58428a0194a` |
+
+### Prior Full Refresh Snapshot
+
 `confirmed`: release tree refreshed from local source commit `34ab963842c8` at
 `2026-04-29T03:47:15Z` using:
 

@@ -19,7 +19,7 @@ const RAW_HEADER_SUBSTITUTIONS: [(&str, &str); 5] = [
     ("m^2", "(m^2)"),
 ];
 
-const WAT_COLUMN_NAMES: [&str; 20] = [
+const WAT_BASE_COLUMN_NAMES: [&str; 20] = [
     "OFE",
     "J",
     "Y",
@@ -40,6 +40,15 @@ const WAT_COLUMN_NAMES: [&str; 20] = [
     "Tile",
     "Irr",
     "Area",
+];
+
+const WAT_OPTIONAL_COLUMN_NAMES: [&str; 6] = [
+    "SoilWaterTotal",
+    "ProfileDepth",
+    "ProfilePorosityCap",
+    "ProfileFCStore",
+    "ProfileWPStore",
+    "InterceptionStorage",
 ];
 
 fn header_aliases() -> HashMap<&'static str, &'static str> {
@@ -63,9 +72,16 @@ fn header_aliases() -> HashMap<&'static str, &'static str> {
         ("Tile (mm)", "Tile"),
         ("Irr (mm)", "Irr"),
         ("Area (m^2)", "Area"),
+        ("SoilWaterTotal (mm)", "SoilWaterTotal"),
+        ("ProfileDepth (mm)", "ProfileDepth"),
+        ("ProfilePorosityCap (mm)", "ProfilePorosityCap"),
+        ("ProfileFCStore (mm)", "ProfileFCStore"),
+        ("ProfileWPStore (mm)", "ProfileWPStore"),
+        ("InterceptionStorage (mm)", "InterceptionStorage"),
     ])
 }
 
+#[derive(Debug)]
 pub struct WatColumns {
     wepp_id: Vec<i32>,
     ofe_id: Vec<i16>,
@@ -93,6 +109,12 @@ pub struct WatColumns {
     tile: Vec<f64>,
     irr: Vec<f64>,
     area: Vec<f64>,
+    soil_water_total: Vec<Option<f64>>,
+    profile_depth: Vec<Option<f64>>,
+    profile_porosity_cap: Vec<Option<f64>>,
+    profile_fc_store: Vec<Option<f64>>,
+    profile_wp_store: Vec<Option<f64>>,
+    interception_storage: Vec<Option<f64>>,
 }
 
 impl WatColumns {
@@ -124,6 +146,12 @@ impl WatColumns {
             tile: Vec::new(),
             irr: Vec::new(),
             area: Vec::new(),
+            soil_water_total: Vec::new(),
+            profile_depth: Vec::new(),
+            profile_porosity_cap: Vec::new(),
+            profile_fc_store: Vec::new(),
+            profile_wp_store: Vec::new(),
+            interception_storage: Vec::new(),
         }
     }
 
@@ -156,6 +184,17 @@ impl WatColumns {
         dict.set_item("Tile", self.tile).unwrap();
         dict.set_item("Irr", self.irr).unwrap();
         dict.set_item("Area", self.area).unwrap();
+        dict.set_item("SoilWaterTotal", self.soil_water_total)
+            .unwrap();
+        dict.set_item("ProfileDepth", self.profile_depth).unwrap();
+        dict.set_item("ProfilePorosityCap", self.profile_porosity_cap)
+            .unwrap();
+        dict.set_item("ProfileFCStore", self.profile_fc_store)
+            .unwrap();
+        dict.set_item("ProfileWPStore", self.profile_wp_store)
+            .unwrap();
+        dict.set_item("InterceptionStorage", self.interception_storage)
+            .unwrap();
         dict.into_py(py)
     }
 }
@@ -283,7 +322,7 @@ pub fn hillslope_wat_to_columns(
                 out.water_year.push(water_year as i16);
                 out.ofe.push(ofe_val as i16);
 
-                for name in WAT_COLUMN_NAMES.iter().skip(3) {
+                for name in WAT_BASE_COLUMN_NAMES.iter().skip(3) {
                     let token = tokens[*column_positions.get(*name).unwrap()];
                     let value = parse_required_float(token).map_err(|msg| {
                         InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
@@ -307,6 +346,34 @@ pub fn hillslope_wat_to_columns(
                         "Irr" => out.irr.push(value),
                         "Area" => out.area.push(value),
                         _ => {}
+                    }
+                }
+
+                for name in WAT_OPTIONAL_COLUMN_NAMES.iter() {
+                    if let Some(position) = column_positions.get(*name) {
+                        let token = tokens[*position];
+                        let value = parse_required_float(token).map_err(|msg| {
+                            InterchangeError::parse(path, None, msg, Some(raw_line.clone()))
+                        })?;
+                        match *name {
+                            "SoilWaterTotal" => out.soil_water_total.push(Some(value)),
+                            "ProfileDepth" => out.profile_depth.push(Some(value)),
+                            "ProfilePorosityCap" => out.profile_porosity_cap.push(Some(value)),
+                            "ProfileFCStore" => out.profile_fc_store.push(Some(value)),
+                            "ProfileWPStore" => out.profile_wp_store.push(Some(value)),
+                            "InterceptionStorage" => out.interception_storage.push(Some(value)),
+                            _ => {}
+                        }
+                    } else {
+                        match *name {
+                            "SoilWaterTotal" => out.soil_water_total.push(None),
+                            "ProfileDepth" => out.profile_depth.push(None),
+                            "ProfilePorosityCap" => out.profile_porosity_cap.push(None),
+                            "ProfileFCStore" => out.profile_fc_store.push(None),
+                            "ProfileWPStore" => out.profile_wp_store.push(None),
+                            "InterceptionStorage" => out.interception_storage.push(None),
+                            _ => {}
+                        }
                     }
                 }
             }
@@ -358,12 +425,9 @@ fn build_header_from_rows(
         })
         .collect();
 
-    if canonical_header
-        .iter()
-        .map(|s| s.as_str())
-        .collect::<Vec<_>>()
-        != WAT_COLUMN_NAMES
-    {
+    let base_len = WAT_BASE_COLUMN_NAMES.len();
+    let canonical_refs: Vec<&str> = canonical_header.iter().map(|s| s.as_str()).collect();
+    if canonical_refs.len() < base_len || canonical_refs[..base_len] != WAT_BASE_COLUMN_NAMES {
         return Err(InterchangeError::parse(
             path,
             None,
@@ -372,7 +436,180 @@ fn build_header_from_rows(
         ));
     }
 
+    let optional_header = &canonical_refs[base_len..];
+    if optional_header.len() > WAT_OPTIONAL_COLUMN_NAMES.len() {
+        return Err(InterchangeError::parse(
+            path,
+            None,
+            format!(
+                "Unexpected WAT column layout: {header:?}; optional columns must be trailing approved terms {:?}",
+                WAT_OPTIONAL_COLUMN_NAMES
+            ),
+            None,
+        ));
+    }
+    let expected_optional = &WAT_OPTIONAL_COLUMN_NAMES[..optional_header.len()];
+    if optional_header != expected_optional {
+        return Err(InterchangeError::parse(
+            path,
+            None,
+            format!(
+                "Unexpected WAT column layout: {header:?}; optional columns must be trailing approved terms {:?}",
+                WAT_OPTIONAL_COLUMN_NAMES
+            ),
+            None,
+        ));
+    }
+
     Ok(canonical_header)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::path::{Path, PathBuf};
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn make_temp_dir(label: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock before epoch")
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!(
+            "wepp_interchange_hill_wat_{label}_{}_{}",
+            std::process::id(),
+            nonce
+        ));
+        fs::create_dir_all(&dir).expect("failed to create temp directory");
+        dir
+    }
+
+    fn write_wat(path: &Path, header: &str, row: &str) {
+        let mut payload = String::new();
+        payload.push_str(header);
+        payload.push_str(row);
+        payload.push('\n');
+        fs::write(path, payload).expect("failed to write wat file");
+    }
+
+    const HEADER_BASE: &str = " ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  OFE    J    Y      P      RM     Q                Ep      Es      Er     Dp       UpStrmQ   SubRIn    latqcc Total-Soil frozwt Snow-Water QOFE            Tile    Irr        Area
+  #      -    -      mm     mm     mm               mm      mm      mm       mm      mm           mm      mm   Water(mm)   mm        mm      mm             mm      mm         m^2
+ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+";
+
+    const HEADER_ENRICHED: &str = " ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  OFE    J    Y      P      RM     Q                Ep      Es      Er     Dp       UpStrmQ   SubRIn    latqcc Total-Soil frozwt Snow-Water QOFE            Tile    Irr        Area SoilWaterTotal ProfileDepth ProfilePorosityCap ProfileFCStore ProfileWPStore InterceptionStorage
+  #      -    -      mm     mm     mm               mm      mm      mm       mm      mm           mm      mm   Water(mm)   mm        mm      mm             mm      mm         m^2             mm           mm                 mm             mm             mm                  mm
+ ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+";
+    const HEADER_ENRICHED_NO_INTERCEPTION: &str = " ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  OFE    J    Y      P      RM     Q                Ep      Es      Er     Dp       UpStrmQ   SubRIn    latqcc Total-Soil frozwt Snow-Water QOFE            Tile    Irr        Area SoilWaterTotal ProfileDepth ProfilePorosityCap ProfileFCStore ProfileWPStore
+  #      -    -      mm     mm     mm               mm      mm      mm       mm      mm           mm      mm   Water(mm)   mm        mm      mm             mm      mm         m^2             mm           mm                 mm             mm             mm
+ ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+";
+
+    #[test]
+    fn parses_legacy_layout_with_null_optional_terms() {
+        let temp_dir = make_temp_dir("legacy");
+        let wat_path = temp_dir.join("H1.wat.dat");
+        write_wat(
+            &wat_path,
+            HEADER_BASE,
+            "     1    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00",
+        );
+
+        let version = VersionInfo::new(1, 0);
+        let cols = hillslope_wat_to_columns(&wat_path, None, &version).expect("parse failed");
+        assert_eq!(cols.p.len(), 1);
+        assert_eq!(cols.total_soil_water[0], 100.0);
+        assert_eq!(cols.soil_water_total[0], None);
+        assert_eq!(cols.interception_storage[0], None);
+    }
+
+    #[test]
+    fn parses_enriched_layout_with_interception_storage() {
+        let temp_dir = make_temp_dir("enriched");
+        let wat_path = temp_dir.join("H1.wat.dat");
+        write_wat(
+            &wat_path,
+            HEADER_ENRICHED,
+            "     1    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00         101.25      1000.00             510.00         310.00         130.00               0.45",
+        );
+
+        let version = VersionInfo::new(1, 0);
+        let cols = hillslope_wat_to_columns(&wat_path, None, &version).expect("parse failed");
+        assert_eq!(cols.soil_water_total[0], Some(101.25));
+        assert_eq!(cols.profile_depth[0], Some(1000.0));
+        assert_eq!(cols.profile_porosity_cap[0], Some(510.0));
+        assert_eq!(cols.profile_fc_store[0], Some(310.0));
+        assert_eq!(cols.profile_wp_store[0], Some(130.0));
+        assert_eq!(cols.interception_storage[0], Some(0.45));
+    }
+
+    #[test]
+    fn parses_enriched_layout_without_interception_storage() {
+        let temp_dir = make_temp_dir("enriched_without_interception");
+        let wat_path = temp_dir.join("H1.wat.dat");
+        write_wat(
+            &wat_path,
+            HEADER_ENRICHED_NO_INTERCEPTION,
+            "     1    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00         101.25      1000.00             510.00         310.00         130.00",
+        );
+
+        let version = VersionInfo::new(1, 0);
+        let cols = hillslope_wat_to_columns(&wat_path, None, &version).expect("parse failed");
+        assert_eq!(cols.soil_water_total[0], Some(101.25));
+        assert_eq!(cols.profile_depth[0], Some(1000.0));
+        assert_eq!(cols.profile_porosity_cap[0], Some(510.0));
+        assert_eq!(cols.profile_fc_store[0], Some(310.0));
+        assert_eq!(cols.profile_wp_store[0], Some(130.0));
+        assert_eq!(cols.interception_storage[0], None);
+    }
+
+    #[test]
+    fn rejects_unknown_optional_column() {
+        let temp_dir = make_temp_dir("unknown_header");
+        let wat_path = temp_dir.join("H1.wat.dat");
+        write_wat(
+            &wat_path,
+            &HEADER_ENRICHED.replace("ProfileWPStore", "UnexpectedExtra"),
+            "     1    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00         101.25      1000.00             510.00         310.00         130.00               0.45",
+        );
+
+        let version = VersionInfo::new(1, 0);
+        let err = hillslope_wat_to_columns(&wat_path, None, &version)
+            .expect_err("expected layout parse failure");
+        let msg = err.display_message();
+        assert!(msg.contains("Unexpected WAT column layout"));
+    }
+
+    #[test]
+    fn rejects_overlong_optional_layout() {
+        let temp_dir = make_temp_dir("overlong_optional_header");
+        let wat_path = temp_dir.join("H1.wat.dat");
+        let header_overlong = " ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  OFE    J    Y      P      RM     Q                Ep      Es      Er     Dp       UpStrmQ   SubRIn    latqcc Total-Soil frozwt Snow-Water QOFE            Tile    Irr        Area SoilWaterTotal ProfileDepth ProfilePorosityCap ProfileFCStore ProfileWPStore InterceptionStorage ExtraOptional
+  #      -    -      mm     mm     mm               mm      mm      mm       mm      mm           mm      mm   Water(mm)   mm        mm      mm             mm      mm         m^2             mm           mm                 mm             mm             mm                  mm            mm
+ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+";
+        write_wat(
+            &wat_path,
+            header_overlong,
+            "     1    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00         101.25      1000.00             510.00         310.00         130.00               0.45               9.99",
+        );
+
+        let version = VersionInfo::new(1, 0);
+        let err = hillslope_wat_to_columns(&wat_path, None, &version)
+            .expect_err("expected layout parse failure");
+        let msg = err.display_message();
+        assert!(msg.contains("Unexpected WAT column layout"));
+    }
 }
 
 fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {

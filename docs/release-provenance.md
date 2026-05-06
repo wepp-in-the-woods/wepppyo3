@@ -62,6 +62,67 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: `wepp_interchange` (PS-07 HBP release sync)
+
+`confirmed`: `wepp_interchange` shared object was rebuilt from local source
+commit `4de5350` at `2026-05-06T16:47:32Z` using:
+
+```sh
+cd /workdir/wepppyo3
+export PYO3_PYTHON=/usr/bin/python3.12
+export PYTHON_SYS_EXECUTABLE=/usr/bin/python3.12
+cargo build -p wepp_interchange_rust --release
+```
+
+`confirmed`: copied refreshed artifact:
+
+```sh
+cp target/release/libwepp_interchange_rust.so \
+  release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+```
+
+`confirmed`: runtime verification from release tree includes PS-07 callable
+surface with explicit pass-family routing:
+
+```sh
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 - <<'PY'
+import inspect
+from wepppyo3.wepp_interchange import wepp_interchange_rust as wr
+print(inspect.signature(wr.hillslope_pass_to_columns))
+PY
+```
+
+Expected signature:
+
+```text
+(pass_path, version_major, version_minor, cli_calendar_path=None, pass_family=None)
+```
+
+`confirmed`: PS-07 invalid process-name guard is active in the release artifact:
+
+```sh
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 - <<'PY'
+from wepppyo3.wepp_interchange import hillslope_pass_to_columns
+try:
+    hillslope_pass_to_columns('/tmp/H0001.pass.hbp', 1, 95, pass_family='hbp')
+except Exception as exc:
+    print(type(exc).__name__)
+    print(str(exc))
+PY
+```
+
+Expected error text includes:
+
+```text
+invalid process HBP name; use H*.hbp (rejecting H*.pass.hbp and H*.pass.dat.hbp)
+```
+
+`confirmed`: refreshed `wepp_interchange` SHA256:
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `61537d79173aa8d3a49d1135774da745c5bce9eb9ce209935cd8af39b161a02c` |
+
 ### Targeted Refresh: `wepp_interchange` (WB-06 downstream compatibility)
 
 `confirmed`: `wepp_interchange` shared object was rebuilt from local source

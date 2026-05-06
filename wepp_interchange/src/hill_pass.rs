@@ -54,7 +54,7 @@ pub struct PassColumns {
 }
 
 impl PassColumns {
-    fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             wepp_id: Vec::new(),
             event: Vec::new(),
@@ -561,7 +561,7 @@ fn line_tokens(line: &str) -> Vec<String> {
     payload.split_whitespace().map(|t| t.to_string()).collect()
 }
 
-fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
+pub(crate) fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     let name = path
         .file_name()
         .and_then(|n| n.to_str())

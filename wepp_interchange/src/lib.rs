@@ -29,6 +29,7 @@ mod errors;
 mod floats;
 mod hill_ebe;
 mod hill_element;
+mod hill_hbp;
 mod hill_loss;
 mod hill_pass;
 mod hill_pass_combine;
@@ -332,21 +333,89 @@ fn watershed_chan_peak_to_parquet(
 }
 
 #[pyfunction]
-#[pyo3(signature = (pass_path, version_major, version_minor, cli_calendar_path=None))]
+#[pyo3(signature = (pass_path, version_major, version_minor, cli_calendar_path=None, pass_family=None))]
 fn hillslope_pass_to_columns(
     pass_path: String,
     version_major: u32,
     version_minor: u32,
     cli_calendar_path: Option<String>,
+    pass_family: Option<String>,
 ) -> PyResult<PyObject> {
     let version = VersionInfo::new(version_major, version_minor);
     let pass_path = PathBuf::from(pass_path);
     let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
 
-    let columns =
-        hill_pass::hillslope_pass_to_columns(&pass_path, cli_calendar_path.as_deref(), &version)
-            .map_err(to_py_err)?;
+    let pass_family = parse_hillslope_pass_family(pass_family.as_deref())?;
+    if matches!(
+        pass_family,
+        HillslopePassFamily::Hbp | HillslopePassFamily::Auto
+    ) && has_invalid_hbp_name(&pass_path)
+    {
+        return Err(PyValueError::new_err(
+            "invalid process HBP name; use H*.hbp (rejecting H*.pass.hbp and H*.pass.dat.hbp)",
+        ));
+    }
+
+    let columns = match pass_family {
+        HillslopePassFamily::LegacyAscii => {
+            hill_pass::hillslope_pass_to_columns(&pass_path, cli_calendar_path.as_deref(), &version)
+        }
+        HillslopePassFamily::Hbp => {
+            hill_hbp::hillslope_hbp_to_columns(&pass_path, cli_calendar_path.as_deref(), &version)
+        }
+        HillslopePassFamily::Auto => {
+            if pass_path
+                .file_name()
+                .and_then(|value| value.to_str())
+                .map(|value| value.ends_with(".hbp"))
+                .unwrap_or(false)
+            {
+                hill_hbp::hillslope_hbp_to_columns(
+                    &pass_path,
+                    cli_calendar_path.as_deref(),
+                    &version,
+                )
+            } else {
+                hill_pass::hillslope_pass_to_columns(
+                    &pass_path,
+                    cli_calendar_path.as_deref(),
+                    &version,
+                )
+            }
+        }
+    }
+    .map_err(to_py_err)?;
     Ok(Python::with_gil(|py| columns.into_pydict(py)))
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum HillslopePassFamily {
+    Auto,
+    LegacyAscii,
+    Hbp,
+}
+
+fn parse_hillslope_pass_family(value: Option<&str>) -> PyResult<HillslopePassFamily> {
+    let Some(raw) = value else {
+        return Ok(HillslopePassFamily::Auto);
+    };
+    let normalized = raw.trim().to_ascii_lowercase();
+    match normalized.as_str() {
+        "" | "auto" => Ok(HillslopePassFamily::Auto),
+        "legacy_ascii" | "legacy" | "pass_dat" | "pass.dat" => Ok(HillslopePassFamily::LegacyAscii),
+        "hbp" => Ok(HillslopePassFamily::Hbp),
+        _ => Err(PyValueError::new_err(format!(
+            "unsupported pass_family '{raw}'; expected one of: auto, legacy_ascii, hbp"
+        ))),
+    }
+}
+
+fn has_invalid_hbp_name(path: &PathBuf) -> bool {
+    let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+        return false;
+    };
+    let lower = name.to_ascii_lowercase();
+    lower.ends_with(".pass.hbp") || lower.ends_with(".pass.dat.hbp")
 }
 
 #[pyfunction]

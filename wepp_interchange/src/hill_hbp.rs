@@ -879,3 +879,86 @@ pub fn hillslope_hbp_to_columns(
 
     Ok(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::hillslope_hbp_to_columns;
+    use crate::errors::InterchangeError;
+    use crate::schema::VersionInfo;
+    use std::fs;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn write_temp_hbp(bytes: &[u8]) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock should be after UNIX_EPOCH")
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("wepp_interchange_hbp_tests_{nonce}"));
+        fs::create_dir_all(&dir).expect("temp dir should be created");
+        let path = dir.join("H1.hbp");
+        fs::write(&path, bytes).expect("fixture should be written");
+        path
+    }
+
+    fn assert_parse_message(err: InterchangeError, expected_fragment: &str) {
+        match err {
+            InterchangeError::Parse { message, .. } => {
+                assert!(
+                    message.contains(expected_fragment),
+                    "expected parse message to contain '{expected_fragment}', got '{message}'"
+                );
+            }
+            other => panic!("expected parse error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_rejects_bad_magic() {
+        let path = write_temp_hbp(b"BADHBP00");
+        let version = VersionInfo::new(7, 0);
+
+        let err = match hillslope_hbp_to_columns(&path, None, &version) {
+            Ok(_) => panic!("bad magic must fail"),
+            Err(err) => err,
+        };
+
+        assert_parse_message(err, "bad magic");
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_rejects_unsupported_endianness() {
+        let mut payload = Vec::new();
+        payload.extend_from_slice(b"WFPHBP01");
+        payload.extend_from_slice(&1u16.to_le_bytes());
+        payload.extend_from_slice(&0u16.to_le_bytes());
+        payload.push(0u8); // unsupported endianness marker
+        let path = write_temp_hbp(&payload);
+        let version = VersionInfo::new(7, 0);
+
+        let err = match hillslope_hbp_to_columns(&path, None, &version) {
+            Ok(_) => panic!("unsupported endianness must fail"),
+            Err(err) => err,
+        };
+
+        assert_parse_message(err, "unsupported endianness");
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_rejects_truncated_payload() {
+        let mut payload = Vec::new();
+        payload.extend_from_slice(b"WFPHBP01");
+        payload.extend_from_slice(&1u16.to_le_bytes());
+        payload.extend_from_slice(&0u16.to_le_bytes());
+        payload.push(1u8); // little endian
+        let path = write_temp_hbp(&payload);
+        let version = VersionInfo::new(7, 0);
+
+        let err = match hillslope_hbp_to_columns(&path, None, &version) {
+            Ok(_) => panic!("truncated header must fail"),
+            Err(err) => err,
+        };
+
+        assert_parse_message(err, "truncated payload");
+    }
+}

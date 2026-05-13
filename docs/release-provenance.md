@@ -62,6 +62,44 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: `raster_characteristics` deterministic-order hardening
+
+`confirmed`: `raster_characteristics` shared object refreshed on
+`2026-05-13T03:32Z` using:
+
+```sh
+cd /workdir/wepppyo3
+export PYO3_PYTHON=/usr/bin/python3.12
+export PYTHON_SYS_EXECUTABLE=$PYO3_PYTHON
+cargo build -p raster_characteristics_rust --release
+```
+
+`confirmed`: copied refreshed artifact:
+
+```sh
+cp target/release/libraster_characteristics_rust.so \
+  release/linux/py312/wepppyo3/raster_characteristics/raster_characteristics_rust.so
+```
+
+`confirmed`: runtime import verification from the release tree:
+
+```sh
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 -c \
+  "from wepppyo3.raster_characteristics import raster_characteristics_rust as rc; print(rc.__file__)"
+```
+
+Expected output path:
+
+```text
+/workdir/wepppyo3/release/linux/py312/wepppyo3/raster_characteristics/raster_characteristics_rust.so
+```
+
+`confirmed`: refreshed `raster_characteristics` SHA256:
+
+| Shared object | SHA256 |
+| --- | --- |
+| `raster_characteristics/raster_characteristics_rust.so` | `a2dddb70c3c9670bad8c4103b64d455539896d5ea1be17a99d9c5adc88dccda6` |
+
 ### Targeted Refresh: `wepp_interchange` (PS-07 HBP release sync)
 
 `confirmed`: `wepp_interchange` shared object was rebuilt from local source

@@ -110,6 +110,12 @@ release artifact paths.
 - `identify_median_single_raster_key(...)`
 - `identify_median_intersecting_raster_keys(...)`
 
+Deterministic-order contract:
+
+- All public map-returning raster-characteristics APIs return deterministic key order for identical inputs.
+- Nested maps (`key -> key2 -> value`) are deterministic at both levels.
+- Value and error semantics are unchanged by this ordering hardening.
+
 ### `wepppyo3.sbs_map`
 
 - `summarize_sbs_raster(path, *, color_map_path=None)`
@@ -260,6 +266,13 @@ If you only need one crate, build with `-p` and copy the corresponding `.so`:
 ```sh
 cargo build -p raster_characteristics_rust --release
 ```
+
+Latest targeted refresh evidence (`raster_characteristics`, 2026-05-13 UTC):
+
+- Import proof:
+  `/workdir/wepppyo3/release/linux/py312/wepppyo3/raster_characteristics/raster_characteristics_rust.so`
+- SHA256:
+  `a2dddb70c3c9670bad8c4103b64d455539896d5ea1be17a99d9c5adc88dccda6`
 
 ## ARM64 Mac Build Notes
 

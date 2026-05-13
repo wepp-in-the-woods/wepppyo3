@@ -132,7 +132,7 @@ fn count_intersecting_raster_key_pairs(
 ///
 /// # Returns
 ///
-/// `PyResult<HashMap<String, i32>>` - A HashMap where each key represents a unique key from
+/// `PyResult<BTreeMap<String, i32>>` - A map where each key represents a unique key from
 /// `key_map` and the associated value is the mode (most frequently occurring) value for that key
 /// from `parameter_map`.
 ///
@@ -169,7 +169,7 @@ fn identify_mode_single_raster_key(
     ignore_channels: bool,
     mut ignore_keys: HashSet<i32>,
     band_indx: isize,
-) -> PyResult<HashMap<String, i32>> {
+) -> PyResult<BTreeMap<String, i32>> {
     let key_map: Raster<i32> = Raster::<i32>::read(key_fn).unwrap();
     let parameter_map: Raster<i32> = Raster::<i32>::read_band(parameter_fn, band_indx).unwrap();
 
@@ -215,7 +215,7 @@ fn identify_mode_single_raster_key(
         .map(|(&val, _)| val);
     let fallback_val = global_mode.or(parameter_map.no_data);
 
-    let mut result: HashMap<String, i32> = HashMap::new();
+    let mut result: BTreeMap<String, i32> = BTreeMap::new();
     for key in all_keys {
         if let Some(sub_map) = count_d.get(&key) {
             if let Some((&val, &_count)) =
@@ -267,8 +267,8 @@ fn identify_mode_single_raster_key(
 ///
 /// # Returns
 ///
-/// `PyResult<HashMap<String, HashMap<String, i32>>>` - A nested HashMap where each entry associates a key from `key_fn`
-/// with another HashMap. This inner HashMap associates keys from `key2_fn` with the mode parameter value for that key pair.
+/// `PyResult<BTreeMap<String, BTreeMap<String, i32>>>` - A nested map where each entry associates a key from `key_fn`
+/// with another map. This inner map associates keys from `key2_fn` with the mode parameter value for that key pair.
 ///
 /// # Errors
 ///
@@ -306,7 +306,7 @@ fn identify_mode_intersecting_raster_keys(
     mut ignore_keys: HashSet<i32>,
     mut ignore_keys2: HashSet<i32>,
     band_indx: isize,
-) -> PyResult<HashMap<String, HashMap<String, i32>>> {
+) -> PyResult<BTreeMap<String, BTreeMap<String, i32>>> {
     let key_map: Raster<i32> = Raster::<i32>::read(key_fn).unwrap();
     let key2_map: Raster<i32> = Raster::<i32>::read(key2_fn).unwrap();
     let parameter_map: Raster<i32> = Raster::<i32>::read_band(parameter_fn, band_indx).unwrap();
@@ -375,9 +375,9 @@ fn identify_mode_intersecting_raster_keys(
     let fallback_val = global_mode.or(parameter_map.no_data);
 
     // Determine the mode value for each key, key2 pair
-    let mut result: HashMap<String, HashMap<String, i32>> = HashMap::new();
+    let mut result: BTreeMap<String, BTreeMap<String, i32>> = BTreeMap::new();
     for (key, key2_set) in key2s_by_key {
-        let mut key2_mode_map: HashMap<String, i32> = HashMap::new();
+        let mut key2_mode_map: BTreeMap<String, i32> = BTreeMap::new();
         for key2 in key2_set {
             if let Some(val_count_map) = count_d.get(&key).and_then(|m| m.get(&key2)) {
                 if let Some((&val, &_count)) =
@@ -429,7 +429,7 @@ fn identify_mode_intersecting_raster_keys(
 ///
 /// # Returns
 ///
-/// `PyResult<HashMap<String, f64>>` - A HashMap where each key represents a unique key from
+/// `PyResult<BTreeMap<String, f64>>` - A map where each key represents a unique key from
 /// `key_map` and the associated value is the mode (most frequently occurring) value for that key
 /// from `parameter_map`.
 ///
@@ -466,7 +466,7 @@ fn identify_median_single_raster_key(
     ignore_channels: bool,
     mut ignore_keys: HashSet<i32>,
     band_indx: isize,
-) -> PyResult<HashMap<String, f64>> {
+) -> PyResult<BTreeMap<String, f64>> {
     let key_map: Raster<i32> = Raster::<i32>::read(key_fn).unwrap();
     let parameter_map: Raster<f64> = Raster::<f64>::read_band(parameter_fn, band_indx).unwrap();
 
@@ -497,7 +497,7 @@ fn identify_median_single_raster_key(
         values_d.entry(*key).or_insert_with(Vec::new).push(val);
     }
 
-    let mut result: HashMap<String, f64> = HashMap::new();
+    let mut result: BTreeMap<String, f64> = BTreeMap::new();
     for (key, values) in values_d {
         let median = calculate_median(values);
         result.insert(key.to_string(), median);
@@ -526,8 +526,8 @@ fn identify_median_single_raster_key(
 ///
 /// # Returns
 ///
-/// `PyResult<HashMap<String, HashMap<String, f64>>>` - A nested HashMap where each entry associates a key from `key_fn`
-/// with another HashMap. This inner HashMap associates keys from `key2_fn` with the mode parameter value for that key pair.
+/// `PyResult<BTreeMap<String, BTreeMap<String, f64>>>` - A nested map where each entry associates a key from `key_fn`
+/// with another map. This inner map associates keys from `key2_fn` with the mode parameter value for that key pair.
 ///
 /// # Errors
 ///
@@ -565,7 +565,7 @@ fn identify_median_intersecting_raster_keys(
     mut ignore_keys: HashSet<i32>,
     mut ignore_keys2: HashSet<i32>,
     band_indx: isize,
-) -> PyResult<HashMap<String, HashMap<String, f64>>> {
+) -> PyResult<BTreeMap<String, BTreeMap<String, f64>>> {
     let key_map: Raster<i32> = Raster::<i32>::read(key_fn).unwrap();
     let key2_map: Raster<i32> = Raster::<i32>::read(key2_fn).unwrap();
     let parameter_map: Raster<f64> = Raster::<f64>::read_band(parameter_fn, band_indx).unwrap();
@@ -616,9 +616,9 @@ fn identify_median_intersecting_raster_keys(
     }
 
     // Compute the median value for each key, key2 pair
-    let mut result: HashMap<String, HashMap<String, f64>> = HashMap::new();
+    let mut result: BTreeMap<String, BTreeMap<String, f64>> = BTreeMap::new();
     for (key, sub_map) in values_d {
-        let mut key2_median_map: HashMap<String, f64> = HashMap::new();
+        let mut key2_median_map: BTreeMap<String, f64> = BTreeMap::new();
         for (key2, values) in sub_map {
             let median = calculate_median(values);
             key2_median_map.insert(key2.to_string(), median);

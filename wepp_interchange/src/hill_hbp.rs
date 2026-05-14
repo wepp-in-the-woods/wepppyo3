@@ -3,6 +3,8 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
+use flate2::read::ZlibDecoder;
+
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
     CalendarLookup,
@@ -13,12 +15,15 @@ use crate::schema::VersionInfo;
 
 const MAGIC: &[u8; 8] = b"WFPHBP01";
 const FOOTER_MAGIC: &[u8; 8] = b"ENDHBP01";
-const SUPPORTED_MAJOR: u16 = 1;
-const SUPPORTED_MINOR: u16 = 0;
+const SUPPORTED_MAJOR_V1: u16 = 1;
+const SUPPORTED_MINOR_V1: u16 = 0;
+const SUPPORTED_MAJOR_V2: u16 = 2;
+const SUPPORTED_MINOR_V2: u16 = 0;
 const SCALE_I64: f64 = 1e-9;
 const DIM_SCALAR: u8 = 0;
 const DIM_NOFE: u8 = 1;
 const DIM_NOFE_LAYERS: u8 = 2;
+const PAYLOAD_CODEC_ZLIB: u8 = 1;
 
 const REQUIRED_STATE_IDS: &[u16] = &[
     1, 2, 3, 4, 5, 6, 7, 100, 101, 102, 103, 104, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209,
@@ -32,6 +37,7 @@ struct YearEntry {
     days_in_year: u16,
     first_julian_day: u16,
     last_julian_day: u16,
+    single_storm_flag: u8,
 }
 
 #[derive(Clone, Copy)]
@@ -40,12 +46,39 @@ struct DirectoryEntry {
     calendar_year: i32,
     julian_day: u16,
     event_kind: u8,
-    payload_offset: usize,
-    payload_length: usize,
-    payload_crc32c: u32,
+    payload: EntryPayload,
+}
+
+#[derive(Clone, Copy)]
+enum EntryPayload {
+    SchemaV1 {
+        payload_offset: usize,
+        payload_length: usize,
+        payload_crc32c: u32,
+    },
+    SchemaV2 {
+        payload_block_id: usize,
+        day_in_block_index: u16,
+        raw_payload_offset: usize,
+        raw_payload_length: usize,
+        raw_payload_crc32c: u32,
+    },
+}
+
+#[derive(Clone, Copy)]
+struct PayloadBlockEntry {
+    sim_year_index: u32,
+    stored_block_offset: usize,
+    stored_block_length: usize,
+    raw_block_length: usize,
+    payload_codec: u8,
+    stored_block_crc32c: u32,
+    raw_block_crc32c: u32,
 }
 
 struct Layout {
+    schema_major: u16,
+    schema_minor: u16,
     begin_year: i32,
     npart: usize,
     nofe: u32,
@@ -55,6 +88,8 @@ struct Layout {
     directory_start: usize,
     directory_end: usize,
     footer_start: usize,
+    payload_blocks: Vec<PayloadBlockEntry>,
+    raw_payload_blocks: Vec<Vec<u8>>,
 }
 
 struct Cursor<'a> {
@@ -251,9 +286,15 @@ fn validate_year_table(
     path: &Path,
     years: &[YearEntry],
     nyear: u32,
+    schema_major: u16,
+    simulation_mode: u8,
 ) -> Result<u32, InterchangeError> {
     if years.len() != nyear as usize {
         return Err(parse_error(path, "year table count mismatch"));
+    }
+
+    if schema_major == SUPPORTED_MAJOR_V2 && simulation_mode != 1 {
+        return Err(parse_error(path, "schema 2.0 requires simulation_mode = 1"));
     }
 
     let mut expected_record_count = 0u32;
@@ -279,10 +320,48 @@ fn validate_year_table(
                 "year table days_in_year must match julian-day range",
             ));
         }
+        if schema_major == SUPPORTED_MAJOR_V2 {
+            if year.days_in_year != 366 {
+                return Err(parse_error(
+                    path,
+                    "schema 2.0 year table days_in_year must be 366",
+                ));
+            }
+            if year.first_julian_day != 1 || year.last_julian_day != 366 {
+                return Err(parse_error(
+                    path,
+                    "schema 2.0 year table range must be 1..366",
+                ));
+            }
+            if year.single_storm_flag != 0 {
+                return Err(parse_error(path, "schema 2.0 single_storm_flag must be 0"));
+            }
+        }
         expected_record_count += year.days_in_year as u32;
     }
 
     Ok(expected_record_count)
+}
+
+fn decode_zlib_block(
+    path: &Path,
+    source: &[u8],
+    expected_raw_length: usize,
+) -> Result<Vec<u8>, InterchangeError> {
+    let mut decoder = ZlibDecoder::new(source);
+    let mut raw = Vec::new();
+    decoder
+        .read_to_end(&mut raw)
+        .map_err(|_| parse_error(path, "schema 2.x zlib decode failed"))?;
+    if raw.len() != expected_raw_length {
+        return Err(parse_error(path, "schema 2.x zlib decoded length mismatch"));
+    }
+    Ok(raw)
+}
+
+fn u64_to_usize(path: &Path, value: u64, field_name: &str) -> Result<usize, InterchangeError> {
+    usize::try_from(value)
+        .map_err(|_| parse_error(path, format!("{field_name} exceeds platform limits")))
 }
 
 fn parse_layout(data: &[u8], path: &Path) -> Result<Layout, InterchangeError> {
@@ -295,11 +374,18 @@ fn parse_layout(data: &[u8], path: &Path) -> Result<Layout, InterchangeError> {
 
     let schema_major = cursor.u16().map_err(|msg| parse_error(path, msg))?;
     let schema_minor = cursor.u16().map_err(|msg| parse_error(path, msg))?;
-    if schema_major != SUPPORTED_MAJOR {
-        return Err(parse_error(path, "unsupported schema major"));
-    }
-    if schema_minor > SUPPORTED_MINOR {
-        return Err(parse_error(path, "unsupported schema minor"));
+    match schema_major {
+        SUPPORTED_MAJOR_V1 => {
+            if schema_minor > SUPPORTED_MINOR_V1 {
+                return Err(parse_error(path, "unsupported schema minor"));
+            }
+        }
+        SUPPORTED_MAJOR_V2 => {
+            if schema_minor > SUPPORTED_MINOR_V2 {
+                return Err(parse_error(path, "unsupported schema minor"));
+            }
+        }
+        _ => return Err(parse_error(path, "unsupported schema major")),
     }
 
     let endianness = cursor.u8().map_err(|msg| parse_error(path, msg))?;
@@ -313,7 +399,10 @@ fn parse_layout(data: &[u8], path: &Path) -> Result<Layout, InterchangeError> {
     }
 
     let _compatibility_id = cursor.raw(32).map_err(|msg| parse_error(path, msg))?;
-    let _artifact_role = cursor.u8().map_err(|msg| parse_error(path, msg))?;
+    let artifact_role = cursor.u8().map_err(|msg| parse_error(path, msg))?;
+    if artifact_role != 1 {
+        return Err(parse_error(path, "unsupported artifact role"));
+    }
     let _producer = cursor.string().map_err(|msg| parse_error(path, msg))?;
     let _run_id = cursor.string().map_err(|msg| parse_error(path, msg))?;
     let _created_utc = cursor.string().map_err(|msg| parse_error(path, msg))?;
@@ -340,7 +429,7 @@ fn parse_layout(data: &[u8], path: &Path) -> Result<Layout, InterchangeError> {
     let max_layers = cursor.u16().map_err(|msg| parse_error(path, msg))? as u32;
     let _calendar_policy_id = cursor.string().map_err(|msg| parse_error(path, msg))?;
     let _event_enum_version = cursor.u16().map_err(|msg| parse_error(path, msg))?;
-    let _simulation_mode = cursor.u8().map_err(|msg| parse_error(path, msg))?;
+    let simulation_mode = cursor.u8().map_err(|msg| parse_error(path, msg))?;
 
     let _climate_file_name = cursor.string().map_err(|msg| parse_error(path, msg))?;
     let _hillslope_area_i64 = cursor.i64().map_err(|msg| parse_error(path, msg))?;
@@ -365,12 +454,13 @@ fn parse_layout(data: &[u8], path: &Path) -> Result<Layout, InterchangeError> {
             days_in_year: cursor.u16().map_err(|msg| parse_error(path, msg))?,
             first_julian_day: cursor.u16().map_err(|msg| parse_error(path, msg))?,
             last_julian_day: cursor.u16().map_err(|msg| parse_error(path, msg))?,
+            single_storm_flag: cursor.u8().map_err(|msg| parse_error(path, msg))?,
         };
-        let _single_storm_flag = cursor.u8().map_err(|msg| parse_error(path, msg))?;
         years.push(entry);
     }
 
-    let expected_record_count = validate_year_table(path, &years, nyear)?;
+    let expected_record_count =
+        validate_year_table(path, &years, nyear, schema_major, simulation_mode)?;
 
     let registry_count = cursor.u32().map_err(|msg| parse_error(path, msg))?;
     let mut registry_state_ids = Vec::with_capacity(registry_count as usize);
@@ -424,23 +514,53 @@ fn parse_layout(data: &[u8], path: &Path) -> Result<Layout, InterchangeError> {
     let mut entries = Vec::with_capacity(record_count);
 
     for _ in 0..record_count {
-        let entry_offset = cursor.pos;
         let sim_year_index = cursor.u32().map_err(|msg| parse_error(path, msg))?;
         let calendar_year = cursor.i32().map_err(|msg| parse_error(path, msg))?;
         let julian_day = cursor.u16().map_err(|msg| parse_error(path, msg))?;
         let event_kind = cursor.u8().map_err(|msg| parse_error(path, msg))?;
-        let payload_offset = cursor.u64().map_err(|msg| parse_error(path, msg))? as usize;
-        let payload_length = cursor.u32().map_err(|msg| parse_error(path, msg))? as usize;
-        let payload_crc32c = cursor.u32().map_err(|msg| parse_error(path, msg))?;
-        let _ = entry_offset;
+        let payload = match schema_major {
+            SUPPORTED_MAJOR_V1 => {
+                let payload_offset = u64_to_usize(
+                    path,
+                    cursor.u64().map_err(|msg| parse_error(path, msg))?,
+                    "payload_offset_bytes",
+                )?;
+                let payload_length = cursor.u32().map_err(|msg| parse_error(path, msg))? as usize;
+                if payload_length < 1 {
+                    return Err(parse_error(path, "payload length must be positive"));
+                }
+                let payload_crc32c = cursor.u32().map_err(|msg| parse_error(path, msg))?;
+                EntryPayload::SchemaV1 {
+                    payload_offset,
+                    payload_length,
+                    payload_crc32c,
+                }
+            }
+            SUPPORTED_MAJOR_V2 => {
+                let payload_block_id = cursor.u32().map_err(|msg| parse_error(path, msg))? as usize;
+                let day_in_block_index = cursor.u16().map_err(|msg| parse_error(path, msg))?;
+                let raw_payload_offset =
+                    cursor.u32().map_err(|msg| parse_error(path, msg))? as usize;
+                let raw_payload_length =
+                    cursor.u32().map_err(|msg| parse_error(path, msg))? as usize;
+                let raw_payload_crc32c = cursor.u32().map_err(|msg| parse_error(path, msg))?;
+                EntryPayload::SchemaV2 {
+                    payload_block_id,
+                    day_in_block_index,
+                    raw_payload_offset,
+                    raw_payload_length,
+                    raw_payload_crc32c,
+                }
+            }
+            _ => return Err(parse_error(path, "unsupported schema major")),
+        };
+
         entries.push(DirectoryEntry {
             sim_year_index,
             calendar_year,
             julian_day,
             event_kind,
-            payload_offset,
-            payload_length,
-            payload_crc32c,
+            payload,
         });
     }
 
@@ -456,7 +576,6 @@ fn parse_layout(data: &[u8], path: &Path) -> Result<Layout, InterchangeError> {
     }
 
     let mut previous_key: Option<(u32, u16)> = None;
-    let mut expected_payload_offset = directory_end;
     for entry in &entries {
         let key = (entry.sim_year_index, entry.julian_day);
         if !key_in_year_table(entry, &years) {
@@ -470,60 +589,331 @@ fn parse_layout(data: &[u8], path: &Path) -> Result<Layout, InterchangeError> {
                 ));
             }
         }
-        if entry.payload_offset != expected_payload_offset {
-            return Err(parse_error(path, "payload offsets are not deterministic"));
-        }
-        if entry.payload_length < 1 {
-            return Err(parse_error(path, "payload length must be positive"));
-        }
-        expected_payload_offset += entry.payload_length;
         previous_key = Some(key);
     }
 
-    let footer_start = expected_payload_offset;
-    if footer_start + 20 > data.len() {
-        return Err(parse_error(path, "truncated footer"));
+    match schema_major {
+        SUPPORTED_MAJOR_V1 => {
+            let mut expected_payload_offset = directory_end;
+            for entry in &entries {
+                let EntryPayload::SchemaV1 {
+                    payload_offset,
+                    payload_length,
+                    ..
+                } = entry.payload
+                else {
+                    return Err(parse_error(path, "unsupported schema major"));
+                };
+                if payload_offset != expected_payload_offset {
+                    return Err(parse_error(path, "payload offsets are not deterministic"));
+                }
+                expected_payload_offset = expected_payload_offset
+                    .checked_add(payload_length)
+                    .ok_or_else(|| parse_error(path, "truncated payload"))?;
+            }
+
+            let footer_start = expected_payload_offset;
+            let footer_end = footer_start.checked_add(20);
+            if footer_end.is_none() || footer_end.unwrap_or(usize::MAX) > data.len() {
+                return Err(parse_error(path, "truncated payload"));
+            }
+
+            let mut footer_cursor = Cursor::new(data, footer_start);
+            let directory_crc = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
+            let file_crc_pos = footer_cursor.pos;
+            let file_crc = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
+            let footer_record_count = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
+            let footer_magic = footer_cursor.raw(8).map_err(|msg| parse_error(path, msg))?;
+
+            if crc32c(&data[directory_start..directory_end]) != directory_crc {
+                return Err(parse_error(path, "directory crc mismatch"));
+            }
+
+            let mut file_region = data.to_vec();
+            file_region[file_crc_pos..file_crc_pos + 4].fill(0);
+            if crc32c(&file_region) != file_crc {
+                return Err(parse_error(path, "file crc mismatch"));
+            }
+
+            if footer_record_count != expected_record_count {
+                return Err(parse_error(
+                    path,
+                    "footer record count must equal sum of year-table days",
+                ));
+            }
+
+            if footer_magic != FOOTER_MAGIC {
+                return Err(parse_error(path, "bad footer magic"));
+            }
+
+            Ok(Layout {
+                schema_major,
+                schema_minor,
+                begin_year,
+                npart,
+                nofe,
+                max_layers,
+                years,
+                entries,
+                directory_start,
+                directory_end,
+                footer_start,
+                payload_blocks: Vec::new(),
+                raw_payload_blocks: Vec::new(),
+            })
+        }
+        SUPPORTED_MAJOR_V2 => {
+            let payload_block_table_start = cursor.pos;
+            let payload_block_count = cursor.u32().map_err(|msg| parse_error(path, msg))? as usize;
+            if payload_block_count != nyear as usize {
+                return Err(parse_error(
+                    path,
+                    "schema 2.x block count must equal year table count",
+                ));
+            }
+
+            let mut payload_blocks = Vec::with_capacity(payload_block_count);
+            for block_index in 0..payload_block_count {
+                let payload_block_id = cursor.u32().map_err(|msg| parse_error(path, msg))?;
+                if payload_block_id != block_index as u32 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x payload_block_id must be contiguous and ordered",
+                    ));
+                }
+                let block_sim_year_index = cursor.u32().map_err(|msg| parse_error(path, msg))?;
+                if block_sim_year_index != (block_index + 1) as u32 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x payload block sim_year_index mismatch",
+                    ));
+                }
+                let block_day_slot_count = cursor.u16().map_err(|msg| parse_error(path, msg))?;
+                let represented_day_count = cursor.u16().map_err(|msg| parse_error(path, msg))?;
+                if block_day_slot_count != 366 || represented_day_count != 366 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.0 payload block day counts must be 366",
+                    ));
+                }
+                let stored_block_offset = u64_to_usize(
+                    path,
+                    cursor.u64().map_err(|msg| parse_error(path, msg))?,
+                    "stored_block_offset_bytes",
+                )?;
+                let stored_block_length =
+                    cursor.u32().map_err(|msg| parse_error(path, msg))? as usize;
+                let raw_block_length = cursor.u32().map_err(|msg| parse_error(path, msg))? as usize;
+                let payload_codec = cursor.u8().map_err(|msg| parse_error(path, msg))?;
+                if payload_codec != PAYLOAD_CODEC_ZLIB {
+                    return Err(parse_error(path, "schema 2.x payload codec is unsupported"));
+                }
+                let stored_block_crc32c = cursor.u32().map_err(|msg| parse_error(path, msg))?;
+                let raw_block_crc32c = cursor.u32().map_err(|msg| parse_error(path, msg))?;
+                if stored_block_length < 1 || raw_block_length < 1 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x payload block lengths must be positive",
+                    ));
+                }
+                payload_blocks.push(PayloadBlockEntry {
+                    sim_year_index: block_sim_year_index,
+                    stored_block_offset,
+                    stored_block_length,
+                    raw_block_length,
+                    payload_codec,
+                    stored_block_crc32c,
+                    raw_block_crc32c,
+                });
+            }
+            let payload_block_table_end = cursor.pos;
+
+            if data.len() < 28 || payload_block_table_end > data.len() - 28 {
+                return Err(parse_error(path, "truncated payload"));
+            }
+            let footer_start = data.len() - 28;
+            let mut footer_cursor = Cursor::new(data, footer_start);
+            let directory_crc = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
+            let payload_block_table_crc =
+                footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
+            let file_crc_pos = footer_cursor.pos;
+            let file_crc = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
+            let footer_record_count = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
+            let footer_block_count = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
+            let footer_magic = footer_cursor.raw(8).map_err(|msg| parse_error(path, msg))?;
+
+            if footer_magic != FOOTER_MAGIC {
+                return Err(parse_error(path, "bad footer magic"));
+            }
+            if footer_record_count != expected_record_count {
+                return Err(parse_error(
+                    path,
+                    "footer record count must equal sum of year-table days",
+                ));
+            }
+            if footer_record_count != 366 * nyear {
+                return Err(parse_error(
+                    path,
+                    "schema 2.0 record count must equal 366 * nyear",
+                ));
+            }
+            if footer_block_count != payload_block_count as u32 {
+                return Err(parse_error(path, "schema 2.x footer block count mismatch"));
+            }
+            if footer_block_count != nyear {
+                return Err(parse_error(path, "schema 2.0 block count must equal nyear"));
+            }
+            if crc32c(&data[directory_start..directory_end]) != directory_crc {
+                return Err(parse_error(path, "directory crc mismatch"));
+            }
+            if crc32c(&data[payload_block_table_start..payload_block_table_end])
+                != payload_block_table_crc
+            {
+                return Err(parse_error(path, "payload block table crc mismatch"));
+            }
+            let mut file_region = data.to_vec();
+            file_region[file_crc_pos..file_crc_pos + 4].fill(0);
+            if crc32c(&file_region) != file_crc {
+                return Err(parse_error(path, "file crc mismatch"));
+            }
+
+            let mut raw_payload_blocks = Vec::with_capacity(payload_blocks.len());
+            for block in &payload_blocks {
+                if block.payload_codec != PAYLOAD_CODEC_ZLIB {
+                    return Err(parse_error(path, "schema 2.x payload codec is unsupported"));
+                }
+                let stored_end = block
+                    .stored_block_offset
+                    .checked_add(block.stored_block_length)
+                    .ok_or_else(|| parse_error(path, "truncated payload"))?;
+                if stored_end > footer_start {
+                    return Err(parse_error(path, "truncated payload"));
+                }
+                let stored_block = &data[block.stored_block_offset..stored_end];
+                if crc32c(stored_block) != block.stored_block_crc32c {
+                    return Err(parse_error(path, "payload block stored crc mismatch"));
+                }
+                let raw_block = decode_zlib_block(path, stored_block, block.raw_block_length)?;
+                if crc32c(&raw_block) != block.raw_block_crc32c {
+                    return Err(parse_error(path, "payload block raw crc mismatch"));
+                }
+                raw_payload_blocks.push(raw_block);
+            }
+
+            let mut block_prev_day_index = vec![-1i32; payload_blocks.len()];
+            let mut block_prev_raw_end = vec![0usize; payload_blocks.len()];
+            let mut block_seen_count = vec![0usize; payload_blocks.len()];
+            for entry in &entries {
+                let EntryPayload::SchemaV2 {
+                    payload_block_id,
+                    day_in_block_index,
+                    raw_payload_offset,
+                    raw_payload_length,
+                    ..
+                } = entry.payload
+                else {
+                    return Err(parse_error(path, "unsupported schema major"));
+                };
+                if payload_block_id >= payload_blocks.len() {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x directory block id is out of range",
+                    ));
+                }
+                let block = payload_blocks[payload_block_id];
+                if block.sim_year_index != entry.sim_year_index {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x block sim_year_index must match directory key",
+                    ));
+                }
+                if day_in_block_index > 365 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x day_in_block_index is out of range",
+                    ));
+                }
+                if entry.julian_day == 0 || day_in_block_index != entry.julian_day - 1 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.0 day_in_block_index must equal julian_day - 1",
+                    ));
+                }
+                if raw_payload_length < 1 {
+                    return Err(parse_error(path, "schema 2.x raw payload slice is invalid"));
+                }
+                let raw_payload_end = raw_payload_offset
+                    .checked_add(raw_payload_length)
+                    .ok_or_else(|| {
+                        parse_error(path, "schema 2.x day slice exceeds raw block bounds")
+                    })?;
+                if raw_payload_end > block.raw_block_length {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x day slice exceeds raw block bounds",
+                    ));
+                }
+                if day_in_block_index as i32 != block_prev_day_index[payload_block_id] + 1 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x day slots must be contiguous in each block",
+                    ));
+                }
+                if raw_payload_offset < block_prev_raw_end[payload_block_id] {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x day slices overlap in raw block",
+                    ));
+                }
+                if raw_payload_offset > block_prev_raw_end[payload_block_id] {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x day slices must cover raw block without gaps",
+                    ));
+                }
+                block_prev_raw_end[payload_block_id] = raw_payload_end;
+                block_prev_day_index[payload_block_id] = day_in_block_index as i32;
+                block_seen_count[payload_block_id] += 1;
+            }
+            for block_index in 0..payload_blocks.len() {
+                if block_seen_count[block_index] != 366 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.0 payload block must represent 366 day slots",
+                    ));
+                }
+                if block_prev_day_index[block_index] != 365 {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x day slots must terminate at index 365",
+                    ));
+                }
+                if block_prev_raw_end[block_index] != payload_blocks[block_index].raw_block_length {
+                    return Err(parse_error(
+                        path,
+                        "schema 2.x day slices must cover raw block without gaps",
+                    ));
+                }
+            }
+
+            Ok(Layout {
+                schema_major,
+                schema_minor,
+                begin_year,
+                npart,
+                nofe,
+                max_layers,
+                years,
+                entries,
+                directory_start,
+                directory_end,
+                footer_start,
+                payload_blocks,
+                raw_payload_blocks,
+            })
+        }
+        _ => Err(parse_error(path, "unsupported schema major")),
     }
-
-    let mut footer_cursor = Cursor::new(data, footer_start);
-    let directory_crc = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
-    let file_crc_pos = footer_cursor.pos;
-    let file_crc = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
-    let footer_record_count = footer_cursor.u32().map_err(|msg| parse_error(path, msg))?;
-    let footer_magic = footer_cursor.raw(8).map_err(|msg| parse_error(path, msg))?;
-
-    if crc32c(&data[directory_start..directory_end]) != directory_crc {
-        return Err(parse_error(path, "directory crc mismatch"));
-    }
-
-    let mut file_region = data.to_vec();
-    file_region[file_crc_pos..file_crc_pos + 4].fill(0);
-    if crc32c(&file_region) != file_crc {
-        return Err(parse_error(path, "file crc mismatch"));
-    }
-
-    if footer_record_count != expected_record_count {
-        return Err(parse_error(
-            path,
-            "footer record count must equal sum of year-table days",
-        ));
-    }
-
-    if footer_magic != FOOTER_MAGIC {
-        return Err(parse_error(path, "bad footer magic"));
-    }
-
-    Ok(Layout {
-        begin_year,
-        npart,
-        nofe,
-        max_layers,
-        years,
-        entries,
-        directory_start,
-        directory_end,
-        footer_start,
-    })
 }
 
 fn scaled_i64(value: i64) -> f64 {
@@ -611,16 +1001,58 @@ fn parse_payload_into(
     out: &mut PassColumns,
     wepp_id: i32,
 ) -> Result<(), InterchangeError> {
-    if entry.payload_offset + entry.payload_length > data.len() {
-        return Err(parse_error(path, "truncated payload"));
-    }
+    let payload = match entry.payload {
+        EntryPayload::SchemaV1 {
+            payload_offset,
+            payload_length,
+            payload_crc32c,
+        } => {
+            let payload_end = payload_offset
+                .checked_add(payload_length)
+                .ok_or_else(|| parse_error(path, "truncated payload"))?;
+            if payload_end > data.len() {
+                return Err(parse_error(path, "truncated payload"));
+            }
+            let payload = &data[payload_offset..payload_end];
+            if crc32c(payload) != payload_crc32c {
+                return Err(parse_error(path, "payload crc mismatch"));
+            }
+            payload.to_vec()
+        }
+        EntryPayload::SchemaV2 {
+            payload_block_id,
+            raw_payload_offset,
+            raw_payload_length,
+            raw_payload_crc32c,
+            ..
+        } => {
+            if payload_block_id >= layout.raw_payload_blocks.len() {
+                return Err(parse_error(
+                    path,
+                    "schema 2.x directory block id is out of range",
+                ));
+            }
+            let raw_block = &layout.raw_payload_blocks[payload_block_id];
+            let payload_end = raw_payload_offset
+                .checked_add(raw_payload_length)
+                .ok_or_else(|| {
+                    parse_error(path, "schema 2.x day slice exceeds raw block bounds")
+                })?;
+            if payload_end > raw_block.len() {
+                return Err(parse_error(
+                    path,
+                    "schema 2.x day slice exceeds raw block bounds",
+                ));
+            }
+            let payload = &raw_block[raw_payload_offset..payload_end];
+            if crc32c(payload) != raw_payload_crc32c {
+                return Err(parse_error(path, "raw payload crc mismatch"));
+            }
+            payload.to_vec()
+        }
+    };
 
-    let payload = &data[entry.payload_offset..entry.payload_offset + entry.payload_length];
-    if crc32c(payload) != entry.payload_crc32c {
-        return Err(parse_error(path, "payload crc mismatch"));
-    }
-
-    let mut cursor = Cursor::new(payload, 0);
+    let mut cursor = Cursor::new(&payload, 0);
     let sim_year_index = cursor.u32().map_err(|msg| parse_error(path, msg))?;
     let calendar_year = cursor.i32().map_err(|msg| parse_error(path, msg))?;
     let julian_day = cursor.u16().map_err(|msg| parse_error(path, msg))?;
@@ -639,7 +1071,12 @@ fn parse_payload_into(
         return Err(parse_error(path, "payload and directory key mismatch"));
     }
 
-    if payload_schema_minor > SUPPORTED_MINOR {
+    let supported_payload_minor = match layout.schema_major {
+        SUPPORTED_MAJOR_V1 => SUPPORTED_MINOR_V1,
+        SUPPORTED_MAJOR_V2 => SUPPORTED_MINOR_V2,
+        _ => return Err(parse_error(path, "unsupported schema major")),
+    };
+    if payload_schema_minor > supported_payload_minor {
         return Err(parse_error(path, "unsupported payload minor"));
     }
 
@@ -751,7 +1188,7 @@ fn parse_payload_into(
             return Err(parse_error(path, "duplicate state id"));
         }
 
-        let mut state_cursor = Cursor::new(payload, cursor.pos);
+        let mut state_cursor = Cursor::new(&payload, cursor.pos);
         let required_flag = state_cursor.u8().map_err(|msg| parse_error(path, msg))?;
         let representation_class = state_cursor.u8().map_err(|msg| parse_error(path, msg))?;
         let unit_class = state_cursor.u16().map_err(|msg| parse_error(path, msg))?;
@@ -882,12 +1319,30 @@ pub fn hillslope_hbp_to_columns(
 
 #[cfg(test)]
 mod tests {
-    use super::hillslope_hbp_to_columns;
+    use super::{
+        crc32c, expected_state_schema, hillslope_hbp_to_columns, EntryPayload, REQUIRED_STATE_IDS,
+        SUPPORTED_MAJOR_V1, SUPPORTED_MAJOR_V2,
+    };
     use crate::errors::InterchangeError;
     use crate::schema::VersionInfo;
+    use flate2::write::ZlibEncoder;
+    use flate2::Compression;
     use std::fs;
+    use std::io::Write;
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    const DIR_V2_ROW_SIZE: usize = 29;
+    const TABLE_V2_ENTRY_SIZE: usize = 37;
+
+    struct Schema2Fixture {
+        bytes: Vec<u8>,
+        directory_start: usize,
+        directory_len: usize,
+        table_start: usize,
+        table_len: usize,
+        footer_start: usize,
+    }
 
     fn write_temp_hbp(bytes: &[u8]) -> PathBuf {
         let nonce = SystemTime::now()
@@ -911,6 +1366,349 @@ mod tests {
             }
             other => panic!("expected parse error, got {other:?}"),
         }
+    }
+
+    fn put_u8(buf: &mut Vec<u8>, value: u8) {
+        buf.push(value);
+    }
+
+    fn put_u16(buf: &mut Vec<u8>, value: u16) {
+        buf.extend_from_slice(&value.to_le_bytes());
+    }
+
+    fn put_u32(buf: &mut Vec<u8>, value: u32) {
+        buf.extend_from_slice(&value.to_le_bytes());
+    }
+
+    fn put_i32(buf: &mut Vec<u8>, value: i32) {
+        buf.extend_from_slice(&value.to_le_bytes());
+    }
+
+    fn put_u64(buf: &mut Vec<u8>, value: u64) {
+        buf.extend_from_slice(&value.to_le_bytes());
+    }
+
+    fn put_i64(buf: &mut Vec<u8>, value: i64) {
+        buf.extend_from_slice(&value.to_le_bytes());
+    }
+
+    fn put_f64(buf: &mut Vec<u8>, value: f64) {
+        buf.extend_from_slice(&value.to_le_bytes());
+    }
+
+    fn put_string(buf: &mut Vec<u8>, value: &str) {
+        put_u32(buf, value.len() as u32);
+        buf.extend_from_slice(value.as_bytes());
+    }
+
+    fn put_u32_at(buf: &mut [u8], offset: usize, value: u32) {
+        buf[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+    }
+
+    fn put_u16_at(buf: &mut [u8], offset: usize, value: u16) {
+        buf[offset..offset + 2].copy_from_slice(&value.to_le_bytes());
+    }
+
+    fn read_u32_at(buf: &[u8], offset: usize) -> u32 {
+        u32::from_le_bytes([
+            buf[offset],
+            buf[offset + 1],
+            buf[offset + 2],
+            buf[offset + 3],
+        ])
+    }
+
+    fn state_dims(dims_kind: u8, nofe: u32, max_layers: u32) -> Vec<u32> {
+        match dims_kind {
+            0 => vec![],
+            1 => vec![nofe],
+            2 => vec![nofe, max_layers],
+            _ => panic!("unknown dims_kind {dims_kind}"),
+        }
+    }
+
+    fn build_state_entry(state_id: u16, nofe: u32, max_layers: u32) -> Vec<u8> {
+        let (required_flag, representation_class, unit_class, rank, dims_kind) =
+            expected_state_schema(state_id).expect("required state schema should exist");
+        let dims = state_dims(dims_kind, nofe, max_layers);
+        assert_eq!(dims.len(), rank as usize);
+
+        let mut entry = Vec::new();
+        put_u8(&mut entry, required_flag);
+        put_u8(&mut entry, representation_class);
+        put_u16(&mut entry, unit_class);
+        put_u8(&mut entry, rank);
+        for dim in &dims {
+            put_u32(&mut entry, *dim);
+        }
+        let value_count = dims.iter().copied().product::<u32>().max(1) as usize;
+        match representation_class {
+            1 => {
+                for _ in 0..value_count {
+                    put_i64(&mut entry, 0);
+                }
+            }
+            2 => {
+                for _ in 0..value_count {
+                    put_f64(&mut entry, 0.0);
+                }
+            }
+            _ => panic!("unsupported representation_class {representation_class}"),
+        }
+
+        let mut out = Vec::new();
+        put_u16(&mut out, state_id);
+        put_u32(&mut out, entry.len() as u32);
+        out.extend_from_slice(&entry);
+        out
+    }
+
+    fn build_no_event_payload(
+        sim_year_index: u32,
+        calendar_year: i32,
+        julian_day: u16,
+        nofe: u32,
+        max_layers: u32,
+        payload_minor: u16,
+    ) -> Vec<u8> {
+        let mut payload = Vec::new();
+        put_u32(&mut payload, sim_year_index);
+        put_i32(&mut payload, calendar_year);
+        put_u16(&mut payload, julian_day);
+        put_u8(&mut payload, 0); // NO_EVENT
+        put_u16(&mut payload, payload_minor);
+        put_u16(&mut payload, REQUIRED_STATE_IDS.len() as u16);
+        put_i64(&mut payload, 0); // baseflow_volume_m3
+        put_i64(&mut payload, 0); // dissolved_storage_volume_m3
+        for state_id in REQUIRED_STATE_IDS {
+            payload.extend_from_slice(&build_state_entry(*state_id, nofe, max_layers));
+        }
+        payload
+    }
+
+    fn append_common_prefix(
+        schema_major: u16,
+        schema_minor: u16,
+        nyear: u32,
+        begin_year: i32,
+        simulation_mode: u8,
+    ) -> Vec<u8> {
+        let mut file = Vec::new();
+
+        let mut header = Vec::new();
+        header.extend_from_slice(b"WFPHBP01");
+        put_u16(&mut header, schema_major);
+        put_u16(&mut header, schema_minor);
+        put_u8(&mut header, 1); // little endian
+        let header_bytes_pos = header.len();
+        put_u32(&mut header, 0); // header_bytes placeholder
+        header.extend_from_slice(&[0u8; 32]); // compatibility_id
+        put_u8(&mut header, 1); // artifact_role hillslope_shard
+        put_string(&mut header, "ps15-wepppyo3-test");
+        put_string(&mut header, "ps15");
+        put_string(&mut header, "2026-05-14T00:00:00Z");
+        put_string(&mut header, "metric-v1");
+        header.extend_from_slice(&[0u8; 32]); // state_registry_id
+        let header_crc_pos = header.len();
+        put_u32(&mut header, 0); // header_crc32c placeholder
+        let header_bytes = header.len() as u32;
+        put_u32_at(&mut header, header_bytes_pos, header_bytes);
+        let header_crc = crc32c(&header);
+        put_u32_at(&mut header, header_crc_pos, header_crc);
+        file.extend_from_slice(&header);
+
+        let npart = 1u16;
+        let nofe = 1u16;
+        let max_layers = 1u16;
+        put_u32(&mut file, 1); // hillslope_id
+        put_u32(&mut file, nyear);
+        put_i32(&mut file, begin_year);
+        put_u16(&mut file, npart);
+        put_u16(&mut file, nofe);
+        put_u16(&mut file, max_layers);
+        put_string(&mut file, "gregorian");
+        put_u16(&mut file, 1); // event_enum_version
+        put_u8(&mut file, simulation_mode);
+
+        put_string(&mut file, "p1.cli");
+        put_i64(&mut file, 0); // area scaled
+        put_u32(&mut file, npart as u32);
+        put_f64(&mut file, 0.001);
+        put_f64(&mut file, 0.0);
+        put_f64(&mut file, 0.0);
+        put_f64(&mut file, 0.0);
+        put_f64(&mut file, 0.0);
+
+        put_u32(&mut file, nyear);
+        for y in 0..nyear {
+            put_u32(&mut file, y + 1);
+            put_i32(&mut file, begin_year + y as i32);
+            if schema_major == SUPPORTED_MAJOR_V2 {
+                put_u16(&mut file, 366);
+                put_u16(&mut file, 1);
+                put_u16(&mut file, 366);
+                put_u8(&mut file, 0);
+            } else {
+                put_u16(&mut file, 1);
+                put_u16(&mut file, 1);
+                put_u16(&mut file, 1);
+                put_u8(&mut file, 0);
+            }
+        }
+
+        put_u32(&mut file, REQUIRED_STATE_IDS.len() as u32);
+        for state_id in REQUIRED_STATE_IDS {
+            let (required_flag, representation_class, unit_class, rank, dims_kind) =
+                expected_state_schema(*state_id).expect("required state schema should exist");
+            put_u16(&mut file, *state_id);
+            put_u8(&mut file, required_flag);
+            put_u8(&mut file, representation_class);
+            put_u16(&mut file, unit_class);
+            put_u8(&mut file, rank);
+            put_u8(&mut file, dims_kind);
+            put_string(&mut file, &format!("state_{state_id}"));
+        }
+
+        file
+    }
+
+    fn build_schema1_fixture() -> Vec<u8> {
+        let mut file = append_common_prefix(SUPPORTED_MAJOR_V1, 0, 1, 2004, 1);
+        let payload = build_no_event_payload(1, 2004, 1, 1, 1, 0);
+        let payload_crc = crc32c(&payload);
+
+        let directory_start = file.len();
+        let directory_len = 4 + 27;
+        let payload_offset = directory_start + directory_len;
+        let mut directory = Vec::new();
+        put_u32(&mut directory, 1); // record_count
+        put_u32(&mut directory, 1); // sim_year_index
+        put_i32(&mut directory, 2004);
+        put_u16(&mut directory, 1);
+        put_u8(&mut directory, 0); // NO_EVENT
+        put_u64(&mut directory, payload_offset as u64);
+        put_u32(&mut directory, payload.len() as u32);
+        put_u32(&mut directory, payload_crc);
+
+        file.extend_from_slice(&directory);
+        file.extend_from_slice(&payload);
+
+        let directory_crc = crc32c(&directory);
+        put_u32(&mut file, directory_crc);
+        let file_crc_pos = file.len();
+        put_u32(&mut file, 0);
+        put_u32(&mut file, 1); // record_count
+        file.extend_from_slice(b"ENDHBP01");
+        let file_crc = crc32c(&file);
+        put_u32_at(&mut file, file_crc_pos, file_crc);
+        file
+    }
+
+    fn build_schema2_fixture() -> Schema2Fixture {
+        let nyear = 1u32;
+        let begin_year = 2004i32;
+        let mut file = append_common_prefix(SUPPORTED_MAJOR_V2, 0, nyear, begin_year, 1);
+
+        let mut raw_offsets = Vec::with_capacity(366);
+        let mut raw_lengths = Vec::with_capacity(366);
+        let mut raw_payload_crcs = Vec::with_capacity(366);
+        let mut raw_block = Vec::new();
+        for day in 1..=366u16 {
+            let payload = build_no_event_payload(1, begin_year, day, 1, 1, 0);
+            raw_offsets.push(raw_block.len() as u32);
+            raw_lengths.push(payload.len() as u32);
+            raw_payload_crcs.push(crc32c(&payload));
+            raw_block.extend_from_slice(&payload);
+        }
+
+        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::best());
+        encoder
+            .write_all(&raw_block)
+            .expect("schema2 raw block should compress");
+        let stored_block = encoder.finish().expect("zlib encoder should finish");
+        let stored_crc = crc32c(&stored_block);
+        let raw_block_crc = crc32c(&raw_block);
+
+        let directory_start = file.len();
+        let directory_len = 4 + 366 * DIR_V2_ROW_SIZE;
+        let table_start = directory_start + directory_len;
+        let table_len = 4 + TABLE_V2_ENTRY_SIZE;
+        let payload_block_region_start = table_start + table_len;
+        let stored_block_offset = payload_block_region_start as u64;
+
+        let mut directory = Vec::new();
+        put_u32(&mut directory, 366);
+        for day in 1..=366u16 {
+            let idx = (day - 1) as usize;
+            put_u32(&mut directory, 1); // sim_year_index
+            put_i32(&mut directory, begin_year);
+            put_u16(&mut directory, day);
+            put_u8(&mut directory, 0); // NO_EVENT
+            put_u32(&mut directory, 0); // payload_block_id
+            put_u16(&mut directory, day - 1); // day_in_block_index
+            put_u32(&mut directory, raw_offsets[idx]);
+            put_u32(&mut directory, raw_lengths[idx]);
+            put_u32(&mut directory, raw_payload_crcs[idx]);
+        }
+
+        let mut table = Vec::new();
+        put_u32(&mut table, 1); // block_count
+        put_u32(&mut table, 0); // payload_block_id
+        put_u32(&mut table, 1); // sim_year_index
+        put_u16(&mut table, 366); // block_day_slot_count
+        put_u16(&mut table, 366); // represented_day_count
+        put_u64(&mut table, stored_block_offset);
+        put_u32(&mut table, stored_block.len() as u32);
+        put_u32(&mut table, raw_block.len() as u32);
+        put_u8(&mut table, 1); // payload_codec zlib
+        put_u32(&mut table, stored_crc);
+        put_u32(&mut table, raw_block_crc);
+
+        file.extend_from_slice(&directory);
+        file.extend_from_slice(&table);
+        file.extend_from_slice(&stored_block);
+        let footer_start = file.len();
+
+        let directory_crc = crc32c(&directory);
+        let table_crc = crc32c(&table);
+        put_u32(&mut file, directory_crc);
+        put_u32(&mut file, table_crc);
+        let file_crc_pos = file.len();
+        put_u32(&mut file, 0);
+        put_u32(&mut file, 366); // record_count
+        put_u32(&mut file, 1); // block_count
+        file.extend_from_slice(b"ENDHBP01");
+        let file_crc = crc32c(&file);
+        put_u32_at(&mut file, file_crc_pos, file_crc);
+
+        Schema2Fixture {
+            bytes: file,
+            directory_start,
+            directory_len,
+            table_start,
+            table_len,
+            footer_start,
+        }
+    }
+
+    fn schema2_row_start(fixture: &Schema2Fixture, day_slot: usize) -> usize {
+        fixture.directory_start + 4 + day_slot * DIR_V2_ROW_SIZE
+    }
+
+    fn schema2_block_entry_start(fixture: &Schema2Fixture) -> usize {
+        fixture.table_start + 4
+    }
+
+    fn refresh_schema2_crc_fields(fixture: &mut Schema2Fixture) {
+        let directory_end = fixture.directory_start + fixture.directory_len;
+        let table_end = fixture.table_start + fixture.table_len;
+        let directory_crc = crc32c(&fixture.bytes[fixture.directory_start..directory_end]);
+        let table_crc = crc32c(&fixture.bytes[fixture.table_start..table_end]);
+        put_u32_at(&mut fixture.bytes, fixture.footer_start, directory_crc);
+        put_u32_at(&mut fixture.bytes, fixture.footer_start + 4, table_crc);
+        put_u32_at(&mut fixture.bytes, fixture.footer_start + 8, 0);
+        let file_crc = crc32c(&fixture.bytes);
+        put_u32_at(&mut fixture.bytes, fixture.footer_start + 8, file_crc);
     }
 
     #[test]
@@ -960,5 +1758,151 @@ mod tests {
         };
 
         assert_parse_message(err, "truncated payload");
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_reads_schema1_fixture() {
+        let bytes = build_schema1_fixture();
+        let path = write_temp_hbp(&bytes);
+        let version = VersionInfo::new(7, 0);
+
+        let out =
+            hillslope_hbp_to_columns(&path, None, &version).expect("schema1 fixture should parse");
+        assert_eq!(out.event.len(), 1);
+        assert_eq!(out.event[0], "NO EVENT");
+        assert_eq!(out.julian[0], 1);
+        assert_eq!(out.year[0], 2004);
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_reads_schema2_fixture() {
+        let fixture = build_schema2_fixture();
+        let path = write_temp_hbp(&fixture.bytes);
+        let version = VersionInfo::new(7, 0);
+
+        let out =
+            hillslope_hbp_to_columns(&path, None, &version).expect("schema2 fixture should parse");
+        assert_eq!(out.event.len(), 366);
+        assert_eq!(out.event[0], "NO EVENT");
+        assert_eq!(out.julian[0], 1);
+        assert_eq!(out.julian[365], 366);
+        assert_eq!(out.year[0], 2004);
+    }
+
+    fn mutate_schema2_and_expect_reject(
+        mut fixture: Schema2Fixture,
+        expected_message: &str,
+        mutate: impl FnOnce(&mut Schema2Fixture),
+    ) {
+        mutate(&mut fixture);
+        let path = write_temp_hbp(&fixture.bytes);
+        let version = VersionInfo::new(7, 0);
+
+        let err = match hillslope_hbp_to_columns(&path, None, &version) {
+            Ok(_) => panic!("schema2 mutation should fail: {expected_message}"),
+            Err(err) => err,
+        };
+        assert_parse_message(err, expected_message);
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_rejects_schema2_bad_codec() {
+        mutate_schema2_and_expect_reject(
+            build_schema2_fixture(),
+            "schema 2.x payload codec is unsupported",
+            |fixture| {
+                let block_entry_start = schema2_block_entry_start(fixture);
+                fixture.bytes[block_entry_start + 28] = 2;
+                refresh_schema2_crc_fields(fixture);
+            },
+        );
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_rejects_schema2_bad_day_slot() {
+        mutate_schema2_and_expect_reject(
+            build_schema2_fixture(),
+            "schema 2.0 day_in_block_index must equal julian_day - 1",
+            |fixture| {
+                let row1_start = schema2_row_start(fixture, 1);
+                put_u16_at(&mut fixture.bytes, row1_start + 15, 0);
+                refresh_schema2_crc_fields(fixture);
+            },
+        );
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_rejects_schema2_bad_slice_bounds() {
+        mutate_schema2_and_expect_reject(
+            build_schema2_fixture(),
+            "schema 2.x day slice exceeds raw block bounds",
+            |fixture| {
+                let raw_block_len =
+                    read_u32_at(&fixture.bytes, schema2_block_entry_start(fixture) + 24);
+                let row1_start = schema2_row_start(fixture, 1);
+                put_u32_at(&mut fixture.bytes, row1_start + 21, raw_block_len);
+                refresh_schema2_crc_fields(fixture);
+            },
+        );
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_rejects_schema2_slice_gap() {
+        mutate_schema2_and_expect_reject(
+            build_schema2_fixture(),
+            "schema 2.x day slices must cover raw block without gaps",
+            |fixture| {
+                let row1_start = schema2_row_start(fixture, 1);
+                let current_offset = read_u32_at(&fixture.bytes, row1_start + 17);
+                put_u32_at(&mut fixture.bytes, row1_start + 17, current_offset + 1);
+                refresh_schema2_crc_fields(fixture);
+            },
+        );
+    }
+
+    #[test]
+    fn hillslope_hbp_to_columns_rejects_schema2_stored_crc() {
+        mutate_schema2_and_expect_reject(
+            build_schema2_fixture(),
+            "payload block stored crc mismatch",
+            |fixture| {
+                let block_entry_start = schema2_block_entry_start(fixture);
+                let stored_crc = read_u32_at(&fixture.bytes, block_entry_start + 29);
+                put_u32_at(&mut fixture.bytes, block_entry_start + 29, stored_crc ^ 1);
+                refresh_schema2_crc_fields(fixture);
+            },
+        );
+    }
+
+    #[test]
+    fn schema2_fixture_has_expected_directory_shape() {
+        let fixture = build_schema2_fixture();
+        let first_row = schema2_row_start(&fixture, 0);
+        let first_payload = EntryPayload::SchemaV2 {
+            payload_block_id: read_u32_at(&fixture.bytes, first_row + 11) as usize,
+            day_in_block_index: u16::from_le_bytes([
+                fixture.bytes[first_row + 15],
+                fixture.bytes[first_row + 16],
+            ]),
+            raw_payload_offset: read_u32_at(&fixture.bytes, first_row + 17) as usize,
+            raw_payload_length: read_u32_at(&fixture.bytes, first_row + 21) as usize,
+            raw_payload_crc32c: read_u32_at(&fixture.bytes, first_row + 25),
+        };
+        match first_payload {
+            EntryPayload::SchemaV2 {
+                payload_block_id,
+                day_in_block_index,
+                raw_payload_offset,
+                raw_payload_length,
+                raw_payload_crc32c,
+            } => {
+                assert_eq!(payload_block_id, 0);
+                assert_eq!(day_in_block_index, 0);
+                assert_eq!(raw_payload_offset, 0);
+                assert!(raw_payload_length > 0);
+                assert_ne!(raw_payload_crc32c, 0);
+            }
+            EntryPayload::SchemaV1 { .. } => unreachable!(),
+        }
     }
 }

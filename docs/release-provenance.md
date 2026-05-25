@@ -62,6 +62,52 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Full Refresh: Arrow-RS migration package closure
+
+`confirmed`: release tree refreshed from local source commit `8951b50` at
+`2026-05-25T20:34:46Z` using:
+
+```sh
+cd /workdir/wepppyo3
+export PYO3_PYTHON=/usr/bin/python3.12
+export PYTHON_SYS_EXECUTABLE=$PYO3_PYTHON
+cargo build --release
+```
+
+`confirmed`: shared objects copied from `target/release/` to
+`release/linux/py312/wepppyo3/` module paths.
+
+`confirmed`: import verification succeeded from the release tree:
+
+```sh
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 - <<'PY'
+import wepppyo3.climate.cli_revision_rust
+import wepppyo3.raster_characteristics.raster_characteristics_rust
+import wepppyo3.roads_flowpath.roads_flowpath_rust
+import wepppyo3.sbs_map.sbs_map_rust
+import wepppyo3.swat_interchange.swat_interchange_rust
+import wepppyo3.swat_utils.swat_utils_rust
+import wepppyo3.watershed_abstraction.watershed_abstraction_rust
+import wepppyo3.wepp_interchange.wepp_interchange_rust
+import wepppyo3.wepp_viz.wepp_viz_rust
+print("ok")
+PY
+```
+
+`confirmed`: `sha256sum` for refreshed shared objects:
+
+| Shared object | SHA256 |
+| --- | --- |
+| `climate/cli_revision_rust.so` | `98988e98022d1bdf56865c044c544830c3d4d639a0e6279c9ac6c6c15e70118c` |
+| `raster_characteristics/raster_characteristics_rust.so` | `68debbea97c4e9e5abcf5d1421ceceadda5dd12a3eacf7cd5d1404bbfb307ebc` |
+| `roads_flowpath/roads_flowpath_rust.so` | `58d0433a52d99630d607f6e5be198b8bcf2e3fb0d93cb395e29027c2e4968e45` |
+| `sbs_map/sbs_map_rust.so` | `17a255f2f72dba49fa9d2d7c41125c82538227ac1b0eff1cf8cef0130fe4ea84` |
+| `swat_interchange/swat_interchange_rust.so` | `fb7d1eaaeb9b4ba2df452b07e9d01479fb5fe526f67dfb08f1247dc032129275` |
+| `swat_utils/swat_utils_rust.so` | `58c80622da9bef7f08c239a02a37c089143e22e4168d19efa96e692b486c5676` |
+| `watershed_abstraction/watershed_abstraction_rust.so` | `fdfc13683d700a9456a517d30f4d2b359f8b8529598704aca686c11c2117dc80` |
+| `wepp_interchange/wepp_interchange_rust.so` | `8d60b9b7acd232564827022393623c2d3c88c669209560cbcec587c23738a446` |
+| `wepp_viz/wepp_viz_rust.so` | `a0e06b79c8ecd7b13616eecb1280e41543939d7114e1532f09bf95494160d301` |
+
 ### Targeted Refresh: `raster_characteristics` deterministic-order hardening
 
 `confirmed`: `raster_characteristics` shared object refreshed on

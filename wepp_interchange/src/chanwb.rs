@@ -2,8 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use arrow2::array::PrimitiveArray;
-use arrow2::chunk::Chunk;
+use crate::arrow_support::{BoxedArray, Chunk};
 
 use crate::calendar::{determine_wateryear, julian_to_calendar, load_cli_calendar};
 use crate::errors::InterchangeError;
@@ -204,20 +203,20 @@ fn flush_chunk(
         return Ok(());
     }
     let chunk = Chunk::new(vec![
-        PrimitiveArray::<i16>::from_vec(std::mem::take(years)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(simulation_years)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(julians)).boxed(),
-        PrimitiveArray::<i8>::from_vec(std::mem::take(months)).boxed(),
-        PrimitiveArray::<i8>::from_vec(std::mem::take(days)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(water_years)).boxed(),
-        PrimitiveArray::<i32>::from_vec(std::mem::take(elmt_id)).boxed(),
-        PrimitiveArray::<i32>::from_vec(std::mem::take(chan_id)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(inflow)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(outflow)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(storage)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(baseflow)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(loss)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(balance)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(years)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(simulation_years)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(julians)).boxed(),
+        arrow_array::Int8Array::from(std::mem::take(months)).boxed(),
+        arrow_array::Int8Array::from(std::mem::take(days)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(water_years)).boxed(),
+        arrow_array::Int32Array::from(std::mem::take(elmt_id)).boxed(),
+        arrow_array::Int32Array::from(std::mem::take(chan_id)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(inflow)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(outflow)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(storage)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(baseflow)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(loss)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(balance)).boxed(),
     ]);
     sink.write_chunk(chunk)?;
     Ok(())

@@ -191,14 +191,14 @@ impl SwatError {
     }
 }
 
-impl From<arrow2::error::Error> for SwatError {
-    fn from(value: arrow2::error::Error) -> Self {
+impl From<arrow_schema::ArrowError> for SwatError {
+    fn from(value: arrow_schema::ArrowError) -> Self {
         SwatError::Arrow(value.to_string())
     }
 }
 
-impl From<parquet2::error::Error> for SwatError {
-    fn from(value: parquet2::error::Error) -> Self {
+impl From<parquet::errors::ParquetError> for SwatError {
+    fn from(value: parquet::errors::ParquetError) -> Self {
         SwatError::Parquet(value.to_string())
     }
 }

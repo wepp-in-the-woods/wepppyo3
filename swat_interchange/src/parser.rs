@@ -3,13 +3,12 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use arrow2::array::{Array, Float64Array, Int32Array, Int64Array, Utf8Array};
-use arrow2::chunk::Chunk;
-use arrow2::datatypes::{DataType, Field, Metadata, Schema};
-use arrow2::io::parquet::write::CompressionOptions;
+use crate::arrow_support::{BoxedArray, Chunk};
+use arrow_array::Array;
+use arrow_schema::{DataType, Field, Schema};
 
 use crate::errors::SwatError;
-use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::parquet::{empty_chunk, CompressionOptions, ParquetSink, WriteSummary};
 use crate::registry::{ColumnType, SwatTableSpec};
 
 const DEFAULT_NUMERIC_SENTINELS: [&str; 3] = ["-9999", "-999", "-99"];
@@ -42,7 +41,7 @@ pub struct TableSchema {
 pub fn table_schema_from_file(
     path: &Path,
     spec: &SwatTableSpec,
-    dataset_metadata: Metadata,
+    dataset_metadata: HashMap<String, String>,
 ) -> Result<TableSchema, SwatError> {
     let header_info = read_header_info(path, spec)?;
     let mut columns = build_column_info(&header_info, spec)?;
@@ -68,20 +67,15 @@ pub fn table_schema_from_file(
     let fields = columns
         .iter()
         .map(|col| {
-            let mut field = Field::new(&col.name, column_type_to_arrow(col.data_type), true);
-            let mut meta = Metadata::new();
+            let mut meta = HashMap::new();
             meta.insert("units".to_string(), col.units.clone());
             meta.insert("description".to_string(), col.description.clone());
             meta.insert("source_name".to_string(), col.source_name.clone());
-            field.metadata = meta;
-            field
+            Field::new(&col.name, column_type_to_arrow(col.data_type), true).with_metadata(meta)
         })
         .collect::<Vec<_>>();
 
-    let schema = Schema {
-        fields,
-        metadata: dataset_metadata,
-    };
+    let schema = Schema::new_with_metadata(fields, dataset_metadata);
 
     let merge_column = if spec.merge_column.is_some() {
         if header_info.merge_column.is_none() {
@@ -821,7 +815,7 @@ mod tests {
         let contents = "a         a         b\nm         s         k\n1         2         3\n";
         let path = write_temp(contents);
         let spec = base_spec(0, Some(1));
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns.len(), 3);
@@ -839,7 +833,7 @@ mod tests {
         let mut spec = base_spec(0, None);
         spec.sentinel_overrides
             .insert("value".to_string(), vec!["MISS".to_string()]);
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns.len(), 1);
@@ -853,7 +847,7 @@ mod tests {
         let contents = "A         A         ----      1B\nm         s         kg        -\n1         2         3         4\n";
         let path = write_temp(contents);
         let spec = base_spec(0, Some(1));
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         let names = schema
@@ -866,13 +860,13 @@ mod tests {
         assert_eq!(schema.columns[2].units, "kg");
         assert_eq!(schema.columns[2].description, "----");
 
-        let field = &schema.schema.fields[2];
+        let field = &schema.schema.fields()[2];
         assert_eq!(
-            field.metadata.get("source_name").map(|v| v.as_str()),
+            field.metadata().get("source_name").map(|v| v.as_str()),
             Some("----")
         );
         assert_eq!(
-            field.metadata.get("description").map(|v| v.as_str()),
+            field.metadata().get("description").map(|v| v.as_str()),
             Some("----")
         );
 
@@ -884,7 +878,7 @@ mod tests {
         let contents = "a         b         c\nm                   k\n1         2         3\n";
         let path = write_temp(contents);
         let spec = base_spec(0, Some(1));
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns.len(), 3);
@@ -904,7 +898,7 @@ mod tests {
             .insert("A".to_string(), "ft".to_string());
         spec.column_descriptions
             .insert("A".to_string(), "Alpha".to_string());
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns[0].units, "ft");
@@ -912,14 +906,17 @@ mod tests {
         assert_eq!(schema.columns[0].description, "Alpha");
         assert_eq!(schema.columns[1].description, "B");
 
-        let field = &schema.schema.fields[0];
-        assert_eq!(field.metadata.get("units").map(|v| v.as_str()), Some("ft"));
+        let field = &schema.schema.fields()[0];
         assert_eq!(
-            field.metadata.get("description").map(|v| v.as_str()),
+            field.metadata().get("units").map(|v| v.as_str()),
+            Some("ft")
+        );
+        assert_eq!(
+            field.metadata().get("description").map(|v| v.as_str()),
             Some("Alpha")
         );
         assert_eq!(
-            field.metadata.get("source_name").map(|v| v.as_str()),
+            field.metadata().get("source_name").map(|v| v.as_str()),
             Some("A")
         );
 
@@ -932,7 +929,7 @@ mod tests {
         let path = write_temp(contents);
         let mut spec = base_spec(0, None);
         spec.header_merge = true;
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let err = table_schema_from_file(&path, &spec, metadata).expect_err("header error");
 
         match err {
@@ -966,7 +963,7 @@ mod tests {
         let contents = "a   b\n1   2   3\n";
         let path = write_temp(contents);
         let spec = base_spec(0, None);
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let err = table_schema_from_file(&path, &spec, metadata).expect_err("column mismatch");
 
         match err {
@@ -989,7 +986,7 @@ mod tests {
         let mut spec = base_spec(0, None);
         spec.whitespace_delimited = true;
         spec.merge_column = Some("name");
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns.len(), 3);
@@ -1005,7 +1002,7 @@ mod tests {
         let mut spec = base_spec(0, Some(1));
         spec.whitespace_delimited = true;
         spec.column_names_override = Some(vec!["a", "b", "c"]);
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns.len(), 3);
@@ -1036,7 +1033,7 @@ mod tests {
             writeln!(writer, "oops").expect("write non-numeric");
         });
         let spec = base_spec(0, None);
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns[0].data_type, ColumnType::Float64);
@@ -1058,7 +1055,7 @@ mod tests {
             writeln!(writer, "oops").expect("write non-numeric");
         });
         let spec = base_spec(0, None);
-        let metadata = Metadata::new();
+        let metadata = HashMap::new();
         let schema = table_schema_from_file(&path, &spec, metadata).expect("schema");
 
         assert_eq!(schema.columns[0].data_type, ColumnType::Float64);
@@ -1198,10 +1195,10 @@ impl ColumnBuffer {
 
     fn to_array(&self) -> Result<Box<dyn Array>, SwatError> {
         match self.data_type {
-            ColumnType::Float64 => Ok(Float64Array::from(self.floats.clone()).boxed()),
-            ColumnType::Int32 => Ok(Int32Array::from(self.int32s.clone()).boxed()),
-            ColumnType::Int64 => Ok(Int64Array::from(self.int64s.clone()).boxed()),
-            ColumnType::String => Ok(Utf8Array::<i32>::from(self.strings.clone()).boxed()),
+            ColumnType::Float64 => Ok(arrow_array::Float64Array::from(self.floats.clone()).boxed()),
+            ColumnType::Int32 => Ok(arrow_array::Int32Array::from(self.int32s.clone()).boxed()),
+            ColumnType::Int64 => Ok(arrow_array::Int64Array::from(self.int64s.clone()).boxed()),
+            ColumnType::String => Ok(arrow_array::StringArray::from(self.strings.clone()).boxed()),
         }
     }
 

@@ -2,9 +2,9 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use arrow2::array::{Array, PrimitiveArray};
-use arrow2::chunk::Chunk;
-use arrow2::datatypes::{DataType, Schema};
+use crate::arrow_support::{BoxedArray, Chunk};
+use arrow_array::{Array, Float64Array, Int16Array, Int32Array, Int8Array};
+use arrow_schema::{DataType, Schema};
 use flate2::read::GzDecoder;
 
 use crate::calendar::{determine_wateryear, julian_to_calendar, load_cli_calendar};
@@ -137,7 +137,7 @@ fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option
 }
 
 pub fn soil_schema(version: &VersionInfo) -> Schema {
-    let schema = Schema::from(vec![
+    let schema = Schema::new(vec![
         field_with_meta("wepp_id", DataType::Int32, None, None),
         field_with_meta("ofe_id", DataType::Int16, None, None),
         field_with_meta("year", DataType::Int16, None, None),
@@ -267,19 +267,19 @@ impl SoilStore {
     }
 
     fn to_chunk(&mut self, schema: &Schema) -> Chunk<Box<dyn Array>> {
-        let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields.len());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.wepp_id)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.ofe_id)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.year)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.day)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.julian)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.month)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.day_of_month)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.water_year)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.ofe)).boxed());
+        let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields().len());
+        arrays.push(Int32Array::from(std::mem::take(&mut self.wepp_id)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.ofe_id)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.year)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.day)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.julian)).boxed());
+        arrays.push(Int8Array::from(std::mem::take(&mut self.month)).boxed());
+        arrays.push(Int8Array::from(std::mem::take(&mut self.day_of_month)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.water_year)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.ofe)).boxed());
 
         for col in &mut self.measurements {
-            arrays.push(PrimitiveArray::from(std::mem::take(col)).boxed());
+            arrays.push(Float64Array::from(std::mem::take(col)).boxed());
         }
 
         Chunk::new(arrays)

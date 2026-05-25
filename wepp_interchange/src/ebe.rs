@@ -2,8 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use arrow2::array::PrimitiveArray;
-use arrow2::chunk::Chunk;
+use crate::arrow_support::{BoxedArray, Chunk};
 
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, load_cli_calendar, CalendarLookup,
@@ -304,7 +303,7 @@ pub fn watershed_ebe_to_parquet(
 #[allow(clippy::too_many_arguments)]
 fn flush_chunk(
     sink: &mut ParquetSink,
-    _schema: &arrow2::datatypes::Schema,
+    _schema: &arrow_schema::Schema,
     years: &mut Vec<i16>,
     sim_day_index: &mut Vec<i32>,
     simulation_year: &mut Vec<i16>,
@@ -325,21 +324,21 @@ fn flush_chunk(
         return Ok(());
     }
     let chunk = Chunk::new(vec![
-        PrimitiveArray::<i16>::from_vec(std::mem::take(years)).boxed(),
-        PrimitiveArray::<i32>::from_vec(std::mem::take(sim_day_index)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(simulation_year)).boxed(),
-        PrimitiveArray::<i8>::from_vec(std::mem::take(months)).boxed(),
-        PrimitiveArray::<i8>::from_vec(std::mem::take(days)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(julians)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(water_years)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(precip)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(runoff_volume)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(peak_runoff)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(sediment_yield)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(soluble_pollutant)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(particulate_pollutant)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(total_pollutant)).boxed(),
-        PrimitiveArray::<i32>::from(std::mem::take(element_id)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(years)).boxed(),
+        arrow_array::Int32Array::from(std::mem::take(sim_day_index)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(simulation_year)).boxed(),
+        arrow_array::Int8Array::from(std::mem::take(months)).boxed(),
+        arrow_array::Int8Array::from(std::mem::take(days)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(julians)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(water_years)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(precip)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(runoff_volume)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(peak_runoff)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(sediment_yield)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(soluble_pollutant)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(particulate_pollutant)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(total_pollutant)).boxed(),
+        arrow_array::Int32Array::from(std::mem::take(element_id)).boxed(),
     ]);
     sink.write_chunk(chunk)?;
     Ok(())

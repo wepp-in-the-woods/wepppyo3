@@ -80,14 +80,14 @@ impl InterchangeError {
     }
 }
 
-impl From<arrow2::error::Error> for InterchangeError {
-    fn from(value: arrow2::error::Error) -> Self {
+impl From<arrow_schema::ArrowError> for InterchangeError {
+    fn from(value: arrow_schema::ArrowError) -> Self {
         Self::Arrow(value.to_string())
     }
 }
 
-impl From<parquet2::error::Error> for InterchangeError {
-    fn from(value: parquet2::error::Error) -> Self {
+impl From<parquet::errors::ParquetError> for InterchangeError {
+    fn from(value: parquet::errors::ParquetError) -> Self {
         Self::Parquet(value.to_string())
     }
 }

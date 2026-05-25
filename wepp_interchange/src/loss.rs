@@ -1,11 +1,11 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-use arrow2::array::{Array, PrimitiveArray};
-use arrow2::chunk::Chunk;
-use arrow2::datatypes::{DataType, Schema};
+use crate::arrow_support::{BoxedArray, Chunk};
+use arrow_array::{Array, Float64Array, Int16Array, Int32Array, Int8Array};
+use arrow_schema::{DataType, Schema};
 
 use crate::arrays::dictionary_array_from_optional_strings;
 use crate::errors::InterchangeError;
@@ -341,9 +341,10 @@ fn hill_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, S
         let units = HILL_UNITS[idx];
         hill_fields.push(field_with_meta(name, dtype, units, None));
     }
-    let mut hill_schema = Schema::from(hill_fields);
-    hill_schema.metadata = loss_metadata("loss_pw0.all_years.hill");
-    hill_schema = schema_with_version(hill_schema, version);
+    let hill_schema = schema_with_version(
+        Schema::new(hill_fields).with_metadata(loss_metadata("loss_pw0.all_years.hill")),
+        version,
+    );
 
     let mut avg_fields = vec![field_with_meta("Type", DataType::Utf8, None, None)];
     for (idx, name) in HILL_AVG_HEADER.iter().enumerate().skip(1) {
@@ -355,13 +356,14 @@ fn hill_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, S
         let units = HILL_AVG_UNITS[idx];
         avg_fields.push(field_with_meta(name, dtype, units, None));
     }
-    let mut avg_schema = Schema::from(avg_fields);
-    avg_schema.metadata = loss_metadata("loss_pw0.hill");
-    avg_schema = schema_with_version(avg_schema, version);
+    let mut avg_schema = schema_with_version(
+        Schema::new(avg_fields).with_metadata(loss_metadata("loss_pw0.hill")),
+        version,
+    );
     if let Some(avg) = average_years {
-        avg_schema
-            .metadata
-            .insert("average_years".to_string(), avg.to_string());
+        let mut metadata = avg_schema.metadata().clone();
+        metadata.insert("average_years".to_string(), avg.to_string());
+        avg_schema = avg_schema.with_metadata(metadata);
     }
 
     (hill_schema, avg_schema)
@@ -386,9 +388,10 @@ fn chn_schemas(
     if append_wepp {
         chn_fields.push(field_with_meta("wepp_id", DataType::Int32, None, None));
     }
-    let mut chn_schema = Schema::from(chn_fields);
-    chn_schema.metadata = loss_metadata("loss_pw0.all_years.chn");
-    chn_schema = schema_with_version(chn_schema, version);
+    let chn_schema = schema_with_version(
+        Schema::new(chn_fields).with_metadata(loss_metadata("loss_pw0.all_years.chn")),
+        version,
+    );
 
     let mut avg_fields = vec![field_with_meta("Type", DataType::Utf8, None, None)];
     for (idx, name) in CHN_AVG_HEADER.iter().enumerate().skip(1) {
@@ -403,39 +406,42 @@ fn chn_schemas(
     if append_wepp {
         avg_fields.push(field_with_meta("wepp_id", DataType::Int32, None, None));
     }
-    let mut avg_schema = Schema::from(avg_fields);
-    avg_schema.metadata = loss_metadata("loss_pw0.chn");
-    avg_schema = schema_with_version(avg_schema, version);
+    let mut avg_schema = schema_with_version(
+        Schema::new(avg_fields).with_metadata(loss_metadata("loss_pw0.chn")),
+        version,
+    );
     if let Some(avg) = average_years {
-        avg_schema
-            .metadata
-            .insert("average_years".to_string(), avg.to_string());
+        let mut metadata = avg_schema.metadata().clone();
+        metadata.insert("average_years".to_string(), avg.to_string());
+        avg_schema = avg_schema.with_metadata(metadata);
     }
 
     (chn_schema, avg_schema)
 }
 
 fn out_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, Schema) {
-    let mut all_schema = Schema::from(vec![
+    let all_schema = Schema::new(vec![
         field_with_meta("year", DataType::Int16, None, None),
         field_with_meta("key", DataType::Utf8, None, None),
         field_with_meta("value", DataType::Float64, None, None),
         field_with_meta("units", DataType::Utf8, None, None),
-    ]);
-    all_schema.metadata = loss_metadata("loss_pw0.all_years.out");
-    all_schema = schema_with_version(all_schema, version);
+    ])
+    .with_metadata(loss_metadata("loss_pw0.all_years.out"));
+    let all_schema = schema_with_version(all_schema, version);
 
-    let mut avg_schema = Schema::from(vec![
-        field_with_meta("key", DataType::Utf8, None, None),
-        field_with_meta("value", DataType::Float64, None, None),
-        field_with_meta("units", DataType::Utf8, None, None),
-    ]);
-    avg_schema.metadata = loss_metadata("loss_pw0.out");
-    avg_schema = schema_with_version(avg_schema, version);
+    let mut avg_schema = schema_with_version(
+        Schema::new(vec![
+            field_with_meta("key", DataType::Utf8, None, None),
+            field_with_meta("value", DataType::Float64, None, None),
+            field_with_meta("units", DataType::Utf8, None, None),
+        ])
+        .with_metadata(loss_metadata("loss_pw0.out")),
+        version,
+    );
     if let Some(avg) = average_years {
-        avg_schema
-            .metadata
-            .insert("average_years".to_string(), avg.to_string());
+        let mut metadata = avg_schema.metadata().clone();
+        metadata.insert("average_years".to_string(), avg.to_string());
+        avg_schema = avg_schema.with_metadata(metadata);
     }
 
     (all_schema, avg_schema)
@@ -451,9 +457,10 @@ fn class_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, 
         };
         all_fields.push(field_with_meta(name, dtype, CLASS_UNITS[idx], None));
     }
-    let mut all_schema = Schema::from(all_fields);
-    all_schema.metadata = loss_metadata("loss_pw0.all_years.class_data");
-    all_schema = schema_with_version(all_schema, version);
+    let all_schema = schema_with_version(
+        Schema::new(all_fields).with_metadata(loss_metadata("loss_pw0.all_years.class_data")),
+        version,
+    );
 
     let mut avg_fields = Vec::new();
     for (idx, name) in CLASS_HEADER.iter().enumerate() {
@@ -464,20 +471,21 @@ fn class_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, 
         };
         avg_fields.push(field_with_meta(name, dtype, CLASS_UNITS[idx], None));
     }
-    let mut avg_schema = Schema::from(avg_fields);
-    avg_schema.metadata = loss_metadata("loss_pw0.class_data");
-    avg_schema = schema_with_version(avg_schema, version);
+    let mut avg_schema = schema_with_version(
+        Schema::new(avg_fields).with_metadata(loss_metadata("loss_pw0.class_data")),
+        version,
+    );
     if let Some(avg) = average_years {
-        avg_schema
-            .metadata
-            .insert("average_years".to_string(), avg.to_string());
+        let mut metadata = avg_schema.metadata().clone();
+        metadata.insert("average_years".to_string(), avg.to_string());
+        avg_schema = avg_schema.with_metadata(metadata);
     }
 
     (all_schema, avg_schema)
 }
 
-fn loss_metadata(table: &str) -> BTreeMap<String, String> {
-    let mut metadata = BTreeMap::new();
+fn loss_metadata(table: &str) -> HashMap<String, String> {
+    let mut metadata = HashMap::new();
     metadata.insert("schema_version".to_string(), SCHEMA_VERSION.to_string());
     metadata.insert("table".to_string(), table.to_string());
     metadata
@@ -529,10 +537,10 @@ fn build_chunk(
         header_index.insert(*name, idx);
     }
 
-    let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields.len());
-    for field in &schema.fields {
-        let name = field.name.as_str();
-        match field.data_type.to_logical_type() {
+    let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields().len());
+    for field in schema.fields() {
+        let name = field.name().as_str();
+        match field.data_type() {
             DataType::Int8 => {
                 let mut values: Vec<Option<i8>> = Vec::with_capacity(rows.len());
                 for (row_idx, row) in rows.iter().enumerate() {
@@ -555,7 +563,7 @@ fn build_chunk(
                     };
                     values.push(value);
                 }
-                arrays.push(PrimitiveArray::from(values).boxed());
+                arrays.push(Int8Array::from(values).boxed());
             }
             DataType::Int16 => {
                 let mut values: Vec<Option<i16>> = Vec::with_capacity(rows.len());
@@ -577,7 +585,7 @@ fn build_chunk(
                     };
                     values.push(value);
                 }
-                arrays.push(PrimitiveArray::from(values).boxed());
+                arrays.push(Int16Array::from(values).boxed());
             }
             DataType::Int32 => {
                 let mut values: Vec<Option<i32>> = Vec::with_capacity(rows.len());
@@ -600,7 +608,7 @@ fn build_chunk(
                     };
                     values.push(value);
                 }
-                arrays.push(PrimitiveArray::from(values).boxed());
+                arrays.push(Int32Array::from(values).boxed());
             }
             DataType::Float64 => {
                 let mut values: Vec<Option<f64>> = Vec::with_capacity(rows.len());
@@ -624,7 +632,7 @@ fn build_chunk(
                     };
                     values.push(value);
                 }
-                arrays.push(PrimitiveArray::from(values).boxed());
+                arrays.push(Float64Array::from(values).boxed());
             }
             DataType::Utf8 => {
                 let mut values: Vec<Option<String>> = Vec::with_capacity(rows.len());
@@ -652,7 +660,9 @@ fn build_chunk(
             }
             _ => {
                 return Err(InterchangeError::Arrow(format!(
-                    "Unsupported loss column type {field:?}"
+                    "Unsupported loss column '{}' type {:?}",
+                    field.name(),
+                    field.data_type()
                 )))
             }
         }

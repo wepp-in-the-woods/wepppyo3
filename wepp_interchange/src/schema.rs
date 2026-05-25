@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
-use arrow2::datatypes::{DataType, Field, Schema};
+use arrow_schema::{DataType, Field, Schema};
 
 #[derive(Debug, Clone, Copy)]
 pub struct VersionInfo {
@@ -24,23 +24,18 @@ pub fn field_with_meta(
     units: Option<&str>,
     description: Option<&str>,
 ) -> Field {
-    let mut metadata: BTreeMap<String, String> = BTreeMap::new();
+    let mut metadata: HashMap<String, String> = HashMap::new();
     if let Some(units) = units {
         metadata.insert("units".to_string(), units.to_string());
     }
     if let Some(description) = description {
         metadata.insert("description".to_string(), description.to_string());
     }
-    Field {
-        name: name.to_string(),
-        data_type,
-        is_nullable: true,
-        metadata,
-    }
+    Field::new(name, data_type, true).with_metadata(metadata)
 }
 
-pub fn schema_with_version(mut schema: Schema, version: &VersionInfo) -> Schema {
-    let mut metadata = std::mem::take(&mut schema.metadata);
+pub fn schema_with_version(schema: Schema, version: &VersionInfo) -> Schema {
+    let mut metadata = schema.metadata().clone();
     metadata.insert("dataset_version".to_string(), version.dataset_version());
     metadata.insert(
         "dataset_version_major".to_string(),
@@ -51,8 +46,7 @@ pub fn schema_with_version(mut schema: Schema, version: &VersionInfo) -> Schema 
         version.minor.to_string(),
     );
     metadata.insert("schema_version".to_string(), version.major.to_string());
-    schema.metadata = metadata;
-    schema
+    schema.with_metadata(metadata)
 }
 
 pub fn watershed_ebe_schema(version: &VersionInfo) -> Schema {
@@ -138,7 +132,7 @@ pub fn watershed_ebe_schema(version: &VersionInfo) -> Schema {
             Some("Channel element identifier (Elmt_ID)"),
         ),
     ];
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }
 
 pub fn watershed_chanwb_schema(version: &VersionInfo) -> Schema {
@@ -222,7 +216,7 @@ pub fn watershed_chanwb_schema(version: &VersionInfo) -> Schema {
         ));
     }
 
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }
 
 pub fn watershed_chnwb_schema(version: &VersionInfo) -> Schema {
@@ -299,7 +293,7 @@ pub fn watershed_chnwb_schema(version: &VersionInfo) -> Schema {
         ));
     }
 
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }
 
 pub fn hill_pass_schema(version: &VersionInfo) -> Schema {
@@ -457,7 +451,7 @@ pub fn hill_pass_schema(version: &VersionInfo) -> Schema {
             Some("Groundwater deep seepage"),
         ),
     ];
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }
 
 pub fn hill_ebe_schema(version: &VersionInfo) -> Schema {
@@ -553,7 +547,7 @@ pub fn hill_ebe_schema(version: &VersionInfo) -> Schema {
             Some("Effective deposition flow length"),
         ),
     ];
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }
 
 pub fn hill_element_schema(version: &VersionInfo) -> Schema {
@@ -629,7 +623,7 @@ pub fn hill_element_schema(version: &VersionInfo) -> Schema {
         field_with_meta("QRain", DataType::Float64, Some("mm"), None),
         field_with_meta("QSnow", DataType::Float64, Some("mm"), None),
     ];
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }
 
 pub fn hill_loss_schema(version: &VersionInfo) -> Schema {
@@ -651,7 +645,7 @@ pub fn hill_loss_schema(version: &VersionInfo) -> Schema {
         field_with_meta("Sediment Fraction", DataType::Float64, None, None),
         field_with_meta("In Flow Exiting", DataType::Float64, None, None),
     ];
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }
 
 pub fn hill_soil_schema(version: &VersionInfo) -> Schema {
@@ -732,7 +726,7 @@ pub fn hill_soil_schema(version: &VersionInfo) -> Schema {
             Some("Total soil water"),
         ),
     ];
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }
 
 pub fn hill_wat_schema(version: &VersionInfo) -> Schema {
@@ -875,5 +869,5 @@ pub fn hill_wat_schema(version: &VersionInfo) -> Schema {
             Some("Plant/residue interception carryover storage (pintlv + resint), optional producer-authoritative term"),
         ),
     ];
-    schema_with_version(Schema::from(fields), version)
+    schema_with_version(Schema::new(fields), version)
 }

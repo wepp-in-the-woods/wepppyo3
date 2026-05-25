@@ -157,7 +157,7 @@ pub fn wepp_hillslope_pass_to_swat_recall(
         };
     }
 
-    let recall_dir = swat_txtinout_dir.to_path_buf();
+    let recall_dir = swat_txtinout_dir.join(recall_subdir);
     let config = RecallConfig {
         swat_txtinout_dir: swat_txtinout_dir.to_path_buf(),
         swat_recall_dir: recall_dir,
@@ -813,10 +813,9 @@ enum Key {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::arrow_support::Chunk;
     use crate::parquet::write_single_chunk;
-    use arrow2::array::Int32Array;
-    use arrow2::chunk::Chunk;
-    use arrow2::datatypes::{DataType, Field, Schema};
+    use arrow_schema::{DataType, Field, Schema};
     use std::fs::File;
     use std::io::Write;
 
@@ -936,19 +935,20 @@ mod tests {
     }
 
     fn write_calendar_parquet(path: &Path, rows: &[(i32, i32, i32)]) {
-        let years = Int32Array::from_slice(rows.iter().map(|row| row.0).collect::<Vec<_>>());
-        let months = Int32Array::from_slice(rows.iter().map(|row| row.1).collect::<Vec<_>>());
-        let days = Int32Array::from_slice(rows.iter().map(|row| row.2).collect::<Vec<_>>());
+        let years = arrow_array::Int32Array::from(rows.iter().map(|row| row.0).collect::<Vec<_>>());
+        let months =
+            arrow_array::Int32Array::from(rows.iter().map(|row| row.1).collect::<Vec<_>>());
+        let days = arrow_array::Int32Array::from(rows.iter().map(|row| row.2).collect::<Vec<_>>());
 
-        let schema = Schema::from(vec![
+        let schema = Schema::new(vec![
             Field::new("year", DataType::Int32, false),
             Field::new("month", DataType::Int32, false),
             Field::new("day_of_month", DataType::Int32, false),
         ]);
         let chunk = Chunk::new(vec![
-            Box::new(years) as Box<dyn arrow2::array::Array>,
-            Box::new(months) as Box<dyn arrow2::array::Array>,
-            Box::new(days) as Box<dyn arrow2::array::Array>,
+            Box::new(years) as Box<dyn arrow_array::Array>,
+            Box::new(months) as Box<dyn arrow_array::Array>,
+            Box::new(days) as Box<dyn arrow_array::Array>,
         ]);
         write_single_chunk(path, schema, chunk).expect("write calendar parquet");
     }

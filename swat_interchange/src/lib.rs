@@ -8,7 +8,7 @@
 #![allow(clippy::useless_conversion)]
 #![allow(dead_code)]
 
-use std::collections::{BTreeMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -16,19 +16,24 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::Instant;
 
-use arrow2::array::{
-    Array, BooleanArray, DictionaryArray, DictionaryKey, PrimitiveArray, Utf8Array,
+use crate::arrow_support::{BoxedArray, Chunk};
+use ::parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+use arrow_array::{
+    Array, BooleanArray, Float32Array, Float64Array, Int16Array, Int32Array, Int64Array, Int8Array,
+    LargeStringArray, StringArray, UInt16Array, UInt32Array, UInt64Array, UInt8Array,
 };
-use arrow2::chunk::Chunk;
-use arrow2::datatypes::{DataType, Metadata, Schema};
-use arrow2::io::parquet::read;
-use arrow2::io::parquet::write::CompressionOptions;
+use arrow_array::{
+    Int16DictionaryArray, Int32DictionaryArray, Int64DictionaryArray, Int8DictionaryArray,
+    UInt16DictionaryArray, UInt32DictionaryArray, UInt64DictionaryArray, UInt8DictionaryArray,
+};
+use arrow_schema::{DataType, Schema};
 use pyo3::exceptions::{PyFileNotFoundError, PyIOError, PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
+mod arrow_support;
 mod errors;
 mod manifest;
 mod parquet;
@@ -37,7 +42,7 @@ mod registry;
 
 use crate::errors::{Reason, SwatError};
 use crate::manifest::{read_manifest, validate_basename, ManifestEntry};
-use crate::parquet::{write_single_chunk, WriteSummary};
+use crate::parquet::{write_single_chunk, CompressionOptions, WriteSummary};
 use crate::parser::{parse_table_to_parquet, table_schema_from_file};
 use crate::registry::resolve_spec;
 
@@ -849,21 +854,21 @@ fn schema_markdown(schema: &Schema) -> String {
     let mut lines = Vec::new();
     lines.push("| Column | Type | Units | Description |".to_string());
     lines.push("| --- | --- | --- | --- |".to_string());
-    for field in &schema.fields {
+    for field in schema.fields() {
         let units = field
-            .metadata
+            .metadata()
             .get("units")
             .map(|value| value.as_str())
             .unwrap_or("");
         let description = field
-            .metadata
+            .metadata()
             .get("description")
             .map(|value| value.as_str())
             .unwrap_or("");
         lines.push(format!(
             "| {} | {} | {} | {} |",
-            field.name,
-            data_type_display(&field.data_type),
+            field.name(),
+            data_type_display(field.data_type()),
             units,
             description
         ));
@@ -877,21 +882,21 @@ fn table_preview_markdown(schema: &Schema, rows: &[Vec<String>]) -> String {
     }
 
     let headers = schema
-        .fields
+        .fields()
         .iter()
-        .map(|field| field.name.as_str())
+        .map(|field| field.name().as_str())
         .collect::<Vec<_>>()
         .join(" | ");
     let separator = std::iter::repeat("---")
-        .take(schema.fields.len())
+        .take(schema.fields().len())
         .collect::<Vec<_>>()
         .join(" | ");
     let units_row = schema
-        .fields
+        .fields()
         .iter()
         .map(|field| {
             field
-                .metadata
+                .metadata()
                 .get("units")
                 .map(|value| value.as_str())
                 .unwrap_or("")
@@ -913,31 +918,22 @@ fn read_parquet_preview(
     path: &Path,
     max_rows: usize,
 ) -> Result<(Schema, Vec<Vec<String>>), SwatError> {
-    let mut reader = File::open(path).map_err(|err| SwatError::io(path, err))?;
-    let metadata = read::read_metadata(&mut reader)?;
-    let schema = read::infer_schema(&metadata)?;
-    let row_groups = metadata.row_groups.clone();
-
-    let mut file_reader = read::FileReader::new(
-        reader,
-        row_groups,
-        schema.clone(),
-        Some(1024 * 8),
-        None,
-        None,
-    );
+    let reader = File::open(path).map_err(|err| SwatError::io(path, err))?;
+    let builder = ParquetRecordBatchReaderBuilder::try_new(reader)?;
+    let schema = builder.schema().as_ref().clone();
+    let mut file_reader = builder.with_batch_size(1024 * 8).build()?;
     let mut rows: Vec<Vec<String>> = Vec::new();
     if max_rows == 0 {
         return Ok((schema, rows));
     }
 
-    for maybe_chunk in &mut file_reader {
-        let chunk = maybe_chunk?;
-        if chunk.len() == 0 {
+    for maybe_batch in &mut file_reader {
+        let batch = maybe_batch?;
+        if batch.num_rows() == 0 {
             continue;
         }
-        let arrays = chunk.arrays();
-        for row_idx in 0..chunk.len() {
+        let arrays = batch.columns();
+        for row_idx in 0..batch.num_rows() {
             let mut row = Vec::with_capacity(arrays.len());
             for array in arrays {
                 row.push(format_array_value(array.as_ref(), row_idx));
@@ -967,7 +963,7 @@ fn data_type_display(data_type: &DataType) -> String {
         DataType::Utf8 => "utf8".to_string(),
         DataType::LargeUtf8 => "large_utf8".to_string(),
         DataType::Boolean => "bool".to_string(),
-        DataType::Dictionary(_, value_type, _) => data_type_display(value_type.as_ref()),
+        DataType::Dictionary(_, value_type) => data_type_display(value_type.as_ref()),
         other => format!("{other:?}"),
     }
 }
@@ -978,39 +974,92 @@ fn format_array_value(array: &dyn Array, index: usize) -> String {
     }
 
     match array.data_type() {
-        DataType::Int8 => format_primitive::<i8>(array, index),
-        DataType::Int16 => format_primitive::<i16>(array, index),
-        DataType::Int32 => format_primitive::<i32>(array, index),
-        DataType::Int64 => format_primitive::<i64>(array, index),
-        DataType::UInt8 => format_primitive::<u8>(array, index),
-        DataType::UInt16 => format_primitive::<u16>(array, index),
-        DataType::UInt32 => format_primitive::<u32>(array, index),
-        DataType::UInt64 => format_primitive::<u64>(array, index),
+        DataType::Int8 => format_int8(array, index),
+        DataType::Int16 => format_int16(array, index),
+        DataType::Int32 => format_int32(array, index),
+        DataType::Int64 => format_int64(array, index),
+        DataType::UInt8 => format_uint8(array, index),
+        DataType::UInt16 => format_uint16(array, index),
+        DataType::UInt32 => format_uint32(array, index),
+        DataType::UInt64 => format_uint64(array, index),
         DataType::Float32 => format_float32(array, index),
         DataType::Float64 => format_float64(array, index),
-        DataType::Utf8 => format_utf8::<i32>(array, index),
-        DataType::LargeUtf8 => format_utf8::<i64>(array, index),
+        DataType::Utf8 => format_utf8(array, index),
+        DataType::LargeUtf8 => format_large_utf8(array, index),
         DataType::Boolean => format_bool(array, index),
-        DataType::Dictionary(_, _, _) => format_dictionary(array, index),
+        DataType::Dictionary(_, _) => format_dictionary(array, index),
         _ => String::new(),
     }
 }
 
-fn format_primitive<T: arrow2::types::NativeType + std::fmt::Display>(
-    array: &dyn Array,
-    index: usize,
-) -> String {
+fn format_int8(array: &dyn Array, index: usize) -> String {
     let array = array
         .as_any()
-        .downcast_ref::<PrimitiveArray<T>>()
-        .expect("primitive array");
+        .downcast_ref::<Int8Array>()
+        .expect("int8 array");
+    array.value(index).to_string()
+}
+
+fn format_int16(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<Int16Array>()
+        .expect("int16 array");
+    array.value(index).to_string()
+}
+
+fn format_int32(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<Int32Array>()
+        .expect("int32 array");
+    array.value(index).to_string()
+}
+
+fn format_int64(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<Int64Array>()
+        .expect("int64 array");
+    array.value(index).to_string()
+}
+
+fn format_uint8(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<UInt8Array>()
+        .expect("uint8 array");
+    array.value(index).to_string()
+}
+
+fn format_uint16(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<UInt16Array>()
+        .expect("uint16 array");
+    array.value(index).to_string()
+}
+
+fn format_uint32(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<UInt32Array>()
+        .expect("uint32 array");
+    array.value(index).to_string()
+}
+
+fn format_uint64(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<UInt64Array>()
+        .expect("uint64 array");
     array.value(index).to_string()
 }
 
 fn format_float32(array: &dyn Array, index: usize) -> String {
     let array = array
         .as_any()
-        .downcast_ref::<PrimitiveArray<f32>>()
+        .downcast_ref::<Float32Array>()
         .expect("float32 array");
     let value = array.value(index);
     if value.is_nan() {
@@ -1026,7 +1075,7 @@ fn format_float32(array: &dyn Array, index: usize) -> String {
 fn format_float64(array: &dyn Array, index: usize) -> String {
     let array = array
         .as_any()
-        .downcast_ref::<PrimitiveArray<f64>>()
+        .downcast_ref::<Float64Array>()
         .expect("float64 array");
     let value = array.value(index);
     if value.is_nan() {
@@ -1039,11 +1088,19 @@ fn format_float64(array: &dyn Array, index: usize) -> String {
     }
 }
 
-fn format_utf8<O: arrow2::types::Offset>(array: &dyn Array, index: usize) -> String {
+fn format_utf8(array: &dyn Array, index: usize) -> String {
     let array = array
         .as_any()
-        .downcast_ref::<Utf8Array<O>>()
+        .downcast_ref::<StringArray>()
         .expect("utf8 array");
+    array.value(index).to_string()
+}
+
+fn format_large_utf8(array: &dyn Array, index: usize) -> String {
+    let array = array
+        .as_any()
+        .downcast_ref::<LargeStringArray>()
+        .expect("large utf8 array");
     array.value(index).to_string()
 }
 
@@ -1056,38 +1113,41 @@ fn format_bool(array: &dyn Array, index: usize) -> String {
 }
 
 fn format_dictionary(array: &dyn Array, index: usize) -> String {
-    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<i8>>() {
+    if let Some(array) = array.as_any().downcast_ref::<Int8DictionaryArray>() {
         return format_dictionary_value(array, index);
     }
-    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<i16>>() {
+    if let Some(array) = array.as_any().downcast_ref::<Int16DictionaryArray>() {
         return format_dictionary_value(array, index);
     }
-    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<i32>>() {
+    if let Some(array) = array.as_any().downcast_ref::<Int32DictionaryArray>() {
         return format_dictionary_value(array, index);
     }
-    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<i64>>() {
+    if let Some(array) = array.as_any().downcast_ref::<Int64DictionaryArray>() {
         return format_dictionary_value(array, index);
     }
-    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<u8>>() {
+    if let Some(array) = array.as_any().downcast_ref::<UInt8DictionaryArray>() {
         return format_dictionary_value(array, index);
     }
-    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<u16>>() {
+    if let Some(array) = array.as_any().downcast_ref::<UInt16DictionaryArray>() {
         return format_dictionary_value(array, index);
     }
-    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<u32>>() {
+    if let Some(array) = array.as_any().downcast_ref::<UInt32DictionaryArray>() {
         return format_dictionary_value(array, index);
     }
-    if let Some(array) = array.as_any().downcast_ref::<DictionaryArray<u64>>() {
+    if let Some(array) = array.as_any().downcast_ref::<UInt64DictionaryArray>() {
         return format_dictionary_value(array, index);
     }
     String::new()
 }
 
-fn format_dictionary_value<K: DictionaryKey>(array: &DictionaryArray<K>, index: usize) -> String {
+fn format_dictionary_value<K: arrow_array::types::ArrowDictionaryKeyType>(
+    array: &arrow_array::DictionaryArray<K>,
+    index: usize,
+) -> String {
     if !array.is_valid(index) {
         return String::new();
     }
-    let key = unsafe { array.keys().value(index).as_usize() };
+    let key = array.key(index).expect("dictionary key") as usize;
     format_array_value(array.values().as_ref(), key)
 }
 
@@ -1147,7 +1207,9 @@ fn format_exponent(exp: i32) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use arrow_schema::{DataType, Field, Schema};
     use pyo3::types::{PyDict, PyList};
+    use std::collections::HashMap;
     use std::fs;
     use std::path::PathBuf;
 
@@ -1377,6 +1439,69 @@ mod tests {
         let _ = fs::remove_file(&manifest_path);
         let _ = fs::remove_dir_all(&base);
     }
+
+    #[test]
+    fn arrow01_compression_option_contract_swat_interchange() {
+        pyo3::prepare_freethreaded_python();
+        assert!(matches!(
+            compression_from_str("snappy"),
+            Ok(CompressionOptions::Snappy)
+        ));
+        assert!(matches!(
+            compression_from_str("zstd"),
+            Ok(CompressionOptions::Zstd)
+        ));
+        assert!(matches!(
+            compression_from_str("gzip"),
+            Ok(CompressionOptions::Gzip)
+        ));
+        assert!(matches!(
+            compression_from_str("none"),
+            Ok(CompressionOptions::Uncompressed)
+        ));
+        assert!(matches!(
+            compression_from_str("SNAPPY"),
+            Ok(CompressionOptions::Snappy)
+        ));
+        let err = compression_from_str("brotli").expect_err("expected unsupported compression");
+        assert!(
+            err.to_string().contains("Unsupported compression"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn arrow01_calendar_preview_contract_swat_interchange() {
+        let base = temp_dir("preview_contract");
+        let parquet_path = base.join("preview.parquet");
+
+        let mut field_meta = HashMap::new();
+        field_meta.insert("units".to_string(), "kg".to_string());
+        let field_a = Field::new("value", DataType::Int32, true).with_metadata(field_meta);
+        let field_b = Field::new("label", DataType::Utf8, true);
+        let schema = Schema::new_with_metadata(
+            vec![field_a, field_b],
+            HashMap::from([("source_file".to_string(), "preview.txt".to_string())]),
+        );
+        let chunk = Chunk::new(vec![
+            arrow_array::Int32Array::from(vec![Some(1), None]).boxed(),
+            arrow_array::StringArray::from(vec![Some("alpha"), None]).boxed(),
+        ]);
+
+        write_single_chunk(&parquet_path, schema, chunk, CompressionOptions::Snappy)
+            .expect("write preview parquet");
+
+        let (read_schema, rows) = read_parquet_preview(&parquet_path, 10).expect("read preview");
+        assert_eq!(read_schema.fields().len(), 2);
+        assert_eq!(data_type_display(read_schema.fields()[0].data_type()), "int32");
+        assert_eq!(data_type_display(read_schema.fields()[1].data_type()), "utf8");
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0], vec!["1".to_string(), "alpha".to_string()]);
+        assert_eq!(rows[1], vec!["".to_string(), "".to_string()]);
+
+        let _ = fs::remove_file(parquet_path);
+        let _ = fs::remove_dir_all(base);
+    }
 }
 
 fn resolve_ncpu(ncpu: Option<i32>) -> PyResult<usize> {
@@ -1419,8 +1544,8 @@ fn validate_stale_after(stale_after_hours: Option<f64>) -> PyResult<()> {
 fn compression_from_str(compression: &str) -> PyResult<CompressionOptions> {
     match compression.to_lowercase().as_str() {
         "snappy" => Ok(CompressionOptions::Snappy),
-        "zstd" => Ok(CompressionOptions::Zstd(None)),
-        "gzip" => Ok(CompressionOptions::Gzip(None)),
+        "zstd" => Ok(CompressionOptions::Zstd),
+        "gzip" => Ok(CompressionOptions::Gzip),
         "none" => Ok(CompressionOptions::Uncompressed),
         _ => Err(PyValueError::new_err(format!(
             "Unsupported compression '{compression}'"
@@ -1432,8 +1557,8 @@ fn build_dataset_metadata(
     source_file: &str,
     category: Option<&str>,
     run_id: Option<&str>,
-) -> Metadata {
-    let mut metadata = BTreeMap::new();
+) -> HashMap<String, String> {
+    let mut metadata = HashMap::new();
     metadata.insert(
         "swat_interchange_version".to_string(),
         SPEC_NAME.to_string(),
@@ -1897,31 +2022,31 @@ fn write_manifest_parquet(
     let fields = vec![
         manifest_field(
             "category",
-            arrow2::datatypes::DataType::Utf8,
+            arrow_schema::DataType::Utf8,
             "",
             "SWAT output category",
         ),
         manifest_field(
             "filename",
-            arrow2::datatypes::DataType::Utf8,
+            arrow_schema::DataType::Utf8,
             "",
             "SWAT output filename",
         ),
         manifest_field(
             "source_line",
-            arrow2::datatypes::DataType::Utf8,
+            arrow_schema::DataType::Utf8,
             "",
             "Original manifest line",
         ),
         manifest_field(
             "line_no",
-            arrow2::datatypes::DataType::Int32,
+            arrow_schema::DataType::Int32,
             "",
             "1-based line number in files_out.out",
         ),
     ];
 
-    let mut metadata = BTreeMap::new();
+    let mut metadata = HashMap::new();
     metadata.insert(
         "swat_interchange_version".to_string(),
         SPEC_NAME.to_string(),
@@ -1931,13 +2056,13 @@ fn write_manifest_parquet(
         metadata.insert("run_id".to_string(), run_id.to_string());
     }
 
-    let schema = arrow2::datatypes::Schema { fields, metadata };
+    let schema = arrow_schema::Schema::new_with_metadata(fields, metadata);
 
-    let arrays: Vec<Box<dyn arrow2::array::Array>> = vec![
-        arrow2::array::Utf8Array::<i32>::from(categories).boxed(),
-        arrow2::array::Utf8Array::<i32>::from(filenames).boxed(),
-        arrow2::array::Utf8Array::<i32>::from(source_lines).boxed(),
-        arrow2::array::Int32Array::from(line_nos).boxed(),
+    let arrays: Vec<Box<dyn arrow_array::Array>> = vec![
+        arrow_array::StringArray::from(categories).boxed(),
+        arrow_array::StringArray::from(filenames).boxed(),
+        arrow_array::StringArray::from(source_lines).boxed(),
+        arrow_array::Int32Array::from(line_nos).boxed(),
     ];
     let chunk = Chunk::new(arrays);
     write_single_chunk(path, schema, chunk, compression)
@@ -1945,16 +2070,14 @@ fn write_manifest_parquet(
 
 fn manifest_field(
     name: &str,
-    data_type: arrow2::datatypes::DataType,
+    data_type: arrow_schema::DataType,
     units: &str,
     description: &str,
-) -> arrow2::datatypes::Field {
-    let mut field = arrow2::datatypes::Field::new(name, data_type, true);
-    let mut meta = BTreeMap::new();
+) -> arrow_schema::Field {
+    let mut meta = HashMap::new();
     meta.insert("units".to_string(), units.to_string());
     meta.insert("description".to_string(), description.to_string());
-    field.metadata = meta;
-    field
+    arrow_schema::Field::new(name, data_type, true).with_metadata(meta)
 }
 
 fn runtime_error(reason: Reason, message: &str) -> PyErr {

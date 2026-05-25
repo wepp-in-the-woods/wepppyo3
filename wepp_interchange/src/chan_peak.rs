@@ -2,9 +2,9 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use arrow2::array::{Array, PrimitiveArray};
-use arrow2::chunk::Chunk;
-use arrow2::datatypes::{DataType, Schema};
+use crate::arrow_support::{BoxedArray, Chunk};
+use arrow_array::{Array, Float64Array, Int16Array, Int32Array, Int8Array};
+use arrow_schema::{DataType, Schema};
 
 use crate::calendar::{determine_wateryear, julian_to_calendar, load_cli_calendar};
 use crate::errors::InterchangeError;
@@ -15,7 +15,7 @@ use crate::schema::{field_with_meta, schema_with_version, VersionInfo};
 const CHUNK_SIZE: usize = 500_000;
 
 pub fn chan_peak_schema(version: &VersionInfo) -> Schema {
-    let schema = Schema::from(vec![
+    let schema = Schema::new(vec![
         field_with_meta("year", DataType::Int16, None, Some("Calendar year")),
         field_with_meta(
             "simulation_year",
@@ -110,16 +110,16 @@ impl ChanPeakStore {
 
     fn to_chunk(&mut self, _schema: &Schema) -> Chunk<Box<dyn Array>> {
         let arrays: Vec<Box<dyn Array>> = vec![
-            PrimitiveArray::from_vec(std::mem::take(&mut self.year)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.simulation_year)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.julian)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.month)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.day_of_month)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.water_year)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.elmt_id)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.chan_id)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.time_s)).boxed(),
-            PrimitiveArray::from_vec(std::mem::take(&mut self.peak_q)).boxed(),
+            Int16Array::from(std::mem::take(&mut self.year)).boxed(),
+            Int16Array::from(std::mem::take(&mut self.simulation_year)).boxed(),
+            Int16Array::from(std::mem::take(&mut self.julian)).boxed(),
+            Int8Array::from(std::mem::take(&mut self.month)).boxed(),
+            Int8Array::from(std::mem::take(&mut self.day_of_month)).boxed(),
+            Int16Array::from(std::mem::take(&mut self.water_year)).boxed(),
+            Int32Array::from(std::mem::take(&mut self.elmt_id)).boxed(),
+            Int32Array::from(std::mem::take(&mut self.chan_id)).boxed(),
+            Float64Array::from(std::mem::take(&mut self.time_s)).boxed(),
+            Float64Array::from(std::mem::take(&mut self.peak_q)).boxed(),
         ];
         Chunk::new(arrays)
     }

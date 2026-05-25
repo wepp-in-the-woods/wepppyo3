@@ -9,6 +9,7 @@ use std::path::PathBuf;
 use pyo3::exceptions::{PyIOError, PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 
+mod arrow_support;
 mod calendar;
 mod errors;
 mod floats;

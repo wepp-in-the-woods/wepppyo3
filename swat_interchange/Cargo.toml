@@ -8,8 +8,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
-arrow2 = { version = "0.18", features = ["io_parquet"] }
-parquet2 = "0.17"
+arrow-array = "53.4.1"
+arrow-schema = "53.4.1"
+parquet = "53.4.1"
 fast-float = "0.2"
 memchr = "2"
 serde = { version = "1", features = ["derive"] }

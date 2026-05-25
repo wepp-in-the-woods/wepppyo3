@@ -2,8 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use arrow2::array::PrimitiveArray;
-use arrow2::chunk::Chunk;
+use crate::arrow_support::{BoxedArray, Chunk};
 
 use crate::calendar::{determine_wateryear, julian_to_calendar, load_cli_calendar};
 use crate::errors::InterchangeError;
@@ -384,35 +383,35 @@ fn flush_chunk(
         return Ok(());
     }
     let chunk = Chunk::new(vec![
-        PrimitiveArray::<i32>::from_vec(std::mem::take(wepp_id)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(julian)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(year)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(simulation_year)).boxed(),
-        PrimitiveArray::<i8>::from_vec(std::mem::take(month)).boxed(),
-        PrimitiveArray::<i8>::from_vec(std::mem::take(day_of_month)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(water_year)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(ofe)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(j_val)).boxed(),
-        PrimitiveArray::<i16>::from_vec(std::mem::take(y_val)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(p)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(rm)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(q)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(ep)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(es)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(er)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(dp)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(upstrmq)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(subrin)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(latqcc)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(total_soil_water)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(frozwt)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(snow_water)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(qofe)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(tile)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(irr)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(surf)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(base)).boxed(),
-        PrimitiveArray::<f64>::from_vec(std::mem::take(area)).boxed(),
+        arrow_array::Int32Array::from(std::mem::take(wepp_id)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(julian)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(year)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(simulation_year)).boxed(),
+        arrow_array::Int8Array::from(std::mem::take(month)).boxed(),
+        arrow_array::Int8Array::from(std::mem::take(day_of_month)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(water_year)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(ofe)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(j_val)).boxed(),
+        arrow_array::Int16Array::from(std::mem::take(y_val)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(p)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(rm)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(q)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(ep)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(es)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(er)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(dp)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(upstrmq)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(subrin)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(latqcc)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(total_soil_water)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(frozwt)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(snow_water)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(qofe)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(tile)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(irr)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(surf)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(base)).boxed(),
+        arrow_array::Float64Array::from(std::mem::take(area)).boxed(),
     ]);
     sink.write_chunk(chunk)?;
     Ok(())

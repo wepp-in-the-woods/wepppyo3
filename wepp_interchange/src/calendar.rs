@@ -2,9 +2,12 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
 
-use arrow2::array::{Array, PrimitiveArray};
-use arrow2::datatypes::DataType;
-use arrow2::io::parquet::read;
+use arrow_array::{
+    Array, Int16Array, Int32Array, Int64Array, Int8Array, UInt16Array, UInt32Array, UInt64Array,
+    UInt8Array,
+};
+use arrow_schema::DataType;
+use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 
 use crate::errors::InterchangeError;
 
@@ -20,40 +23,28 @@ impl CalendarLookup {
 }
 
 pub fn load_cli_calendar(path: &Path) -> Result<CalendarLookup, InterchangeError> {
-    let mut reader = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
-    let metadata = read::read_metadata(&mut reader)?;
-    let schema = read::infer_schema(&metadata)?;
+    let reader = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
+    let builder = ParquetRecordBatchReaderBuilder::try_new(reader)?;
+    let schema = builder.schema().clone();
 
     let year_name = "year";
-    let month_name = if schema.fields.iter().any(|f| f.name == "month") {
+    let month_name = if schema.fields().iter().any(|f| f.name() == "month") {
         "month"
     } else {
         "mo"
     };
-    let day_name = if schema.fields.iter().any(|f| f.name == "day_of_month") {
+    let day_name = if schema.fields().iter().any(|f| f.name() == "day_of_month") {
         "day_of_month"
     } else {
         "da"
     };
 
-    let schema = schema.filter(|_, field| {
-        field.name == year_name || field.name == month_name || field.name == day_name
-    });
-
-    let row_groups = metadata.row_groups.clone();
-    let mut file_reader = read::FileReader::new(
-        reader,
-        row_groups,
-        schema.clone(),
-        Some(1024 * 8),
-        None,
-        None,
-    );
+    let mut file_reader = builder.with_batch_size(1024 * 8).build()?;
 
     let mut rows: Vec<(i32, i32, i32)> = Vec::new();
-    for maybe_chunk in &mut file_reader {
-        let chunk = maybe_chunk?;
-        if chunk.arrays().len() != schema.fields.len() {
+    for maybe_batch in &mut file_reader {
+        let batch = maybe_batch?;
+        if batch.num_rows() == 0 {
             continue;
         }
 
@@ -61,12 +52,16 @@ pub fn load_cli_calendar(path: &Path) -> Result<CalendarLookup, InterchangeError
         let mut month_col: Option<Vec<Option<i32>>> = None;
         let mut day_col: Option<Vec<Option<i32>>> = None;
 
-        for (field, array) in schema.fields.iter().zip(chunk.arrays()) {
+        for (field, array) in batch.schema().fields().iter().zip(batch.columns()) {
+            let name = field.name();
+            if name != year_name && name != month_name && name != day_name {
+                continue;
+            }
             let values =
                 primitive_to_i32(array.as_ref()).map_err(|message| InterchangeError::Calendar {
                     message: format!("{} in {}", message, path.display()),
                 })?;
-            match field.name.as_str() {
+            match name.as_str() {
                 "year" => year_col = Some(values),
                 "month" | "mo" => month_col = Some(values),
                 "day_of_month" | "da" => day_col = Some(values),
@@ -154,44 +149,100 @@ pub fn determine_wateryear(year: i32, julian: i32) -> i32 {
 
 fn primitive_to_i32(array: &dyn Array) -> Result<Vec<Option<i32>>, String> {
     match array.data_type() {
-        DataType::Int8 => Ok(downcast_numeric::<i8>(array)
+        DataType::Int8 => Ok(downcast_int8(array)
             .into_iter()
-            .map(|v| v.map(|v| v as i32))
+            .map(|v| v.map(i32::from))
             .collect()),
-        DataType::Int16 => Ok(downcast_numeric::<i16>(array)
+        DataType::Int16 => Ok(downcast_int16(array)
             .into_iter()
-            .map(|v| v.map(|v| v as i32))
+            .map(|v| v.map(i32::from))
             .collect()),
-        DataType::Int32 => Ok(downcast_numeric::<i32>(array)),
-        DataType::Int64 => Ok(downcast_numeric::<i64>(array)
+        DataType::Int32 => Ok(downcast_int32(array)),
+        DataType::Int64 => Ok(downcast_int64(array)
             .into_iter()
-            .map(|v| v.map(|v| v as i32))
+            .map(|v| v.map(|x| x as i32))
             .collect()),
-        DataType::UInt8 => Ok(downcast_numeric::<u8>(array)
+        DataType::UInt8 => Ok(downcast_uint8(array)
             .into_iter()
-            .map(|v| v.map(|v| v as i32))
+            .map(|v| v.map(i32::from))
             .collect()),
-        DataType::UInt16 => Ok(downcast_numeric::<u16>(array)
+        DataType::UInt16 => Ok(downcast_uint16(array)
             .into_iter()
-            .map(|v| v.map(|v| v as i32))
+            .map(|v| v.map(i32::from))
             .collect()),
-        DataType::UInt32 => Ok(downcast_numeric::<u32>(array)
+        DataType::UInt32 => Ok(downcast_uint32(array)
             .into_iter()
-            .map(|v| v.map(|v| v as i32))
+            .map(|v| v.map(|x| x as i32))
             .collect()),
-        DataType::UInt64 => Ok(downcast_numeric::<u64>(array)
+        DataType::UInt64 => Ok(downcast_uint64(array)
             .into_iter()
-            .map(|v| v.map(|v| v as i32))
+            .map(|v| v.map(|x| x as i32))
             .collect()),
         other => Err(format!("Unsupported calendar column type: {other:?}")),
     }
 }
 
-fn downcast_numeric<T: arrow2::types::NativeType>(array: &dyn Array) -> Vec<Option<T>> {
+fn downcast_int8(array: &dyn Array) -> Vec<Option<i8>> {
     array
         .as_any()
-        .downcast_ref::<PrimitiveArray<T>>()
-        .map(|arr| arr.iter().map(|v| v.copied()).collect())
+        .downcast_ref::<Int8Array>()
+        .map(|arr| arr.iter().collect())
+        .unwrap_or_default()
+}
+
+fn downcast_int16(array: &dyn Array) -> Vec<Option<i16>> {
+    array
+        .as_any()
+        .downcast_ref::<Int16Array>()
+        .map(|arr| arr.iter().collect())
+        .unwrap_or_default()
+}
+
+fn downcast_int32(array: &dyn Array) -> Vec<Option<i32>> {
+    array
+        .as_any()
+        .downcast_ref::<Int32Array>()
+        .map(|arr| arr.iter().collect())
+        .unwrap_or_default()
+}
+
+fn downcast_int64(array: &dyn Array) -> Vec<Option<i64>> {
+    array
+        .as_any()
+        .downcast_ref::<Int64Array>()
+        .map(|arr| arr.iter().collect())
+        .unwrap_or_default()
+}
+
+fn downcast_uint8(array: &dyn Array) -> Vec<Option<u8>> {
+    array
+        .as_any()
+        .downcast_ref::<UInt8Array>()
+        .map(|arr| arr.iter().collect())
+        .unwrap_or_default()
+}
+
+fn downcast_uint16(array: &dyn Array) -> Vec<Option<u16>> {
+    array
+        .as_any()
+        .downcast_ref::<UInt16Array>()
+        .map(|arr| arr.iter().collect())
+        .unwrap_or_default()
+}
+
+fn downcast_uint32(array: &dyn Array) -> Vec<Option<u32>> {
+    array
+        .as_any()
+        .downcast_ref::<UInt32Array>()
+        .map(|arr| arr.iter().collect())
+        .unwrap_or_default()
+}
+
+fn downcast_uint64(array: &dyn Array) -> Vec<Option<u64>> {
+    array
+        .as_any()
+        .downcast_ref::<UInt64Array>()
+        .map(|arr| arr.iter().collect())
         .unwrap_or_default()
 }
 
@@ -242,9 +293,9 @@ fn days_from_civil(year: i32, month: i32, day: i32) -> i64 {
     let d = day as i64;
     y -= (m <= 2) as i64;
     let era = if y >= 0 { y } else { y - 399 } / 400;
-    let yoe = y - era * 400; // [0, 399]
-    let mp = m + if m > 2 { -3 } else { 9 }; // [0, 11]
-    let doy = (153 * mp + 2) / 5 + d - 1; // [0, 365]
-    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy; // [0, 146096]
+    let yoe = y - era * 400;
+    let mp = m + if m > 2 { -3 } else { 9 };
+    let doy = (153 * mp + 2) / 5 + d - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
     era * 146097 + doe
 }

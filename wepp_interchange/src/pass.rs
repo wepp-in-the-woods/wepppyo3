@@ -2,9 +2,9 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-use arrow2::array::{Array, PrimitiveArray};
-use arrow2::chunk::Chunk;
-use arrow2::datatypes::{DataType, Field, Schema};
+use crate::arrow_support::{BoxedArray, Chunk};
+use arrow_array::{Array, Float64Array, Int16Array, Int32Array, Int8Array};
+use arrow_schema::{DataType, Field, Schema};
 use flate2::read::GzDecoder;
 
 use crate::arrays::dictionary_array_from_strings;
@@ -461,7 +461,7 @@ fn build_event_schema(meta: &PassMetadata, version: &VersionInfo) -> Schema {
         ));
     }
 
-    let mut schema = Schema::from(fields);
+    let mut schema = Schema::new(fields);
     let mut metadata = std::mem::take(&mut schema.metadata);
     metadata.insert("version".to_string(), meta.version.to_string());
     metadata.insert("nhill".to_string(), meta.nhill.to_string());
@@ -493,7 +493,7 @@ fn build_metadata_schema(meta: &PassMetadata, version: &VersionInfo) -> Schema {
         ));
     }
 
-    let mut schema = Schema::from(fields);
+    let mut schema = Schema::new(fields);
     let mut metadata = std::mem::take(&mut schema.metadata);
     metadata.insert("version".to_string(), meta.version.to_string());
     metadata.insert("nhill".to_string(), meta.nhill.to_string());
@@ -598,38 +598,38 @@ impl EventStore {
     }
 
     fn to_chunk(&mut self, schema: &Schema) -> Chunk<Box<dyn Array>> {
-        let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields.len());
+        let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields().len());
         let event_values = std::mem::take(&mut self.event);
         let event_array =
             dictionary_array_from_strings(event_values).expect("dictionary encoding for events");
         arrays.push(event_array.boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.year)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.sim_day_index)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.julian)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.month)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.day_of_month)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.water_year)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.wepp_id)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.dur)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.tcs)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.oalpha)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.runoff)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.runvol)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.sbrunf)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.sbrunv)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.drainq)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.drrunv)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.peakro)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.tdet)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.tdep)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.gwbfv)).boxed());
-        arrays.push(PrimitiveArray::from_vec(std::mem::take(&mut self.gwdsv)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.year)).boxed());
+        arrays.push(Int32Array::from(std::mem::take(&mut self.sim_day_index)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.julian)).boxed());
+        arrays.push(Int8Array::from(std::mem::take(&mut self.month)).boxed());
+        arrays.push(Int8Array::from(std::mem::take(&mut self.day_of_month)).boxed());
+        arrays.push(Int16Array::from(std::mem::take(&mut self.water_year)).boxed());
+        arrays.push(Int32Array::from(std::mem::take(&mut self.wepp_id)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.dur)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.tcs)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.oalpha)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.runoff)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.runvol)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.sbrunf)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.sbrunv)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.drainq)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.drrunv)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.peakro)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.tdet)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.tdep)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.gwbfv)).boxed());
+        arrays.push(Float64Array::from(std::mem::take(&mut self.gwdsv)).boxed());
 
         for col in &mut self.sedcon {
-            arrays.push(PrimitiveArray::from_vec(std::mem::take(col)).boxed());
+            arrays.push(Float64Array::from(std::mem::take(col)).boxed());
         }
         for col in &mut self.frcflw {
-            arrays.push(PrimitiveArray::from_vec(std::mem::take(col)).boxed());
+            arrays.push(Float64Array::from(std::mem::take(col)).boxed());
         }
 
         Chunk::new(arrays)
@@ -863,16 +863,16 @@ pub fn watershed_pass_to_parquet(
 }
 
 fn build_metadata_chunk(meta: &PassMetadata, schema: &Schema) -> Chunk<Box<dyn Array>> {
-    let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields.len());
-    arrays.push(PrimitiveArray::from_vec(meta.hillslope_ids.clone()).boxed());
+    let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields().len());
+    arrays.push(Int32Array::from(meta.hillslope_ids.clone()).boxed());
     let climate_array = dictionary_array_from_strings(meta.climate_files.clone())
         .expect("dictionary encoding for climate files");
     arrays.push(climate_array.boxed());
-    arrays.push(PrimitiveArray::from_vec(meta.areas.clone()).boxed());
-    arrays.push(PrimitiveArray::from_vec(meta.srp.clone()).boxed());
-    arrays.push(PrimitiveArray::from_vec(meta.slfp.clone()).boxed());
-    arrays.push(PrimitiveArray::from_vec(meta.bfp.clone()).boxed());
-    arrays.push(PrimitiveArray::from_vec(meta.scp.clone()).boxed());
+    arrays.push(Float64Array::from(meta.areas.clone()).boxed());
+    arrays.push(Float64Array::from(meta.srp.clone()).boxed());
+    arrays.push(Float64Array::from(meta.slfp.clone()).boxed());
+    arrays.push(Float64Array::from(meta.bfp.clone()).boxed());
+    arrays.push(Float64Array::from(meta.scp.clone()).boxed());
 
     for idx in 0..meta.npart {
         let column = meta
@@ -880,7 +880,7 @@ fn build_metadata_chunk(meta: &PassMetadata, schema: &Schema) -> Chunk<Box<dyn A
             .iter()
             .map(|row| row[idx])
             .collect::<Vec<f64>>();
-        arrays.push(PrimitiveArray::from_vec(column).boxed());
+        arrays.push(Float64Array::from(column).boxed());
     }
 
     Chunk::new(arrays)

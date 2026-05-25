@@ -3,7 +3,7 @@ use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-use arrow2::io::parquet::read;
+use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use time::OffsetDateTime;
@@ -80,22 +80,22 @@ fn build_entry(base: &Path, path: &Path, catalog_path: Option<&str>) -> Option<C
 }
 
 fn read_parquet_schema(path: &Path) -> Option<SchemaInfo> {
-    let mut reader = File::open(path).ok()?;
-    let metadata = read::read_metadata(&mut reader).ok()?;
-    let schema = read::infer_schema(&metadata).ok()?;
+    let reader = File::open(path).ok()?;
+    let builder = ParquetRecordBatchReaderBuilder::try_new(reader).ok()?;
+    let schema = builder.schema().clone();
 
     let mut fields = Vec::new();
-    for field in schema.fields {
+    for field in schema.fields() {
         let mut info = FieldInfo {
-            name: field.name.clone(),
-            r#type: data_type_to_pyarrow(&field.data_type),
+            name: field.name().to_string(),
+            r#type: data_type_to_pyarrow(field.data_type()),
             units: None,
             description: None,
         };
-        if let Some(meta) = field.metadata.get("units") {
+        if let Some(meta) = field.metadata().get("units") {
             info.units = Some(meta.clone());
         }
-        if let Some(meta) = field.metadata.get("description") {
+        if let Some(meta) = field.metadata().get("description") {
             info.description = Some(meta.clone());
         }
         fields.push(info);
@@ -103,8 +103,8 @@ fn read_parquet_schema(path: &Path) -> Option<SchemaInfo> {
     Some(SchemaInfo { fields })
 }
 
-fn data_type_to_pyarrow(data_type: &arrow2::datatypes::DataType) -> String {
-    use arrow2::datatypes::DataType;
+fn data_type_to_pyarrow(data_type: &arrow_schema::DataType) -> String {
+    use arrow_schema::DataType;
     match data_type {
         DataType::Int8 => "int8".to_string(),
         DataType::Int16 => "int16".to_string(),
@@ -321,4 +321,51 @@ fn find_parent_run_root(base: &Path) -> Option<PathBuf> {
         return None;
     }
     Some(parts[..idx].iter().collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::arrow_support::{BoxedArray, Chunk};
+    use crate::parquet::write_single_chunk;
+    use arrow_schema::{DataType, Field, Schema};
+    use std::collections::HashMap;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_path(stem: &str) -> PathBuf {
+        let mut path = std::env::temp_dir();
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        path.push(format!("wepp_interchange_catalog_{stem}_{nanos}.parquet"));
+        path
+    }
+
+    #[test]
+    fn arrow01_catalog_schema_read_contract() {
+        let mut field_meta = HashMap::new();
+        field_meta.insert("units".to_string(), "mm".to_string());
+        field_meta.insert("description".to_string(), "precip depth".to_string());
+        let field = Field::new("precip", DataType::Float64, true).with_metadata(field_meta);
+        let schema = Schema::new_with_metadata(
+            vec![field],
+            HashMap::from([("dataset_version".to_string(), "3.0".to_string())]),
+        );
+        let chunk = Chunk::new(vec![
+            arrow_array::Float64Array::from(vec![Some(1.25), None]).boxed(),
+        ]);
+
+        let path = temp_path("schema");
+        write_single_chunk(&path, schema, chunk).expect("write parquet");
+        let schema_info = read_parquet_schema(&path).expect("schema should be readable");
+        assert_eq!(schema_info.fields.len(), 1);
+        let field_info = &schema_info.fields[0];
+        assert_eq!(field_info.name, "precip");
+        assert_eq!(field_info.r#type, "double");
+        assert_eq!(field_info.units.as_deref(), Some("mm"));
+        assert_eq!(field_info.description.as_deref(), Some("precip depth"));
+
+        std::fs::remove_file(path).expect("cleanup parquet");
+    }
 }

@@ -19,6 +19,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
 mod arrays;
+mod arrow_support;
 mod calendar;
 mod catalog;
 mod chan_peak;

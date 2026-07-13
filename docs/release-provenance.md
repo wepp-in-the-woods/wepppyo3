@@ -62,6 +62,46 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: `wepp_interchange` AgFields weighted PASS API
+
+`confirmed`: the `wepp_interchange` shared object was rebuilt from the local
+AgFields weighted-PASS implementation from source commit `2779b41` at
+`2026-07-13T21:16:36Z` using:
+
+```sh
+cd /home/workdir/wepppyo3
+export PYO3_PYTHON=/usr/bin/python3.12
+export PYTHON_SYS_EXECUTABLE=/usr/bin/python3.12
+cargo build -p wepp_interchange_rust --release
+cp target/release/libwepp_interchange_rust.so \
+  release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+```
+
+`confirmed`: crate validation passed with 39 tests, including the unchanged Roads
+combiner suite and additive weighted identities, validation, serialization closure,
+and atomic-output cases.
+
+`confirmed`: the release-tree import and Python API test passed:
+
+```sh
+PYTHONPATH=/home/workdir/wepppyo3/release/linux/py312 python3.12 -c \
+  "from wepppyo3.wepp_interchange import combine_weighted_hillslope_pass_files; print('ok')"
+PYTHONPATH=/home/workdir/wepppyo3/release/linux/py312 python3.12 -m pytest -q \
+  tests/wepp_interchange/test_weighted_hillslope_pass.py
+```
+
+The exported signature is:
+
+```text
+(sources, out_pass, target_area_m2, output_climate_token, strategy="ag_fields_v1")
+```
+
+`confirmed`: refreshed `wepp_interchange` SHA256:
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `8c94041776a66968aab302ee20fa1b85d6e53c0b0ca3ffec234ffb84247b5d6f` |
+
 ### Full Refresh: Arrow-RS migration package closure
 
 `confirmed`: release tree refreshed from local source commit `8951b50` at

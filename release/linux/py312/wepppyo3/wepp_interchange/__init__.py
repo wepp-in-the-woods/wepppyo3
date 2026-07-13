@@ -7,6 +7,7 @@ from .wepp_interchange_rust import watershed_chanwb_to_parquet
 from .wepp_interchange_rust import watershed_chnwb_to_parquet
 from .wepp_interchange_rust import hillslope_pass_to_columns
 from .wepp_interchange_rust import combine_hillslope_pass_files
+from .wepp_interchange_rust import combine_weighted_hillslope_pass_files
 from .wepp_interchange_rust import hillslope_ebe_to_columns
 from .wepp_interchange_rust import hillslope_element_to_columns
 from .wepp_interchange_rust import hillslope_loss_to_columns
@@ -25,6 +26,7 @@ __all__ = [
     "watershed_chnwb_to_parquet",
     "hillslope_pass_to_columns",
     "combine_hillslope_pass_files",
+    "combine_weighted_hillslope_pass_files",
     "hillslope_ebe_to_columns",
     "hillslope_element_to_columns",
     "hillslope_loss_to_columns",

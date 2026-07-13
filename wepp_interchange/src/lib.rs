@@ -439,6 +439,37 @@ fn combine_hillslope_pass_files(
 }
 
 #[pyfunction]
+#[pyo3(signature = (sources, out_pass, target_area_m2, output_climate_token, strategy="ag_fields_v1"))]
+fn combine_weighted_hillslope_pass_files(
+    sources: Vec<(String, String, f64)>,
+    out_pass: String,
+    target_area_m2: f64,
+    output_climate_token: String,
+    strategy: &str,
+) -> PyResult<PyObject> {
+    let sources = sources
+        .into_iter()
+        .map(
+            |(source_id, pass_path, represented_area_m2)| hill_pass_combine::WeightedPassSource {
+                source_id,
+                path: PathBuf::from(pass_path),
+                represented_area_m2,
+            },
+        )
+        .collect::<Vec<_>>();
+    let out_pass = PathBuf::from(out_pass);
+    let diagnostics = hill_pass_combine::combine_weighted_hillslope_pass_files(
+        &sources,
+        &out_pass,
+        target_area_m2,
+        &output_climate_token,
+        strategy,
+    )
+    .map_err(to_py_err)?;
+    Ok(Python::with_gil(|py| diagnostics.into_pydict(py)))
+}
+
+#[pyfunction]
 #[pyo3(signature = (ebe_path, version_major, version_minor, cli_calendar_path=None, start_year=None))]
 fn hillslope_ebe_to_columns(
     ebe_path: String,
@@ -574,6 +605,7 @@ fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(watershed_chnwb_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_pass_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(combine_hillslope_pass_files, m)?)?;
+    m.add_function(wrap_pyfunction!(combine_weighted_hillslope_pass_files, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_ebe_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_element_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_loss_to_columns, m)?)?;

@@ -136,6 +136,7 @@ Deterministic-order contract:
 - `watershed_chnwb_to_parquet(...)`
 - `hillslope_pass_to_columns(...)`
 - `combine_hillslope_pass_files(...)`
+- `combine_weighted_hillslope_pass_files(sources, out_pass, target_area_m2, output_climate_token, strategy="ag_fields_v1")`
 - `hillslope_ebe_to_columns(...)`
 - `hillslope_element_to_columns(...)`
 - `hillslope_loss_to_columns(...)`
@@ -143,6 +144,14 @@ Deterministic-order contract:
 - `hillslope_wat_to_columns(...)`
 - `catalog_scan(base_path)`
 - `segment_single_ofe_slope(...)`
+
+`combine_weighted_hillslope_pass_files` is the additive AgFields outlet-injection
+kernel. It leaves the Roads `combine_hillslope_pass_files` contract unchanged,
+derives each source scale from represented area and PASS header area, writes one
+legacy parent PASS atomically, reparses it, and returns per-source, per-event, and
+full-run conservation diagnostics. Its normative field rules and
+serialization-derived budgets are maintained in WEPPpy ADR-0018 and the associated
+AgFields work package.
 
 ### `wepppyo3.swat_interchange`
 

@@ -4,7 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from wepppyo3.wepp_interchange import segment_single_ofe_slope
+from wepppyo3.wepp_interchange import (
+    segment_single_ofe_slope,
+    segment_single_ofe_slope_at_breakpoints,
+)
 
 
 def _write_single_ofe_slope(
@@ -37,6 +40,14 @@ def _parse_profiles(path: Path) -> list[list[tuple[float, float]]]:
         profile = [(float(row[i * 2]), float(row[i * 2 + 1])) for i in range(npts)]
         ofe_profiles.append(profile)
     return ofe_profiles
+
+
+def _parse_width_and_lengths(path: Path) -> tuple[float, list[float]]:
+    lines = [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    n_ofes = int(lines[1])
+    width = float(lines[2].split()[1])
+    lengths = [float(lines[3 + index * 2].split()[1]) for index in range(n_ofes)]
+    return width, lengths
 
 
 def test_segment_single_ofe_slope_drops_duplicate_rounded_distances(tmp_path: Path) -> None:
@@ -130,3 +141,57 @@ def test_segment_single_ofe_slope_buffer_mode_keeps_monotonic_distances(tmp_path
         assert distances[0] == pytest.approx(0.0)
         assert distances[-1] == pytest.approx(1.0)
         assert all(curr > prev for prev, curr in zip(distances, distances[1:]))
+
+
+def test_explicit_breakpoints_preserve_profile_length_and_override_width(tmp_path: Path) -> None:
+    src = tmp_path / "hill_20.slp"
+    dst = tmp_path / "hill_20.explicit.slp"
+    _write_single_ofe_slope(
+        src,
+        width=82.4,
+        length=100.0,
+        points=[
+            (0.0, 0.9),
+            (0.2, 0.8),
+            (0.5, 0.6),
+            (0.8, 0.5),
+            (1.0, 0.4),
+        ],
+    )
+
+    n_mofes = segment_single_ofe_slope_at_breakpoints(
+        str(src),
+        [0.0, 0.2, 0.55, 1.0],
+        dst_fn=str(dst),
+        target_width=40.0,
+    )
+
+    assert n_mofes == 3
+    width, lengths = _parse_width_and_lengths(dst)
+    assert width == 40.0
+    assert lengths == [20.0, 35.0, 45.0]
+    assert sum(lengths) == 100.0
+    profiles = _parse_profiles(dst)
+    assert profiles[1][0] == (0.0, 0.8)
+    assert profiles[2][0] == (0.0, 0.5)
+
+
+@pytest.mark.parametrize(
+    "breakpoints",
+    [
+        [0.1, 1.0],
+        [0.0, 0.5, 0.5, 1.0],
+        [0.0, float("nan"), 1.0],
+        [0.0, 1.1, 1.0],
+        [index / 21.0 for index in range(22)],
+    ],
+)
+def test_explicit_breakpoints_reject_invalid_boundaries(
+    tmp_path: Path,
+    breakpoints: list[float],
+) -> None:
+    src = tmp_path / "hill_invalid.slp"
+    _write_single_ofe_slope(src, points=[(0.0, 0.2), (1.0, 0.1)])
+
+    with pytest.raises(ValueError):
+        segment_single_ofe_slope_at_breakpoints(str(src), breakpoints)

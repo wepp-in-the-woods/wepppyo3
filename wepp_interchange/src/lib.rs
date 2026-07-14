@@ -594,6 +594,23 @@ fn segment_single_ofe_slope(
     .map_err(to_py_err)
 }
 
+#[pyfunction]
+#[pyo3(signature = (src_fn, breakpoints, dst_fn=None, target_width=None))]
+fn segment_single_ofe_slope_at_breakpoints(
+    src_fn: String,
+    breakpoints: Vec<f64>,
+    dst_fn: Option<String>,
+    target_width: Option<f64>,
+) -> PyResult<i64> {
+    mofe::segment_single_ofe_slope_at_breakpoints(
+        &src_fn,
+        &breakpoints,
+        dst_fn.as_deref(),
+        target_width,
+    )
+    .map_err(to_py_err)
+}
+
 #[pymodule]
 fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(watershed_pass_to_parquet, m)?)?;
@@ -613,6 +630,10 @@ fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hillslope_wat_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(catalog_scan, m)?)?;
     m.add_function(wrap_pyfunction!(segment_single_ofe_slope, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        segment_single_ofe_slope_at_breakpoints,
+        m
+    )?)?;
     Ok(())
 }
 

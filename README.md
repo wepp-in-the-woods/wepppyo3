@@ -144,6 +144,7 @@ Deterministic-order contract:
 - `hillslope_wat_to_columns(...)`
 - `catalog_scan(base_path)`
 - `segment_single_ofe_slope(...)`
+- `segment_single_ofe_slope_at_breakpoints(src_fn, breakpoints, dst_fn=None, target_width=None)`
 
 `combine_weighted_hillslope_pass_files` is the additive AgFields outlet-injection
 kernel. It leaves the Roads `combine_hillslope_pass_files` contract unchanged,

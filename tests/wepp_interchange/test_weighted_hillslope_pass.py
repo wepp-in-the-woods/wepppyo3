@@ -8,7 +8,7 @@ from wepppyo3.wepp_interchange import combine_weighted_hillslope_pass_files
 from wepppyo3.wepp_interchange import hillslope_pass_to_columns
 
 
-def _write_pass(path: Path, *, climate_token: str, runvol: float) -> None:
+def _write_pass(path: Path, *, climate_token: str, runvol: float, tdep: float = 1.0) -> None:
     values = [
         3600.0,
         1.0,
@@ -21,7 +21,7 @@ def _write_pass(path: Path, *, climate_token: str, runvol: float) -> None:
         0.0,
         2.0,
         3.0,
-        1.0,
+        tdep,
         0.01,
         0.02,
         0.03,
@@ -81,3 +81,28 @@ def test_weighted_pass_python_api_returns_closure_diagnostics(tmp_path: Path) ->
     columns = hillslope_pass_to_columns(str(output), 1, 0, pass_family="legacy_ascii")
     assert columns["runvol"] == pytest.approx([150.0])
     assert output.read_text(encoding="ascii").splitlines()[0] == "../runs/p71.cli"
+
+
+def test_weighted_pass_python_api_preserves_signed_tdep(tmp_path: Path) -> None:
+    background = tmp_path / "H72.pass.dat"
+    field = tmp_path / "H972.pass.dat"
+    output = tmp_path / "H72.weighted.pass.dat"
+    _write_pass(background, climate_token="parent.cli", runvol=100.0, tdep=-2.0)
+    _write_pass(field, climate_token="field.cli", runvol=200.0, tdep=-4.0)
+
+    result = combine_weighted_hillslope_pass_files(
+        [
+            ("background", str(background), 2220.45),
+            ("field:972", str(field), 2220.45),
+        ],
+        str(output),
+        4440.9,
+        "../runs/p72.cli",
+    )
+
+    columns = hillslope_pass_to_columns(str(output), 1, 0, pass_family="legacy_ascii")
+    assert columns["tdep"] == pytest.approx([-3.0])
+    assert result["events"][0]["weighted_input"]["tdep_kg"] == pytest.approx(-3.0)
+    assert abs(result["events"][0]["residuals"]["tdep_kg"]) <= result["events"][0][
+        "budgets"
+    ]["tdep_kg"]

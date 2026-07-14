@@ -715,7 +715,7 @@ fn validate_weighted_source_rows(
     path: &Path,
     columns: &PassColumns,
 ) -> Result<(), InterchangeError> {
-    let numeric_columns: [(&str, &[f64]); 24] = [
+    let nonnegative_columns: [(&str, &[f64]); 23] = [
         ("dur", &columns.dur),
         ("tcs", &columns.tcs),
         ("oalpha", &columns.oalpha),
@@ -727,7 +727,6 @@ fn validate_weighted_source_rows(
         ("drrunv", &columns.drrunv),
         ("peakro", &columns.peakro),
         ("tdet", &columns.tdet),
-        ("tdep", &columns.tdep),
         ("sedcon_1", &columns.sedcon_1),
         ("sedcon_2", &columns.sedcon_2),
         ("sedcon_3", &columns.sedcon_3),
@@ -741,7 +740,7 @@ fn validate_weighted_source_rows(
         ("gwbfv", &columns.gwbfv),
         ("gwdsv", &columns.gwdsv),
     ];
-    for (name, values) in numeric_columns {
+    for (name, values) in nonnegative_columns {
         for (row_idx, value) in values.iter().enumerate() {
             if !value.is_finite() || *value < 0.0 {
                 return Err(InterchangeError::parse(
@@ -753,36 +752,18 @@ fn validate_weighted_source_rows(
             }
         }
     }
+    for (row_idx, value) in columns.tdep.iter().enumerate() {
+        if !value.is_finite() {
+            return Err(InterchangeError::parse(
+                path,
+                None,
+                "Weighted PASS field 'tdep' must be finite".to_string(),
+                Some(format!("row={row_idx} value={value}")),
+            ));
+        }
+    }
     for (row_idx, label) in columns.event.iter().enumerate() {
         parse_event_kind(label, path, row_idx)?;
-        let raw = row_metrics(columns, row_idx);
-        let sediment_mass = raw[7..].iter().sum::<f64>();
-        if sediment_mass > 0.0 {
-            let fractions = [
-                columns.clot[row_idx],
-                columns.slot[row_idx],
-                columns.saot[row_idx],
-                columns.laot[row_idx],
-                columns.sdot[row_idx],
-            ];
-            let fraction_sum = fractions.iter().sum::<f64>();
-            let fraction_budget = fractions
-                .iter()
-                .map(|value| direct_serialization_budget(*value))
-                .sum::<f64>()
-                + floating_point_budget(1.0);
-            if (fraction_sum - 1.0).abs() > fraction_budget {
-                return Err(InterchangeError::parse(
-                    path,
-                    None,
-                    "Weighted PASS particle fractions do not sum to one",
-                    Some(format!(
-                        "row={row_idx} sum={fraction_sum} residual={} budget={fraction_budget}",
-                        fraction_sum - 1.0
-                    )),
-                ));
-            }
-        }
     }
     Ok(())
 }
@@ -1845,11 +1826,11 @@ fn format_fortran_e11_5(value: f64, out_pass: &Path) -> Result<String, Interchan
 }
 
 fn format_legacy_fortran_e11_5(value: f64, out_pass: &Path) -> Result<String, InterchangeError> {
-    if !value.is_finite() || value < 0.0 {
+    if !value.is_finite() {
         return Err(InterchangeError::parse(
             out_pass,
             None,
-            format!("PASS writer encountered non-finite or negative value: {value}"),
+            format!("PASS writer encountered non-finite value: {value}"),
             None,
         ));
     }
@@ -1857,7 +1838,7 @@ fn format_legacy_fortran_e11_5(value: f64, out_pass: &Path) -> Result<String, In
         return Ok("0.00000E+00".to_string());
     }
 
-    let scientific = format!("{value:.4E}");
+    let scientific = format!("{:.4E}", value.abs());
     let (mantissa, exponent_token) = scientific.split_once('E').ok_or_else(|| {
         InterchangeError::parse(
             out_pass,
@@ -1887,8 +1868,9 @@ fn format_legacy_fortran_e11_5(value: f64, out_pass: &Path) -> Result<String, In
         ));
     }
     let digits = mantissa.replace('.', "");
+    let mantissa_prefix = if value.is_sign_negative() { "-." } else { "0." };
     Ok(format!(
-        "0.{}E{exponent_sign}{exponent_abs:02}",
+        "{mantissa_prefix}{}E{exponent_sign}{exponent_abs:02}",
         &digits[..5]
     ))
 }
@@ -2547,6 +2529,72 @@ mod tests {
         assert!((columns.runvol[0] - 100.0).abs() < 1.0e-8);
         assert!((columns.tdet[0] - 3.0).abs() < 1.0e-8);
         assert!((columns.gwbfv[0] - 4.0).abs() < 1.0e-8);
+    }
+
+    #[test]
+    fn weighted_preserves_signed_tdep_and_closure() {
+        let tmp_dir = make_temp_dir("weighted_signed_tdep");
+        let background_path = tmp_dir.join("H57.pass.dat");
+        let field_path = tmp_dir.join("H957.pass.dat");
+        let out_path = tmp_dir.join("H57.weighted.pass.dat");
+        let mut background_values = representative_event_values();
+        background_values[11] = -2.0;
+        let mut field_values = representative_event_values();
+        field_values[11] = -4.0;
+        write_pass(&background_path, &[event_line(2000, 1, background_values)]);
+        write_pass(&field_path, &[event_line(2000, 1, field_values)]);
+
+        let diagnostics = combine_weighted_hillslope_pass_files(
+            &[
+                weighted_source("background", &background_path, 2220.45),
+                weighted_source("field:957", &field_path, 2220.45),
+            ],
+            &out_path,
+            4440.9,
+            "../runs/p57.cli",
+            AG_FIELDS_STRATEGY,
+        )
+        .expect("signed tdep should combine");
+
+        let columns = hillslope_pass_to_columns(&out_path, None, &VersionInfo::new(1, 0))
+            .expect("weighted output should parse");
+        assert!((columns.tdep[0] + 3.0).abs() < 1.0e-8);
+        assert!((diagnostics.events[0].weighted_input[6] + 3.0).abs() < 1.0e-8);
+        assert!(diagnostics.events[0].residuals[6].abs() <= diagnostics.events[0].budgets[6]);
+    }
+
+    #[test]
+    fn weighted_preserves_nonunit_particle_component_sum() {
+        let tmp_dir = make_temp_dir("weighted_nonunit_particle_components");
+        let source_path = tmp_dir.join("H58.pass.dat");
+        let out_path = tmp_dir.join("H58.weighted.pass.dat");
+        let mut values = representative_event_values();
+        let components = [0.064106, 0.41915, 0.43825, 0.075607, 0.011511];
+        values[17..22].copy_from_slice(&components);
+        write_pass(&source_path, &[event_line(2000, 1, values)]);
+
+        combine_weighted_hillslope_pass_files(
+            &[weighted_source("background", &source_path, 4440.9)],
+            &out_path,
+            4440.9,
+            "../runs/p58.cli",
+            AG_FIELDS_STRATEGY,
+        )
+        .expect("nonunit particle component sum should be preserved");
+
+        let columns = hillslope_pass_to_columns(&out_path, None, &VersionInfo::new(1, 0))
+            .expect("weighted output should parse");
+        let reparsed = [
+            columns.clot[0],
+            columns.slot[0],
+            columns.saot[0],
+            columns.laot[0],
+            columns.sdot[0],
+        ];
+        for (actual, expected) in reparsed.iter().zip(components.iter()) {
+            assert!((actual - expected).abs() < 1.0e-8);
+        }
+        assert!((reparsed.iter().sum::<f64>() - 1.008624).abs() < 1.0e-8);
     }
 
     #[test]

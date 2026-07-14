@@ -15,6 +15,7 @@ from .wepp_interchange_rust import hillslope_soil_to_columns
 from .wepp_interchange_rust import hillslope_wat_to_columns
 from .wepp_interchange_rust import catalog_scan
 from .wepp_interchange_rust import segment_single_ofe_slope
+from .wepp_interchange_rust import segment_single_ofe_slope_at_breakpoints
 
 __all__ = [
     "watershed_pass_to_parquet",
@@ -34,4 +35,5 @@ __all__ = [
     "hillslope_wat_to_columns",
     "catalog_scan",
     "segment_single_ofe_slope",
+    "segment_single_ofe_slope_at_breakpoints",
 ]

@@ -62,6 +62,34 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: explicit-breakpoint AgFields slope segmentation
+
+`confirmed`: the `wepp_interchange` shared object was rebuilt from source commit
+`9c84643` at `2026-07-14T18:04:15Z`. The additive
+`segment_single_ofe_slope_at_breakpoints` API validates a closed sequence from
+zero to one, supports one through 20 OFEs, preserves the source profile length,
+and optionally sets the accepted target width. The existing automatic segmenter
+is unchanged.
+
+Build and copy commands:
+
+```sh
+cd /home/workdir/wepppyo3
+PYO3_PYTHON=/usr/bin/python3.12 \
+  PYTHON_SYS_EXECUTABLE=/usr/bin/python3.12 \
+  cargo build -p wepp_interchange_rust --release
+cp target/release/libwepp_interchange_rust.so \
+  release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+```
+
+`confirmed`: crate validation passed with 43 tests, including explicit irregular
+breakpoints, length/width preservation, and invalid-boundary/limit cases. The
+release-tree Python import and slope tests also passed.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `776703694245aa092f6f1972cbd539dddb2ca0f4c054afa04d7e25f863a745f6` |
+
 ### Acceptance Correction Refresh: `wepp_interchange` weighted PASS semantics
 
 `confirmed`: the `wepp_interchange` shared object was rebuilt from acceptance

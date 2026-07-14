@@ -62,6 +62,34 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Acceptance Correction Refresh: `wepp_interchange` weighted PASS semantics
+
+`confirmed`: the `wepp_interchange` shared object was rebuilt from acceptance
+correction commit `6eaa699` at `2026-07-13T23:07:36Z`. That commit follows release
+commit `96c028f` and source implementation commit `2779b41`.
+
+The correction preserves signed `tdep` values emitted by WEPP and preserves finite
+nonnegative particle-flow component vectors without requiring their serialized sum
+to equal one. Both behaviors are grounded in the WEPP producer/consumer sources and
+were exposed by full-project acceptance before the final successful run.
+
+`confirmed`: final validation passed:
+
+- `cargo test -p wepp_interchange_rust`: 41 passed;
+- release-tree weighted Python tests: two passed;
+- exact parent-86 signed-deposition replay: passed;
+- exact parent-158 particle-vector replay: passed; and
+- exhaustive release-tree replay over all 1,869 affected acceptance parents:
+  passed, with maximum event budget ratio `0.9999999999305551`.
+
+`confirmed`: the final authenticated WEPPpy RQ job
+`2fc269a6-12f8-4d74-a876-0619b2ea3cf7` completed all 3,543 parent PASS files,
+watershed WEPP, and interchange using this release artifact.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `5d8e1251d84aed97af358d4473413b089a001de000523fbcd41bf9ffba864db3` |
+
 ### Targeted Refresh: `wepp_interchange` AgFields weighted PASS API
 
 `confirmed`: the `wepp_interchange` shared object was rebuilt from the local

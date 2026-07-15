@@ -55,12 +55,57 @@ export PYTHON_SYS_EXECUTABLE=$PYO3_PYTHON
 cargo build --release
 ```
 
-Then copy each `target/release/lib*_rust.so` into its corresponding
-`release/linux/py312/wepppyo3/<module>/` path.
+Refresh each `target/release/lib*_rust.so` into its corresponding
+`release/linux/py312/wepppyo3/<module>/` path through a same-directory temporary
+file and atomic rename, as shown in the root README. Never truncate or overwrite
+a shared object in place while a process may have it mapped; restart target
+services after the atomic refresh.
 
 This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
+
+### Targeted Refresh: schema-compatible UTF-8 interchange batches
+
+`confirmed`: the `wepp_interchange` shared object was rebuilt from source commit
+`a9403b889257` at `2026-07-15T02:47:35Z`. The writer now supplies plain Arrow
+`Utf8` arrays for schemas that declare `Utf8`; Parquet dictionary encoding remains
+enabled in the writer properties. This repairs the non-empty watershed PASS/LOSS
+failure without changing the public Arrow schema.
+
+Build and atomic refresh commands:
+
+```sh
+cd /home/workdir/wepppyo3
+cargo build -p wepp_interchange_rust --release
+dst=release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+tmp=$(mktemp "$(dirname "$dst")/.wepp_interchange_rust.so.XXXXXX")
+cp target/release/libwepp_interchange_rust.so "$tmp"
+chmod 0755 "$tmp"
+mv -f "$tmp" "$dst"
+```
+
+`confirmed`: validation passed:
+
+- `cargo test -p wepp_interchange_rust`: 44 passed;
+- the new non-empty UTF-8 Parquet regression passed;
+- generated Concept 1 LOSS conversion completed in 0.386 seconds at 76,176 KiB
+  peak RSS;
+- generated Concept 1 PASS conversion produced 22,002,030 event rows and 3,543
+  metadata rows in 78.011 seconds at 435,296 KiB peak RSS; and
+- streaming comparison with the Python fallback found equal metadata-bearing
+  schemas and equal event values across 89 batches of at most 250,000 rows.
+
+`confirmed`: an earlier in-place copy while the completed Concept 1 Python
+process still mapped the old shared object caused that wrapper process to exit
+139 during interpreter teardown. The generated result and durable terminal state
+were already complete. The artifact was subsequently reinstalled by
+same-directory atomic rename, and the root README now makes that release rule
+explicit.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `d7a8ba031eed323d35c88f899a156230372ae1d582f516d8bfd4ef43d5a00bfb` |
 
 ### Targeted Refresh: explicit-breakpoint AgFields slope segmentation
 

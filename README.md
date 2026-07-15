@@ -234,25 +234,39 @@ export PYTHON_SYS_EXECUTABLE=$PYO3_PYTHON
 
 cargo build --release
 
-cp target/release/libraster_characteristics_rust.so \
+atomic_refresh() {
+  src="$1"
+  dst="$2"
+  tmp="$(mktemp "$(dirname "$dst")/.${dst##*/}.XXXXXX")"
+  cp "$src" "$tmp"
+  chmod 0755 "$tmp"
+  mv -f "$tmp" "$dst"
+}
+
+atomic_refresh target/release/libraster_characteristics_rust.so \
   release/linux/py312/wepppyo3/raster_characteristics/raster_characteristics_rust.so
-cp target/release/libcli_revision_rust.so \
+atomic_refresh target/release/libcli_revision_rust.so \
   release/linux/py312/wepppyo3/climate/cli_revision_rust.so
-cp target/release/libroads_flowpath_rust.so \
+atomic_refresh target/release/libroads_flowpath_rust.so \
   release/linux/py312/wepppyo3/roads_flowpath/roads_flowpath_rust.so
-cp target/release/libwepp_viz_rust.so \
+atomic_refresh target/release/libwepp_viz_rust.so \
   release/linux/py312/wepppyo3/wepp_viz/wepp_viz_rust.so
-cp target/release/libsbs_map_rust.so \
+atomic_refresh target/release/libsbs_map_rust.so \
   release/linux/py312/wepppyo3/sbs_map/sbs_map_rust.so
-cp target/release/libswat_interchange_rust.so \
+atomic_refresh target/release/libswat_interchange_rust.so \
   release/linux/py312/wepppyo3/swat_interchange/swat_interchange_rust.so
-cp target/release/libswat_utils_rust.so \
+atomic_refresh target/release/libswat_utils_rust.so \
   release/linux/py312/wepppyo3/swat_utils/swat_utils_rust.so
-cp target/release/libwatershed_abstraction_rust.so \
+atomic_refresh target/release/libwatershed_abstraction_rust.so \
   release/linux/py312/wepppyo3/watershed_abstraction/watershed_abstraction_rust.so
-cp target/release/libwepp_interchange_rust.so \
+atomic_refresh target/release/libwepp_interchange_rust.so \
   release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
 ```
+
+Do not overwrite a shared object in place while a Python process may have it
+mapped. The temporary-file plus same-directory `mv` keeps existing processes on
+their original inode while new imports see the refreshed artifact. Restart the
+target service after the refresh so it loads the new binary.
 
 Verify imports from the canonical release tree:
 

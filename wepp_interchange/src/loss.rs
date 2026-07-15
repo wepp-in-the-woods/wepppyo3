@@ -7,7 +7,7 @@ use crate::arrow_support::{BoxedArray, Chunk};
 use arrow_array::{Array, Float64Array, Int16Array, Int32Array, Int8Array};
 use arrow_schema::{DataType, Schema};
 
-use crate::arrays::dictionary_array_from_optional_strings;
+use crate::arrays::string_array_from_optional_strings;
 use crate::errors::InterchangeError;
 use crate::parquet::{empty_chunk, write_single_chunk, WriteSummary};
 use crate::schema::{field_with_meta, schema_with_version, VersionInfo};
@@ -656,7 +656,7 @@ fn build_chunk(
                     };
                     values.push(value);
                 }
-                arrays.push(dictionary_array_from_optional_strings(values)?.boxed());
+                arrays.push(string_array_from_optional_strings(values).boxed());
             }
             _ => {
                 return Err(InterchangeError::Arrow(format!(

@@ -3,9 +3,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use crate::arrow_support::{BoxedArray, Chunk};
-use arrow_array::types::Int32Type;
-use arrow_array::{new_empty_array, Array, DictionaryArray, RecordBatch};
-use arrow_schema::{DataType, Schema};
+use arrow_array::{new_empty_array, Array, RecordBatch};
+use arrow_schema::Schema;
 use parquet::arrow::arrow_writer::ArrowWriter;
 use parquet::basic::Compression;
 use parquet::file::properties::{EnabledStatistics, WriterProperties, WriterVersion};
@@ -37,6 +36,7 @@ impl ParquetSink {
 
         let props = WriterProperties::builder()
             .set_compression(Compression::SNAPPY)
+            .set_dictionary_enabled(true)
             .set_writer_version(WriterVersion::PARQUET_2_0)
             .set_statistics_enabled(EnabledStatistics::Chunk)
             .build();
@@ -119,34 +119,16 @@ pub fn empty_chunk(schema: &Schema) -> Chunk<Box<dyn Array>> {
     let arrays = schema
         .fields()
         .iter()
-        .map(|field| match field.data_type() {
-            DataType::Utf8 => empty_dictionary_utf8().boxed(),
-            DataType::LargeUtf8 => empty_dictionary_large_utf8().boxed(),
-            _ => new_empty_array(field.data_type()).boxed(),
-        })
+        .map(|field| new_empty_array(field.data_type()).boxed())
         .collect::<Vec<_>>();
     Chunk::new(arrays)
-}
-
-fn empty_dictionary_utf8() -> DictionaryArray<Int32Type> {
-    let keys = arrow_array::Int32Array::from(Vec::<Option<i32>>::new());
-    let values = Arc::new(arrow_array::StringArray::from(Vec::<Option<String>>::new())) as _;
-    DictionaryArray::try_new(keys, values).expect("empty dictionary array")
-}
-
-fn empty_dictionary_large_utf8() -> DictionaryArray<Int32Type> {
-    let keys = arrow_array::Int32Array::from(Vec::<Option<i32>>::new());
-    let values = Arc::new(arrow_array::LargeStringArray::from(
-        Vec::<Option<String>>::new(),
-    )) as _;
-    DictionaryArray::try_new(keys, values).expect("empty dictionary array")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use arrow_array::Int32Array;
-    use arrow_schema::Field;
+    use arrow_array::{Int32Array, StringArray};
+    use arrow_schema::{DataType, Field};
     use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
     use std::collections::HashMap;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -250,6 +232,25 @@ mod tests {
         let summary = sink.finish().expect("finish sink");
         assert_eq!(summary.rows_written, 3);
         assert_eq!(summary.row_groups, 2);
+
+        std::fs::remove_file(path).expect("cleanup parquet");
+    }
+
+    #[test]
+    fn arrow01_writer_accepts_nonempty_utf8_batches_wepp_interchange() {
+        let schema = Schema::new(vec![Field::new("label", DataType::Utf8, true)]);
+        let path = temp_path("utf8_batch");
+        let chunk = Chunk::new(vec![StringArray::from(vec![
+            Some("EVENT"),
+            Some("NO EVENT"),
+        ])
+        .boxed()]);
+        let summary = write_single_chunk(&path, schema, chunk).expect("write utf8 parquet");
+        assert_eq!(summary.rows_written, 2);
+
+        let file = File::open(&path).expect("open parquet");
+        let builder = ParquetRecordBatchReaderBuilder::try_new(file).expect("build reader");
+        assert_eq!(builder.schema().field(0).data_type(), &DataType::Utf8);
 
         std::fs::remove_file(path).expect("cleanup parquet");
     }

@@ -7,7 +7,7 @@ use arrow_array::{Array, Float64Array, Int16Array, Int32Array, Int8Array};
 use arrow_schema::{DataType, Field, Schema};
 use flate2::read::GzDecoder;
 
-use crate::arrays::dictionary_array_from_strings;
+use crate::arrays::string_array_from_strings;
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
 };
@@ -600,8 +600,7 @@ impl EventStore {
     fn to_chunk(&mut self, schema: &Schema) -> Chunk<Box<dyn Array>> {
         let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields().len());
         let event_values = std::mem::take(&mut self.event);
-        let event_array =
-            dictionary_array_from_strings(event_values).expect("dictionary encoding for events");
+        let event_array = string_array_from_strings(event_values);
         arrays.push(event_array.boxed());
         arrays.push(Int16Array::from(std::mem::take(&mut self.year)).boxed());
         arrays.push(Int32Array::from(std::mem::take(&mut self.sim_day_index)).boxed());
@@ -865,8 +864,7 @@ pub fn watershed_pass_to_parquet(
 fn build_metadata_chunk(meta: &PassMetadata, schema: &Schema) -> Chunk<Box<dyn Array>> {
     let mut arrays: Vec<Box<dyn Array>> = Vec::with_capacity(schema.fields().len());
     arrays.push(Int32Array::from(meta.hillslope_ids.clone()).boxed());
-    let climate_array = dictionary_array_from_strings(meta.climate_files.clone())
-        .expect("dictionary encoding for climate files");
+    let climate_array = string_array_from_strings(meta.climate_files.clone());
     arrays.push(climate_array.boxed());
     arrays.push(Float64Array::from(meta.areas.clone()).boxed());
     arrays.push(Float64Array::from(meta.srp.clone()).boxed());

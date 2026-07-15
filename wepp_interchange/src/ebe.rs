@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
@@ -101,6 +101,7 @@ pub fn watershed_ebe_to_parquet(
     version: &VersionInfo,
     start_year: Option<i32>,
     legacy_element_id: Option<i32>,
+    chan_path: Option<&Path>,
     chunk_rows: Option<usize>,
 ) -> Result<WriteSummary, InterchangeError> {
     let lookup = match cli_calendar_path {
@@ -110,6 +111,10 @@ pub fn watershed_ebe_to_parquet(
     let schema = watershed_ebe_schema(version);
     let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
     let chunk_size = chunk_rows.unwrap_or(DEFAULT_CHUNK_ROWS);
+    let resolved_legacy_element_id = match legacy_element_id {
+        Some(element_id) => Some(element_id),
+        None => infer_outlet_element_id(ebe_path, chan_path)?,
+    };
 
     let calendar_start_year = lookup
         .as_ref()
@@ -138,6 +143,7 @@ pub fn watershed_ebe_to_parquet(
     let mut element_id: Vec<Option<i32>> = Vec::new();
 
     let mut row_counter = 0usize;
+    let mut nonzero_peak_rows = 0usize;
 
     for (line_no, line) in reader.lines().enumerate() {
         let raw_line = line.map_err(|err| InterchangeError::io(ebe_path, err))?;
@@ -219,9 +225,13 @@ pub fn watershed_ebe_to_parquet(
         runoff_volume.push(parse_required_float(tokens[4]).map_err(|msg| {
             InterchangeError::parse(ebe_path, Some(line_no + 1), msg, Some(raw_line.clone()))
         })?);
-        peak_runoff.push(parse_required_float(tokens[5]).map_err(|msg| {
+        let peak_runoff_value = parse_required_float(tokens[5]).map_err(|msg| {
             InterchangeError::parse(ebe_path, Some(line_no + 1), msg, Some(raw_line.clone()))
-        })?);
+        })?;
+        if peak_runoff_value != 0.0 {
+            nonzero_peak_rows += 1;
+        }
+        peak_runoff.push(peak_runoff_value);
         sediment_yield.push(parse_required_float(tokens[6]).map_err(|msg| {
             InterchangeError::parse(ebe_path, Some(line_no + 1), msg, Some(raw_line.clone()))
         })?);
@@ -245,7 +255,7 @@ pub fn watershed_ebe_to_parquet(
                 )
             })?)
         } else {
-            legacy_element_id
+            resolved_legacy_element_id
         };
         element_id.push(element_value);
 
@@ -297,7 +307,122 @@ pub fn watershed_ebe_to_parquet(
         )?;
     }
 
+    if row_counter > 0 && nonzero_peak_rows == 0 {
+        if let Some(chan_path) = chan_path.filter(|path| path.exists()) {
+            let positive_chan_peak_rows = count_positive_chan_peak_rows(chan_path)?;
+            if positive_chan_peak_rows > 0 {
+                return Err(InterchangeError::parse(
+                    ebe_path,
+                    None,
+                    format!(
+                        "Detected peak runoff regression signature: ebe_pw0 peak_runoff is all-zero \
+                         ({row_counter}/{row_counter}) while chan.out has positive peaks \
+                         ({positive_chan_peak_rows} rows)."
+                    ),
+                    None,
+                ));
+            }
+        }
+    }
+
     sink.finish()
+}
+
+fn infer_outlet_element_id(
+    ebe_path: &Path,
+    chan_path: Option<&Path>,
+) -> Result<Option<i32>, InterchangeError> {
+    if let Some(base) = ebe_path.parent() {
+        let mut maximum_hillslope_id: Option<i32> = None;
+        let entries = fs::read_dir(base).map_err(|err| InterchangeError::io(base, err))?;
+        for entry in entries {
+            let entry = entry.map_err(|err| InterchangeError::io(base, err))?;
+            let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+                continue;
+            };
+            let Some(id_text) = name
+                .strip_prefix('H')
+                .and_then(|value| value.strip_suffix(".ebe.dat"))
+            else {
+                continue;
+            };
+            if id_text.is_empty() || !id_text.chars().all(|character| character.is_ascii_digit()) {
+                continue;
+            }
+            let Ok(hillslope_id) = id_text.parse::<i32>() else {
+                continue;
+            };
+            maximum_hillslope_id = Some(
+                maximum_hillslope_id.map_or(hillslope_id, |current| current.max(hillslope_id)),
+            );
+        }
+        if let Some(maximum_hillslope_id) = maximum_hillslope_id {
+            return Ok(Some(maximum_hillslope_id + 1));
+        }
+    }
+
+    let Some(chan_path) = chan_path.filter(|path| path.exists()) else {
+        return Ok(None);
+    };
+    let file = File::open(chan_path).map_err(|err| InterchangeError::io(chan_path, err))?;
+    let reader = BufReader::new(file);
+    let mut fallback = None;
+    for line in reader.lines() {
+        let raw_line = line.map_err(|err| InterchangeError::io(chan_path, err))?;
+        let stripped = raw_line.trim();
+        if stripped.is_empty()
+            || stripped.starts_with("Channel")
+            || stripped.starts_with("Muskingum")
+            || stripped.starts_with("Peak")
+            || stripped.starts_with("Year")
+        {
+            continue;
+        }
+        let tokens = stripped.split_whitespace().collect::<Vec<_>>();
+        if tokens.len() < 4 {
+            continue;
+        }
+        let (Ok(element_id), Ok(channel_id)) = (tokens[2].parse::<i32>(), tokens[3].parse::<i32>())
+        else {
+            continue;
+        };
+        if channel_id == 1 {
+            return Ok(Some(element_id));
+        }
+        fallback.get_or_insert(element_id);
+    }
+    Ok(fallback)
+}
+
+fn count_positive_chan_peak_rows(chan_path: &Path) -> Result<usize, InterchangeError> {
+    let file = File::open(chan_path).map_err(|err| InterchangeError::io(chan_path, err))?;
+    let reader = BufReader::new(file);
+    let mut data_section = false;
+    let mut positive_rows = 0usize;
+    for line in reader.lines() {
+        let raw_line = line.map_err(|err| InterchangeError::io(chan_path, err))?;
+        let stripped = raw_line.trim();
+        if !data_section {
+            if stripped.starts_with("Year") && stripped.contains("Elmt_ID") {
+                data_section = true;
+            }
+            continue;
+        }
+        if stripped.is_empty() {
+            continue;
+        }
+        let tokens = stripped.split_whitespace().collect::<Vec<_>>();
+        if tokens.len() != 6 {
+            continue;
+        }
+        let Ok(peak) = parse_required_float(tokens[5]) else {
+            continue;
+        };
+        if peak > 0.0 {
+            positive_rows += 1;
+        }
+    }
+    Ok(positive_rows)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -342,4 +467,122 @@ fn flush_chunk(
     ]);
     sink.write_chunk(chunk)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_dir(stem: &str) -> std::path::PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("wepp_ebe_{stem}_{nanos}"));
+        fs::create_dir_all(&path).expect("create temp dir");
+        path
+    }
+
+    fn write_text(path: &Path, contents: &str) {
+        let mut file = File::create(path).expect("create fixture");
+        file.write_all(contents.as_bytes()).expect("write fixture");
+    }
+
+    #[test]
+    fn outlet_inference_prefers_maximum_hillslope_id() {
+        let dir = temp_dir("hillslope_outlet");
+        let ebe_path = dir.join("ebe_pw0.txt");
+        let chan_path = dir.join("chan.out");
+        write_text(&ebe_path, "");
+        write_text(&dir.join("H2.ebe.dat"), "");
+        write_text(&dir.join("H9.ebe.dat"), "");
+        write_text(&chan_path, "2000 1 41 1 0 2.0\n");
+
+        assert_eq!(
+            infer_outlet_element_id(&ebe_path, Some(&chan_path)).expect("infer outlet"),
+            Some(10)
+        );
+        fs::remove_dir_all(dir).expect("cleanup");
+    }
+
+    #[test]
+    fn outlet_inference_uses_channel_one_then_first_valid_channel() {
+        let dir = temp_dir("channel_outlet");
+        let ebe_path = dir.join("ebe_pw0.txt");
+        let chan_path = dir.join("chan.out");
+        write_text(&ebe_path, "");
+        write_text(
+            &chan_path,
+            "Channel header\n2000 1 41 3 0 2.0\n2000 1 52 1 0 3.0\n",
+        );
+        assert_eq!(
+            infer_outlet_element_id(&ebe_path, Some(&chan_path)).expect("infer channel one"),
+            Some(52)
+        );
+
+        write_text(&chan_path, "2000 1 41 3 0 2.0\n2000 1 52 2 0 3.0\n");
+        assert_eq!(
+            infer_outlet_element_id(&ebe_path, Some(&chan_path)).expect("infer first channel"),
+            Some(41)
+        );
+        fs::remove_dir_all(dir).expect("cleanup");
+    }
+
+    #[test]
+    fn all_zero_ebe_peaks_fail_when_channel_peaks_are_positive() {
+        let dir = temp_dir("peak_audit");
+        let ebe_path = dir.join("ebe_pw0.txt");
+        let chan_path = dir.join("chan.out");
+        let output_path = dir.join("watershed_ebe.parquet");
+        write_text(&ebe_path, "1 1 2000 1.0 2.0 0.0 4.0 5.0 6.0 7.0\n");
+        write_text(
+            &chan_path,
+            "Year J Elmt_ID Chan_ID Time Peak\n2000 1 41 1 0 2.0\n",
+        );
+
+        let error = watershed_ebe_to_parquet(
+            &ebe_path,
+            &output_path,
+            None,
+            &VersionInfo::new(1, 2),
+            None,
+            None,
+            Some(&chan_path),
+            None,
+        )
+        .expect_err("peak regression must fail");
+        assert!(error.display_message().contains("all-zero"));
+        assert!(!output_path.exists());
+        fs::remove_dir_all(dir).expect("cleanup");
+    }
+
+    #[test]
+    fn nonzero_ebe_peak_passes_channel_peak_audit() {
+        let dir = temp_dir("peak_audit_ok");
+        let ebe_path = dir.join("ebe_pw0.txt");
+        let chan_path = dir.join("chan.out");
+        let output_path = dir.join("watershed_ebe.parquet");
+        write_text(&ebe_path, "1 1 2000 1.0 2.0 0.5 4.0 5.0 6.0 7.0\n");
+        write_text(
+            &chan_path,
+            "Year J Elmt_ID Chan_ID Time Peak\n2000 1 41 1 0 2.0\n",
+        );
+
+        let summary = watershed_ebe_to_parquet(
+            &ebe_path,
+            &output_path,
+            None,
+            &VersionInfo::new(1, 2),
+            None,
+            None,
+            Some(&chan_path),
+            None,
+        )
+        .expect("write audited ebe");
+        assert_eq!(summary.rows_written, 1);
+        assert!(output_path.exists());
+        fs::remove_dir_all(dir).expect("cleanup");
+    }
 }

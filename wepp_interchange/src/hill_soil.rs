@@ -1,16 +1,20 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
+    CalendarLookup,
 };
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
-use crate::schema::VersionInfo;
+use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::schema::{hill_soil_schema, VersionInfo};
 
 const RAW_HEADER: [&str; 14] = [
     "OFE",
@@ -170,6 +174,32 @@ impl SoilColumns {
         dict.set_item("TSMF", self.tsmf).unwrap();
         dict.into_py(py)
     }
+
+    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+        Chunk::new(vec![
+            Int32Array::from(self.wepp_id).boxed(),
+            Int16Array::from(self.ofe_id).boxed(),
+            Int16Array::from(self.year).boxed(),
+            Int32Array::from(self.sim_day_index).boxed(),
+            Int16Array::from(self.julian).boxed(),
+            Int8Array::from(self.month).boxed(),
+            Int8Array::from(self.day_of_month).boxed(),
+            Int16Array::from(self.water_year).boxed(),
+            Int16Array::from(self.ofe).boxed(),
+            Float64Array::from(self.poros).boxed(),
+            Float64Array::from(self.keff).boxed(),
+            Float64Array::from(self.suct).boxed(),
+            Float64Array::from(self.fc).boxed(),
+            Float64Array::from(self.wp).boxed(),
+            Float64Array::from(self.rough).boxed(),
+            Float64Array::from(self.ki).boxed(),
+            Float64Array::from(self.kr).boxed(),
+            Float64Array::from(self.tauc).boxed(),
+            Float64Array::from(self.saturation).boxed(),
+            Float64Array::from(self.tsw).boxed(),
+            Float64Array::from(self.tsmf).boxed(),
+        ])
+    }
 }
 
 fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option<Vec<String>> {
@@ -233,6 +263,14 @@ pub fn hillslope_soil_to_columns(
         Some(path) => Some(load_cli_calendar(path)?),
         None => None,
     };
+    hillslope_soil_to_columns_with_lookup(path, lookup.as_ref(), start_year)
+}
+
+fn hillslope_soil_to_columns_with_lookup(
+    path: &Path,
+    lookup: Option<&CalendarLookup>,
+    start_year: Option<i32>,
+) -> Result<SoilColumns, InterchangeError> {
     let wepp_id = extract_wepp_id(path)?;
 
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
@@ -252,9 +290,7 @@ pub fn hillslope_soil_to_columns(
 
     let mut state = ParseState::SearchingHeader;
 
-    let calendar_start_year = lookup
-        .as_ref()
-        .and_then(|cal| cal.by_year.keys().min().copied());
+    let calendar_start_year = lookup.and_then(|cal| cal.by_year.keys().min().copied());
     let resolved_start_year = start_year.or(calendar_start_year);
     let normalize_sim_years = resolved_start_year.is_some();
     let mut sim_start_year = resolved_start_year;
@@ -386,13 +422,13 @@ pub fn hillslope_soil_to_columns(
                 sim_start_year = Some(year_val);
             }
 
-            let (month, day_of_month) = julian_to_calendar(year_val, julian_val, lookup.as_ref());
+            let (month, day_of_month) = julian_to_calendar(year_val, julian_val, lookup);
             let water_year = determine_wateryear(year_val, julian_val);
             let sim_day_index = compute_sim_day_index(
                 year_val,
                 julian_val,
                 sim_start_year.unwrap_or(year_val),
-                lookup.as_ref(),
+                lookup,
             );
 
             let mut values: Vec<Option<f64>> = vec![None; MEASUREMENT_COLUMNS.len()];
@@ -444,6 +480,30 @@ pub fn hillslope_soil_to_columns(
     Ok(out)
 }
 
+pub fn hillslope_soil_files_to_parquet(
+    paths: &[PathBuf],
+    output_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+    start_year: Option<i32>,
+) -> Result<WriteSummary, InterchangeError> {
+    let lookup = match cli_calendar_path {
+        Some(path) => Some(load_cli_calendar(path)?),
+        None => None,
+    };
+    let schema = hill_soil_schema(version);
+    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    if paths.is_empty() {
+        sink.write_chunk(empty_chunk(&schema))?;
+    } else {
+        for path in paths {
+            let columns = hillslope_soil_to_columns_with_lookup(path, lookup.as_ref(), start_year)?;
+            sink.write_chunk(columns.into_chunk())?;
+        }
+    }
+    sink.finish()
+}
+
 fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     let name = path
         .file_name()
@@ -477,4 +537,92 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     digits.parse::<i32>().map_err(|_| {
         InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_dir() -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "wepp_interchange_hill_soil_{}_{}",
+            std::process::id(),
+            nonce
+        ));
+        fs::create_dir_all(&path).expect("create temp directory");
+        path
+    }
+
+    fn write_soil(path: &Path) {
+        let units = RAW_UNITS
+            .iter()
+            .filter(|token| !token.is_empty())
+            .copied()
+            .collect::<Vec<_>>()
+            .join(" ");
+        let payload = format!(
+            "{}\n{units}\n----------------\n1 1 2000 40 10 100 0.3 0.1 5 1 1 1 0.5 50\n",
+            RAW_HEADER.join(" ")
+        );
+        fs::write(path, payload).expect("write SOIL fixture");
+    }
+
+    #[test]
+    fn bulk_writer_preserves_path_order_and_row_groups() {
+        let dir = temp_dir();
+        let first = dir.join("H8.soil.dat");
+        let second = dir.join("H5.soil.dat");
+        let output = dir.join("H.soil.parquet");
+        write_soil(&first);
+        write_soil(&second);
+
+        let version = VersionInfo::new(1, 0);
+        let summary =
+            hillslope_soil_files_to_parquet(&[first, second], &output, None, &version, Some(2000))
+                .expect("write SOIL parquet");
+        assert_eq!(summary.rows_written, 2);
+        assert_eq!(summary.row_groups, 2);
+
+        let builder = ParquetRecordBatchReaderBuilder::try_new(
+            File::open(&output).expect("open SOIL parquet"),
+        )
+        .expect("build SOIL parquet reader");
+        assert_eq!(builder.schema().as_ref(), &hill_soil_schema(&version));
+        assert_eq!(builder.metadata().num_row_groups(), 2);
+        let mut ids = Vec::new();
+        for batch in builder.build().expect("build batch reader") {
+            let batch = batch.expect("read SOIL batch");
+            let values = batch
+                .column(0)
+                .as_any()
+                .downcast_ref::<Int32Array>()
+                .expect("wepp_id Int32");
+            ids.extend(values.values().iter().copied());
+        }
+        assert_eq!(ids, [8, 5]);
+    }
+
+    #[test]
+    fn bulk_writer_emits_empty_parquet_with_schema_metadata() {
+        let dir = temp_dir();
+        let output = dir.join("H.soil.parquet");
+        let version = VersionInfo::new(2, 7);
+        let summary = hillslope_soil_files_to_parquet(&[], &output, None, &version, Some(2000))
+            .expect("write empty SOIL parquet");
+        assert_eq!(summary.rows_written, 0);
+        assert_eq!(summary.row_groups, 1);
+
+        let builder = ParquetRecordBatchReaderBuilder::try_new(
+            File::open(&output).expect("open empty SOIL parquet"),
+        )
+        .expect("build empty SOIL parquet reader");
+        assert_eq!(builder.schema().as_ref(), &hill_soil_schema(&version));
+    }
 }

@@ -128,12 +128,14 @@ Deterministic-order contract:
 ### `wepppyo3.wepp_interchange`
 
 - `watershed_pass_to_parquet(...)`
+- `watershed_pass_cli_hint(pass_path)`
 - `watershed_soil_to_parquet(...)`
 - `watershed_loss_to_parquet(...)`
 - `watershed_chan_peak_to_parquet(...)`
 - `watershed_ebe_to_parquet(...)`
 - `watershed_chanwb_to_parquet(...)`
 - `watershed_chnwb_to_parquet(...)`
+- `watershed_tc_out_to_parquet(...)`
 - `hillslope_pass_to_columns(...)`
 - `combine_hillslope_pass_files(...)`
 - `combine_weighted_hillslope_pass_files(sources, out_pass, target_area_m2, output_climate_token, strategy="ag_fields_v1")`
@@ -142,6 +144,12 @@ Deterministic-order contract:
 - `hillslope_loss_to_columns(...)`
 - `hillslope_soil_to_columns(...)`
 - `hillslope_wat_to_columns(...)`
+- `hillslope_pass_files_to_parquet(...)`
+- `hillslope_ebe_files_to_parquet(...)`
+- `hillslope_element_files_to_parquet(...)`
+- `hillslope_loss_files_to_parquet(...)`
+- `hillslope_soil_files_to_parquet(...)`
+- `hillslope_wat_files_to_parquet(...)`
 - `catalog_scan(base_path)`
 - `segment_single_ofe_slope(...)`
 - `segment_single_ofe_slope_at_breakpoints(src_fn, breakpoints, dst_fn=None, target_width=None)`

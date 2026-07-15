@@ -1,14 +1,17 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::determine_wateryear;
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
-use crate::schema::VersionInfo;
+use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::schema::{hill_element_schema, VersionInfo};
 
 const ELEMENT_FIELD_WIDTHS: [usize; 24] = [
     3, 3, 3, 5, 9, 9, 8, 8, 8, 6, 8, 8, 8, 7, 9, 9, 9, 9, 7, 7, 7, 7, 7, 9,
@@ -127,6 +130,41 @@ impl ElementColumns {
         dict.set_item("QSnow", self.qsnow).unwrap();
         dict.into_py(py)
     }
+
+    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+        Chunk::new(vec![
+            Int32Array::from(self.wepp_id).boxed(),
+            Int16Array::from(self.ofe_id).boxed(),
+            Int16Array::from(self.year).boxed(),
+            Int16Array::from(self.julian).boxed(),
+            Int8Array::from(self.month).boxed(),
+            Int8Array::from(self.day_of_month).boxed(),
+            Int16Array::from(self.water_year).boxed(),
+            Int16Array::from(self.ofe).boxed(),
+            Float64Array::from(self.precip).boxed(),
+            Float64Array::from(self.runoff).boxed(),
+            Float64Array::from(self.effint).boxed(),
+            Float64Array::from(self.peakro).boxed(),
+            Float64Array::from(self.effdur).boxed(),
+            Float64Array::from(self.enrich).boxed(),
+            Float64Array::from(self.keff).boxed(),
+            Float64Array::from(self.sm).boxed(),
+            Float64Array::from(self.leaf_area).boxed(),
+            Float64Array::from(self.can_hgt).boxed(),
+            Float64Array::from(self.cancov).boxed(),
+            Float64Array::from(self.intcov).boxed(),
+            Float64Array::from(self.rilcov).boxed(),
+            Float64Array::from(self.livbio).boxed(),
+            Float64Array::from(self.deadbio).boxed(),
+            Float64Array::from(self.ki).boxed(),
+            Float64Array::from(self.kr).boxed(),
+            Float64Array::from(self.tcrit).boxed(),
+            Float64Array::from(self.rilwid).boxed(),
+            Float64Array::from(self.sedleave).boxed(),
+            Float64Array::from(self.qrain).boxed(),
+            Float64Array::from(self.qsnow).boxed(),
+        ])
+    }
 }
 
 pub fn hillslope_element_to_columns(
@@ -236,6 +274,25 @@ pub fn hillslope_element_to_columns(
     }
 
     Ok(out)
+}
+
+pub fn hillslope_element_files_to_parquet(
+    paths: &[PathBuf],
+    output_path: &Path,
+    version: &VersionInfo,
+    start_year: Option<i32>,
+) -> Result<WriteSummary, InterchangeError> {
+    let schema = hill_element_schema(version);
+    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    if paths.is_empty() {
+        sink.write_chunk(empty_chunk(&schema))?;
+    } else {
+        for path in paths {
+            let columns = hillslope_element_to_columns(path, version, start_year)?;
+            sink.write_chunk(columns.into_chunk())?;
+        }
+    }
+    sink.finish()
 }
 
 fn split_fixed_width_payload(raw_line: &str, field_widths: &[usize]) -> (Vec<String>, String) {
@@ -388,4 +445,72 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     digits.parse::<i32>().map_err(|_| {
         InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_dir() -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "wepp_interchange_hill_element_{}_{}",
+            std::process::id(),
+            nonce
+        ));
+        fs::create_dir_all(&path).expect("create temp directory");
+        path
+    }
+
+    fn write_element(path: &Path) {
+        let mut values = vec!["1", "1", "1", "2000"];
+        values.extend(std::iter::repeat_n("1", 20));
+        let row = values
+            .iter()
+            .zip(ELEMENT_FIELD_WIDTHS)
+            .map(|(value, width)| format!("{value:>width$}"))
+            .collect::<String>();
+        fs::write(path, format!("header 1\nheader 2\n{row}\n")).expect("write ELEMENT fixture");
+    }
+
+    #[test]
+    fn bulk_writer_preserves_path_order_and_row_groups() {
+        let dir = temp_dir();
+        let first = dir.join("H9.element.dat");
+        let second = dir.join("H4.element.dat");
+        let output = dir.join("H.element.parquet");
+        write_element(&first);
+        write_element(&second);
+
+        let version = VersionInfo::new(1, 0);
+        let summary =
+            hillslope_element_files_to_parquet(&[first, second], &output, &version, Some(2000))
+                .expect("write ELEMENT parquet");
+        assert_eq!(summary.rows_written, 2);
+        assert_eq!(summary.row_groups, 2);
+
+        let builder = ParquetRecordBatchReaderBuilder::try_new(
+            File::open(&output).expect("open ELEMENT parquet"),
+        )
+        .expect("build ELEMENT parquet reader");
+        assert_eq!(builder.schema().as_ref(), &hill_element_schema(&version));
+        assert_eq!(builder.metadata().num_row_groups(), 2);
+        let mut ids = Vec::new();
+        for batch in builder.build().expect("build batch reader") {
+            let batch = batch.expect("read ELEMENT batch");
+            let values = batch
+                .column(0)
+                .as_any()
+                .downcast_ref::<Int32Array>()
+                .expect("wepp_id Int32");
+            ids.extend(values.values().iter().copied());
+        }
+        assert_eq!(ids, [9, 4]);
+    }
 }

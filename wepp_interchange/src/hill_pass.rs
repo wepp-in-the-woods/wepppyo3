@@ -1,16 +1,20 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array, StringArray};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
+    CalendarLookup,
 };
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
-use crate::schema::VersionInfo;
+use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::schema::{hill_pass_schema, VersionInfo};
 
 const EVENT_LABELS: [&str; 3] = ["EVENT", "SUBEVENT", "NO EVENT"];
 const SEDCLASS_COUNT: usize = 5;
@@ -183,6 +187,43 @@ impl PassColumns {
         dict.set_item("gwdsv", self.gwdsv).unwrap();
         dict.into_py(py)
     }
+
+    pub(crate) fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+        Chunk::new(vec![
+            Int32Array::from(self.wepp_id).boxed(),
+            StringArray::from(self.event).boxed(),
+            Int16Array::from(self.year).boxed(),
+            Int32Array::from(self.sim_day_index).boxed(),
+            Int16Array::from(self.julian).boxed(),
+            Int8Array::from(self.month).boxed(),
+            Int8Array::from(self.day_of_month).boxed(),
+            Int16Array::from(self.water_year).boxed(),
+            Float64Array::from(self.dur).boxed(),
+            Float64Array::from(self.tcs).boxed(),
+            Float64Array::from(self.oalpha).boxed(),
+            Float64Array::from(self.runoff).boxed(),
+            Float64Array::from(self.runvol).boxed(),
+            Float64Array::from(self.sbrunf).boxed(),
+            Float64Array::from(self.sbrunv).boxed(),
+            Float64Array::from(self.drainq).boxed(),
+            Float64Array::from(self.drrunv).boxed(),
+            Float64Array::from(self.peakro).boxed(),
+            Float64Array::from(self.tdet).boxed(),
+            Float64Array::from(self.tdep).boxed(),
+            Float64Array::from(self.sedcon_1).boxed(),
+            Float64Array::from(self.sedcon_2).boxed(),
+            Float64Array::from(self.sedcon_3).boxed(),
+            Float64Array::from(self.sedcon_4).boxed(),
+            Float64Array::from(self.sedcon_5).boxed(),
+            Float64Array::from(self.clot).boxed(),
+            Float64Array::from(self.slot).boxed(),
+            Float64Array::from(self.saot).boxed(),
+            Float64Array::from(self.laot).boxed(),
+            Float64Array::from(self.sdot).boxed(),
+            Float64Array::from(self.gwbfv).boxed(),
+            Float64Array::from(self.gwdsv).boxed(),
+        ])
+    }
 }
 
 pub fn hillslope_pass_to_columns(
@@ -194,6 +235,13 @@ pub fn hillslope_pass_to_columns(
         Some(path) => Some(load_cli_calendar(path)?),
         None => None,
     };
+    hillslope_pass_to_columns_with_lookup(path, lookup.as_ref())
+}
+
+fn hillslope_pass_to_columns_with_lookup(
+    path: &Path,
+    lookup: Option<&CalendarLookup>,
+) -> Result<PassColumns, InterchangeError> {
     let wepp_id = extract_wepp_id(path)?;
 
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
@@ -302,9 +350,9 @@ pub fn hillslope_pass_to_columns(
             InterchangeError::parse(path, None, "Invalid julian token", Some(raw_line.clone()))
         })?;
 
-        let (month, day_of_month) = julian_to_calendar(year, julian, lookup.as_ref());
+        let (month, day_of_month) = julian_to_calendar(year, julian, lookup);
         let water_year = determine_wateryear(year, julian);
-        let sim_day_index = compute_sim_day_index(year, julian, begin_year, lookup.as_ref());
+        let sim_day_index = compute_sim_day_index(year, julian, begin_year, lookup);
         if sim_day_index < 1 {
             return Err(InterchangeError::parse(
                 path,
@@ -368,6 +416,90 @@ pub fn hillslope_pass_to_columns(
     }
 
     Ok(out)
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum HillslopePassFamily {
+    Auto,
+    LegacyAscii,
+    Hbp,
+}
+
+impl HillslopePassFamily {
+    pub fn parse(value: Option<&str>) -> Result<Self, InterchangeError> {
+        let raw = value.unwrap_or("");
+        let normalized = raw.trim().to_ascii_lowercase();
+        match normalized.as_str() {
+            "" | "auto" => Ok(Self::Auto),
+            "legacy_ascii" | "legacy" | "pass_dat" | "pass.dat" => Ok(Self::LegacyAscii),
+            "hbp" => Ok(Self::Hbp),
+            _ => Err(InterchangeError::parse(
+                Path::new("<pass_family>"),
+                None,
+                format!(
+                    "unsupported pass_family '{raw}'; expected one of: auto, legacy_ascii, hbp"
+                ),
+                None,
+            )),
+        }
+    }
+}
+
+pub fn hillslope_pass_files_to_parquet(
+    paths: &[PathBuf],
+    output_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+    pass_family: Option<&str>,
+) -> Result<WriteSummary, InterchangeError> {
+    let family = HillslopePassFamily::parse(pass_family)?;
+    let lookup = match cli_calendar_path {
+        Some(path) => Some(load_cli_calendar(path)?),
+        None => None,
+    };
+    let schema = hill_pass_schema(version);
+    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    if paths.is_empty() {
+        sink.write_chunk(empty_chunk(&schema))?;
+    } else {
+        for path in paths {
+            let use_hbp = match family {
+                HillslopePassFamily::LegacyAscii => false,
+                HillslopePassFamily::Hbp => true,
+                HillslopePassFamily::Auto => is_hbp_path(path),
+            };
+            if use_hbp && has_invalid_hbp_name(path) {
+                return Err(InterchangeError::parse(
+                    path,
+                    None,
+                    "invalid process HBP name; use H*.hbp (rejecting H*.pass.hbp and H*.pass.dat.hbp)",
+                    None,
+                ));
+            }
+            let columns = if use_hbp {
+                crate::hill_hbp::hillslope_hbp_to_columns(path, cli_calendar_path, version)?
+            } else {
+                hillslope_pass_to_columns_with_lookup(path, lookup.as_ref())?
+            };
+            sink.write_chunk(columns.into_chunk())?;
+        }
+    }
+    sink.finish()
+}
+
+fn is_hbp_path(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|value| value.to_str())
+        .map(|value| value.to_ascii_lowercase().ends_with(".hbp"))
+        .unwrap_or(false)
+}
+
+fn has_invalid_hbp_name(path: &Path) -> bool {
+    let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+        return false;
+    };
+    let lower = name.to_ascii_lowercase();
+    lower.ends_with(".pass.hbp") || lower.ends_with(".pass.dat.hbp")
 }
 
 struct PassRow {
@@ -594,4 +726,91 @@ pub(crate) fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     digits.parse::<i32>().map_err(|_| {
         InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_dir() -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "wepp_interchange_hill_pass_{}_{}",
+            std::process::id(),
+            nonce
+        ));
+        fs::create_dir_all(&path).expect("create temp directory");
+        path
+    }
+
+    fn write_pass(path: &Path) {
+        fs::write(
+            path,
+            "WEPP PASS\nsimulation start year 2000\nheader 3\nheader 4\nheader 5\nNO EVENT2000 1 1.25 2.50\n",
+        )
+        .expect("write PASS fixture");
+    }
+
+    #[test]
+    fn bulk_writer_preserves_path_order_and_row_groups() {
+        let dir = temp_dir();
+        let first = dir.join("H2.pass.dat");
+        let second = dir.join("H1.pass.dat");
+        let output = dir.join("H.pass.parquet");
+        write_pass(&first);
+        write_pass(&second);
+
+        let version = VersionInfo::new(1, 0);
+        let summary = hillslope_pass_files_to_parquet(
+            &[first, second],
+            &output,
+            None,
+            &version,
+            Some("legacy_ascii"),
+        )
+        .expect("write PASS parquet");
+        assert_eq!(summary.rows_written, 2);
+        assert_eq!(summary.row_groups, 2);
+
+        let builder = ParquetRecordBatchReaderBuilder::try_new(
+            File::open(&output).expect("open PASS parquet"),
+        )
+        .expect("build PASS parquet reader");
+        assert_eq!(builder.schema().as_ref(), &hill_pass_schema(&version));
+        assert_eq!(builder.metadata().num_row_groups(), 2);
+        let mut ids = Vec::new();
+        for batch in builder.build().expect("build batch reader") {
+            let batch = batch.expect("read PASS batch");
+            let values = batch
+                .column(0)
+                .as_any()
+                .downcast_ref::<Int32Array>()
+                .expect("wepp_id Int32");
+            ids.extend(values.values().iter().copied());
+        }
+        assert_eq!(ids, [2, 1]);
+    }
+
+    #[test]
+    fn bulk_writer_rejects_invalid_hbp_process_name() {
+        let dir = temp_dir();
+        let invalid = dir.join("H1.pass.hbp");
+        let output = dir.join("H.pass.parquet");
+        let err = hillslope_pass_files_to_parquet(
+            &[invalid],
+            &output,
+            None,
+            &VersionInfo::new(1, 0),
+            Some("auto"),
+        )
+        .expect_err("invalid HBP name must fail");
+        assert!(err.display_message().contains("invalid process HBP name"));
+        assert!(!output.exists());
+    }
 }

@@ -42,12 +42,13 @@ mod parquet;
 mod pass;
 mod schema;
 mod soil;
+mod tc_out;
 
 use crate::errors::InterchangeError;
 use crate::schema::VersionInfo;
 
 #[pyfunction]
-#[pyo3(signature = (ebe_path, output_path, version_major, version_minor, cli_calendar_path=None, start_year=None, legacy_element_id=None, chunk_rows=None, compression="snappy"))]
+#[pyo3(signature = (ebe_path, output_path, version_major, version_minor, cli_calendar_path=None, start_year=None, legacy_element_id=None, chan_path=None, chunk_rows=None, compression="snappy"))]
 fn watershed_ebe_to_parquet(
     ebe_path: String,
     output_path: String,
@@ -56,6 +57,7 @@ fn watershed_ebe_to_parquet(
     cli_calendar_path: Option<String>,
     start_year: Option<i32>,
     legacy_element_id: Option<i32>,
+    chan_path: Option<String>,
     chunk_rows: Option<usize>,
     compression: &str,
 ) -> PyResult<PyObject> {
@@ -65,6 +67,7 @@ fn watershed_ebe_to_parquet(
     let ebe_path = PathBuf::from(ebe_path);
     let output_path = PathBuf::from(output_path);
     let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
+    let chan_path = chan_path.map(PathBuf::from);
 
     let start = Instant::now();
     let summary = ebe::watershed_ebe_to_parquet(
@@ -74,6 +77,7 @@ fn watershed_ebe_to_parquet(
         &version,
         start_year,
         legacy_element_id,
+        chan_path.as_deref(),
         chunk_rows,
     )
     .map_err(to_py_err)?;
@@ -86,6 +90,12 @@ fn watershed_ebe_to_parquet(
         version_major,
         vec![output_path.display().to_string()],
     ))
+}
+
+#[pyfunction]
+#[pyo3(signature = (pass_path))]
+fn watershed_pass_cli_hint(pass_path: String) -> Option<String> {
+    pass::watershed_pass_cli_hint(&PathBuf::from(pass_path))
 }
 
 #[pyfunction]
@@ -330,6 +340,42 @@ fn watershed_chan_peak_to_parquet(
         summary.row_groups,
         version_major,
         vec![output_path.display().to_string()],
+    ))
+}
+
+#[pyfunction]
+#[pyo3(signature = (tc_out_path, output_path, version_major, version_minor, cli_calendar_path=None, start_year=None, chunk_rows=None, compression="snappy"))]
+fn watershed_tc_out_to_parquet(
+    tc_out_path: String,
+    output_path: String,
+    version_major: u32,
+    version_minor: u32,
+    cli_calendar_path: Option<String>,
+    start_year: Option<i32>,
+    chunk_rows: Option<usize>,
+    compression: &str,
+) -> PyResult<PyObject> {
+    ensure_snappy(compression)?;
+    let version = VersionInfo::new(version_major, version_minor);
+    let tc_out_path = PathBuf::from(tc_out_path);
+    let output_path = PathBuf::from(output_path);
+    let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
+
+    let start = Instant::now();
+    let summary = tc_out::watershed_tc_out_to_parquet(
+        &tc_out_path,
+        &output_path,
+        cli_calendar_path.as_deref(),
+        &version,
+        start_year,
+        chunk_rows,
+    )
+    .map_err(to_py_err)?;
+
+    Ok(build_tc_out_summary_dict(
+        start.elapsed().as_millis() as u64,
+        &summary,
+        version_major,
     ))
 }
 
@@ -598,6 +644,181 @@ fn hillslope_wat_files_to_parquet(
 }
 
 #[pyfunction]
+#[pyo3(signature = (pass_paths, output_path, version_major, version_minor, cli_calendar_path=None, pass_family=None, compression="snappy"))]
+fn hillslope_pass_files_to_parquet(
+    pass_paths: Vec<String>,
+    output_path: String,
+    version_major: u32,
+    version_minor: u32,
+    cli_calendar_path: Option<String>,
+    pass_family: Option<String>,
+    compression: &str,
+) -> PyResult<PyObject> {
+    ensure_snappy(compression)?;
+    let version = VersionInfo::new(version_major, version_minor);
+    let pass_paths = pass_paths
+        .into_iter()
+        .map(PathBuf::from)
+        .collect::<Vec<_>>();
+    let output_path = PathBuf::from(output_path);
+    let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
+
+    let start = Instant::now();
+    let summary = hill_pass::hillslope_pass_files_to_parquet(
+        &pass_paths,
+        &output_path,
+        cli_calendar_path.as_deref(),
+        &version,
+        pass_family.as_deref(),
+    )
+    .map_err(to_py_err)?;
+    Ok(build_summary_dict(
+        start.elapsed().as_millis() as u64,
+        summary.rows_written,
+        summary.row_groups,
+        version_major,
+        vec![output_path.display().to_string()],
+    ))
+}
+
+#[pyfunction]
+#[pyo3(signature = (ebe_paths, output_path, version_major, version_minor, cli_calendar_path=None, start_year=None, compression="snappy"))]
+fn hillslope_ebe_files_to_parquet(
+    ebe_paths: Vec<String>,
+    output_path: String,
+    version_major: u32,
+    version_minor: u32,
+    cli_calendar_path: Option<String>,
+    start_year: Option<i32>,
+    compression: &str,
+) -> PyResult<PyObject> {
+    ensure_snappy(compression)?;
+    let version = VersionInfo::new(version_major, version_minor);
+    let ebe_paths = ebe_paths.into_iter().map(PathBuf::from).collect::<Vec<_>>();
+    let output_path = PathBuf::from(output_path);
+    let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
+
+    let start = Instant::now();
+    let summary = hill_ebe::hillslope_ebe_files_to_parquet(
+        &ebe_paths,
+        &output_path,
+        cli_calendar_path.as_deref(),
+        &version,
+        start_year,
+    )
+    .map_err(to_py_err)?;
+    Ok(build_summary_dict(
+        start.elapsed().as_millis() as u64,
+        summary.rows_written,
+        summary.row_groups,
+        version_major,
+        vec![output_path.display().to_string()],
+    ))
+}
+
+#[pyfunction]
+#[pyo3(signature = (element_paths, output_path, version_major, version_minor, start_year=None, compression="snappy"))]
+fn hillslope_element_files_to_parquet(
+    element_paths: Vec<String>,
+    output_path: String,
+    version_major: u32,
+    version_minor: u32,
+    start_year: Option<i32>,
+    compression: &str,
+) -> PyResult<PyObject> {
+    ensure_snappy(compression)?;
+    let version = VersionInfo::new(version_major, version_minor);
+    let element_paths = element_paths
+        .into_iter()
+        .map(PathBuf::from)
+        .collect::<Vec<_>>();
+    let output_path = PathBuf::from(output_path);
+
+    let start = Instant::now();
+    let summary = hill_element::hillslope_element_files_to_parquet(
+        &element_paths,
+        &output_path,
+        &version,
+        start_year,
+    )
+    .map_err(to_py_err)?;
+    Ok(build_summary_dict(
+        start.elapsed().as_millis() as u64,
+        summary.rows_written,
+        summary.row_groups,
+        version_major,
+        vec![output_path.display().to_string()],
+    ))
+}
+
+#[pyfunction]
+#[pyo3(signature = (loss_paths, output_path, version_major, version_minor, compression="snappy"))]
+fn hillslope_loss_files_to_parquet(
+    loss_paths: Vec<String>,
+    output_path: String,
+    version_major: u32,
+    version_minor: u32,
+    compression: &str,
+) -> PyResult<PyObject> {
+    ensure_snappy(compression)?;
+    let version = VersionInfo::new(version_major, version_minor);
+    let loss_paths = loss_paths
+        .into_iter()
+        .map(PathBuf::from)
+        .collect::<Vec<_>>();
+    let output_path = PathBuf::from(output_path);
+
+    let start = Instant::now();
+    let summary = hill_loss::hillslope_loss_files_to_parquet(&loss_paths, &output_path, &version)
+        .map_err(to_py_err)?;
+    Ok(build_summary_dict(
+        start.elapsed().as_millis() as u64,
+        summary.rows_written,
+        summary.row_groups,
+        version_major,
+        vec![output_path.display().to_string()],
+    ))
+}
+
+#[pyfunction]
+#[pyo3(signature = (soil_paths, output_path, version_major, version_minor, cli_calendar_path=None, start_year=None, compression="snappy"))]
+fn hillslope_soil_files_to_parquet(
+    soil_paths: Vec<String>,
+    output_path: String,
+    version_major: u32,
+    version_minor: u32,
+    cli_calendar_path: Option<String>,
+    start_year: Option<i32>,
+    compression: &str,
+) -> PyResult<PyObject> {
+    ensure_snappy(compression)?;
+    let version = VersionInfo::new(version_major, version_minor);
+    let soil_paths = soil_paths
+        .into_iter()
+        .map(PathBuf::from)
+        .collect::<Vec<_>>();
+    let output_path = PathBuf::from(output_path);
+    let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
+
+    let start = Instant::now();
+    let summary = hill_soil::hillslope_soil_files_to_parquet(
+        &soil_paths,
+        &output_path,
+        cli_calendar_path.as_deref(),
+        &version,
+        start_year,
+    )
+    .map_err(to_py_err)?;
+    Ok(build_summary_dict(
+        start.elapsed().as_millis() as u64,
+        summary.rows_written,
+        summary.row_groups,
+        version_major,
+        vec![output_path.display().to_string()],
+    ))
+}
+
+#[pyfunction]
 #[pyo3(signature = (base_path))]
 fn catalog_scan(base_path: String) -> PyResult<PyObject> {
     let base_path = PathBuf::from(base_path);
@@ -648,9 +869,11 @@ fn segment_single_ofe_slope_at_breakpoints(
 #[pymodule]
 fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(watershed_pass_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(watershed_pass_cli_hint, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_soil_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_loss_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_chan_peak_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(watershed_tc_out_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_ebe_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_chanwb_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_chnwb_to_parquet, m)?)?;
@@ -663,6 +886,11 @@ fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hillslope_soil_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_wat_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_wat_files_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(hillslope_pass_files_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(hillslope_ebe_files_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(hillslope_element_files_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(hillslope_loss_files_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(hillslope_soil_files_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(catalog_scan, m)?)?;
     m.add_function(wrap_pyfunction!(segment_single_ofe_slope, m)?)?;
     m.add_function(wrap_pyfunction!(
@@ -670,6 +898,26 @@ fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     Ok(())
+}
+
+fn build_tc_out_summary_dict(
+    elapsed_ms: u64,
+    summary: &tc_out::TcOutWriteSummary,
+    schema_version: u32,
+) -> PyObject {
+    Python::with_gil(|py| {
+        let dict = PyDict::new_bound(py);
+        dict.set_item("rows_written", summary.rows_written).unwrap();
+        dict.set_item("row_groups", summary.row_groups).unwrap();
+        dict.set_item("elapsed_ms", elapsed_ms).unwrap();
+        dict.set_item("schema_version", schema_version.to_string())
+            .unwrap();
+        dict.set_item("output_paths", &summary.output_paths)
+            .unwrap();
+        dict.set_item("outlet_channel", summary.outlet_channel)
+            .unwrap();
+        dict.into_py(py)
+    })
 }
 
 fn build_summary_dict(

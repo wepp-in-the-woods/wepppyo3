@@ -135,6 +135,49 @@ pub fn watershed_ebe_schema(version: &VersionInfo) -> Schema {
     schema_with_version(Schema::new(fields), version)
 }
 
+pub fn watershed_tc_out_schema(version: &VersionInfo) -> Schema {
+    let fields = vec![
+        field_with_meta(
+            "day",
+            DataType::Int16,
+            None,
+            Some("Julian day from tc_out.txt"),
+        ),
+        field_with_meta("year", DataType::Int16, None, Some("Calendar year")),
+        field_with_meta(
+            "sim_day_index",
+            DataType::Int32,
+            None,
+            Some("1-indexed simulation day"),
+        ),
+        field_with_meta(
+            "julian",
+            DataType::Int16,
+            None,
+            Some("Julian day from tc_out.txt (alias of day)"),
+        ),
+        field_with_meta(
+            "Time of Conc (hr)",
+            DataType::Float64,
+            Some("hr"),
+            Some("Event time of concentration at the outlet channel"),
+        ),
+        field_with_meta(
+            "Storm Duration (hr)",
+            DataType::Float64,
+            Some("hr"),
+            Some("Storm duration for the event"),
+        ),
+        field_with_meta(
+            "Storm Peak (hr)",
+            DataType::Float64,
+            Some("hr"),
+            Some("Time to storm peak for the event"),
+        ),
+    ];
+    schema_with_version(Schema::new(fields), version)
+}
+
 pub fn watershed_chanwb_schema(version: &VersionInfo) -> Schema {
     let mut fields = vec![
         field_with_meta("year", DataType::Int16, None, Some("Calendar year")),
@@ -411,44 +454,44 @@ pub fn hill_pass_schema(version: &VersionInfo) -> Schema {
         field_with_meta(
             "clot",
             DataType::Float64,
-            Some("unitless"),
-            Some("Fraction of exiting sediment in the clay size class"),
+            Some("m^3/s"),
+            Some("Friction flow 1"),
         ),
         field_with_meta(
             "slot",
             DataType::Float64,
-            Some("unitless"),
-            Some("Fraction of exiting sediment in the silt size class"),
+            Some("%"),
+            Some("% of exiting sediment in the silt size class"),
         ),
         field_with_meta(
             "saot",
             DataType::Float64,
-            Some("unitless"),
-            Some("Fraction of exiting sediment in the small aggregate size class"),
+            Some("%"),
+            Some("% of exiting sediment in the small aggregate size class"),
         ),
         field_with_meta(
             "laot",
             DataType::Float64,
-            Some("unitless"),
-            Some("Fraction of exiting sediment in the large aggregate size class"),
+            Some("%"),
+            Some("% of exiting sediment in the large aggregate size class"),
         ),
         field_with_meta(
             "sdot",
             DataType::Float64,
-            Some("unitless"),
-            Some("Fraction of exiting sediment in the sand size class"),
+            Some("%"),
+            Some("% of exiting sediment in the sand size class"),
         ),
         field_with_meta(
             "gwbfv",
             DataType::Float64,
-            Some("m^3"),
-            Some("Groundwater baseflow volume"),
+            None,
+            Some("Groundwater baseflow"),
         ),
         field_with_meta(
             "gwdsv",
             DataType::Float64,
-            Some("m^3"),
-            Some("Groundwater dissolved-storage/deep-seepage volume"),
+            None,
+            Some("Groundwater deep seepage"),
         ),
     ];
     schema_with_version(Schema::new(fields), version)
@@ -724,6 +767,12 @@ pub fn hill_soil_schema(version: &VersionInfo) -> Schema {
             DataType::Float64,
             Some("mm"),
             Some("Total soil water"),
+        ),
+        field_with_meta(
+            "TSMF",
+            DataType::Float64,
+            Some("frac"),
+            Some("True soil moisture fraction (full profile)"),
         ),
     ];
     schema_with_version(Schema::new(fields), version)

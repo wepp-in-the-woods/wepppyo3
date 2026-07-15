@@ -898,3 +898,82 @@ fn open_pass_reader(path: &Path) -> Result<Box<dyn BufRead>, InterchangeError> {
         Ok(Box::new(BufReader::new(file)))
     }
 }
+
+pub fn watershed_pass_cli_hint(pass_path: &Path) -> Option<String> {
+    // This is a best-effort selector, matching the legacy Python helper: conversion
+    // still performs strict parsing and reports malformed PASS input explicitly.
+    let result = (|| -> Result<Option<String>, InterchangeError> {
+        let reader = open_pass_reader(pass_path)?;
+        let mut pass_reader = PassReader::new(reader, pass_path);
+        let header_lines = pass_reader.read_header()?;
+        let metadata = parse_metadata(&header_lines, pass_path)?;
+        Ok(metadata
+            .climate_files
+            .into_iter()
+            .find(|name| !name.is_empty()))
+    })();
+    result.ok().flatten()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use flate2::write::GzEncoder;
+    use flate2::Compression;
+    use std::io::Write;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_path(stem: &str, suffix: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        std::env::temp_dir().join(format!("wepp_pass_{stem}_{nanos}{suffix}"))
+    }
+
+    fn pass_header(climate_file: &str) -> String {
+        format!(
+            "1.0 --> VERSION NUMBER\n\
+             1 NUMBER OF UNIQUE HILLSLOPES IN WATERSHED\n\
+             1 WATERSHED MAXIMUM SIMULATION TIME (YEARS)\n\
+             2000 BEGINNING YEAR OF WATERSHED CLIMATE FILE\n\
+             HILLSLOPE 1 {climate_file} 0.1 0.2 10.0 1.0 2.0 3.0 4.0\n\
+             BEGIN HILLSLOPE HYDROLOGY AND SEDIMENT INFORMATION\n"
+        )
+    }
+
+    #[test]
+    fn pass_cli_hint_reads_plain_pass_metadata() {
+        let path = temp_path("cli_hint", ".txt");
+        std::fs::write(&path, pass_header("climate/example.cli")).expect("write PASS fixture");
+        assert_eq!(
+            watershed_pass_cli_hint(&path).as_deref(),
+            Some("climate/example.cli")
+        );
+        std::fs::remove_file(path).expect("cleanup");
+    }
+
+    #[test]
+    fn pass_cli_hint_reads_gzip_pass_metadata() {
+        let path = temp_path("cli_hint", ".txt.gz");
+        let file = File::create(&path).expect("create gzip fixture");
+        let mut encoder = GzEncoder::new(file, Compression::default());
+        encoder
+            .write_all(pass_header("climate/gzip.cli").as_bytes())
+            .expect("write gzip fixture");
+        encoder.finish().expect("finish gzip fixture");
+        assert_eq!(
+            watershed_pass_cli_hint(&path).as_deref(),
+            Some("climate/gzip.cli")
+        );
+        std::fs::remove_file(path).expect("cleanup");
+    }
+
+    #[test]
+    fn pass_cli_hint_returns_none_for_malformed_pass() {
+        let path = temp_path("bad_cli_hint", ".txt");
+        std::fs::write(&path, "not a pass file\n").expect("write malformed fixture");
+        assert_eq!(watershed_pass_cli_hint(&path), None);
+        std::fs::remove_file(path).expect("cleanup");
+    }
+}

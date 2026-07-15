@@ -65,6 +65,9 @@ impl ParquetSink {
         if rows > 0 {
             let batch = RecordBatch::try_new(Arc::clone(&self.schema), arrays)?;
             self.writer.write(&batch)?;
+            // Each caller-provided chunk is an intentional row-group boundary. The
+            // ordered multi-file APIs use one chunk per source file.
+            self.writer.flush()?;
         }
 
         self.row_groups += 1;

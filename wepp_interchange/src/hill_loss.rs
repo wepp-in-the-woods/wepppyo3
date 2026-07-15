@@ -1,14 +1,17 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use arrow_array::{Float64Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::arrow_support::{BoxedArray, Chunk};
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
-use crate::schema::VersionInfo;
+use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::schema::{hill_loss_schema, VersionInfo};
 
 const MEASUREMENT_COLUMNS: [&str; 9] = [
     "Class",
@@ -77,6 +80,22 @@ impl LossColumns {
         dict.set_item("In Flow Exiting", self.inflow_exiting)
             .unwrap();
         dict.into_py(py)
+    }
+
+    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+        Chunk::new(vec![
+            Int32Array::from(self.wepp_id).boxed(),
+            Int8Array::from(self.class_id).boxed(),
+            Int8Array::from(self.class_val).boxed(),
+            Float64Array::from(self.diameter).boxed(),
+            Float64Array::from(self.specific_gravity).boxed(),
+            Float64Array::from(self.sand).boxed(),
+            Float64Array::from(self.silt).boxed(),
+            Float64Array::from(self.clay).boxed(),
+            Float64Array::from(self.om).boxed(),
+            Float64Array::from(self.sediment_fraction).boxed(),
+            Float64Array::from(self.inflow_exiting).boxed(),
+        ])
     }
 }
 
@@ -153,6 +172,24 @@ pub fn hillslope_loss_to_columns(
     Ok(out)
 }
 
+pub fn hillslope_loss_files_to_parquet(
+    paths: &[PathBuf],
+    output_path: &Path,
+    version: &VersionInfo,
+) -> Result<WriteSummary, InterchangeError> {
+    let schema = hill_loss_schema(version);
+    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    if paths.is_empty() {
+        sink.write_chunk(empty_chunk(&schema))?;
+    } else {
+        for path in paths {
+            let columns = hillslope_loss_to_columns(path, version)?;
+            sink.write_chunk(columns.into_chunk())?;
+        }
+    }
+    sink.finish()
+}
+
 fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     let name = path
         .file_name()
@@ -186,4 +223,68 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     digits.parse::<i32>().map_err(|_| {
         InterchangeError::parse(path, None, "Invalid hillslope id", Some(name.to_string()))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_dir() -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "wepp_interchange_hill_loss_{}_{}",
+            std::process::id(),
+            nonce
+        ));
+        fs::create_dir_all(&path).expect("create temp directory");
+        path
+    }
+
+    fn write_loss(path: &Path) {
+        fs::write(
+            path,
+            "Sediment particle information leaving profile\nskip 1\nskip 2\nskip 3\nskip 4\nskip 5\n1 0.1 2.6 10 20 70 1 0.4 0.5\n\n",
+        )
+        .expect("write LOSS fixture");
+    }
+
+    #[test]
+    fn bulk_writer_preserves_path_order_and_row_groups() {
+        let dir = temp_dir();
+        let first = dir.join("H6.loss.dat");
+        let second = dir.join("H2.loss.dat");
+        let output = dir.join("H.loss.parquet");
+        write_loss(&first);
+        write_loss(&second);
+
+        let version = VersionInfo::new(1, 0);
+        let summary = hillslope_loss_files_to_parquet(&[first, second], &output, &version)
+            .expect("write LOSS parquet");
+        assert_eq!(summary.rows_written, 2);
+        assert_eq!(summary.row_groups, 2);
+
+        let builder = ParquetRecordBatchReaderBuilder::try_new(
+            File::open(&output).expect("open LOSS parquet"),
+        )
+        .expect("build LOSS parquet reader");
+        assert_eq!(builder.schema().as_ref(), &hill_loss_schema(&version));
+        assert_eq!(builder.metadata().num_row_groups(), 2);
+        let mut ids = Vec::new();
+        for batch in builder.build().expect("build batch reader") {
+            let batch = batch.expect("read LOSS batch");
+            let values = batch
+                .column(0)
+                .as_any()
+                .downcast_ref::<Int32Array>()
+                .expect("wepp_id Int32");
+            ids.extend(values.values().iter().copied());
+        }
+        assert_eq!(ids, [6, 2]);
+    }
 }

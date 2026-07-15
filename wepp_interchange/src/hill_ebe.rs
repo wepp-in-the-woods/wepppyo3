@@ -1,17 +1,20 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, load_cli_calendar, CalendarLookup,
 };
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
-use crate::schema::VersionInfo;
+use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::schema::{hill_ebe_schema, VersionInfo};
 
 const UNIT_SKIP_TOKENS: [&str; 3] = ["---", "--", "----"];
 
@@ -172,6 +175,31 @@ impl EbeColumns {
         dict.set_item("Dep-Len", self.dep_len).unwrap();
         dict.into_py(py)
     }
+
+    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+        Chunk::new(vec![
+            Int32Array::from(self.wepp_id).boxed(),
+            Int16Array::from(self.year).boxed(),
+            Int32Array::from(self.sim_day_index).boxed(),
+            Int8Array::from(self.month).boxed(),
+            Int8Array::from(self.day_of_month).boxed(),
+            Int16Array::from(self.julian).boxed(),
+            Int16Array::from(self.water_year).boxed(),
+            Float64Array::from(self.precip).boxed(),
+            Float64Array::from(self.runoff).boxed(),
+            Float64Array::from(self.ir_det).boxed(),
+            Float64Array::from(self.av_det).boxed(),
+            Float64Array::from(self.mx_det).boxed(),
+            Float64Array::from(self.det_point).boxed(),
+            Float64Array::from(self.av_dep).boxed(),
+            Float64Array::from(self.max_dep).boxed(),
+            Float64Array::from(self.dep_point).boxed(),
+            Float64Array::from(self.sed_del).boxed(),
+            Float64Array::from(self.er).boxed(),
+            Float64Array::from(self.det_len).boxed(),
+            Float64Array::from(self.dep_len).boxed(),
+        ])
+    }
 }
 
 pub fn hillslope_ebe_to_columns(
@@ -184,6 +212,14 @@ pub fn hillslope_ebe_to_columns(
         Some(path) => Some(load_cli_calendar(path)?),
         None => None,
     };
+    hillslope_ebe_to_columns_with_lookup(path, lookup.as_ref(), start_year)
+}
+
+fn hillslope_ebe_to_columns_with_lookup(
+    path: &Path,
+    lookup: Option<&CalendarLookup>,
+    start_year: Option<i32>,
+) -> Result<EbeColumns, InterchangeError> {
     let wepp_id = extract_wepp_id(path)?;
 
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
@@ -193,9 +229,7 @@ pub fn hillslope_ebe_to_columns(
     let mut measurement_columns: Vec<String> = Vec::new();
     let mut mapping: HashMap<String, usize> = HashMap::new();
 
-    let calendar_start_year = lookup
-        .as_ref()
-        .and_then(|cal| cal.by_year.keys().min().copied());
+    let calendar_start_year = lookup.and_then(|cal| cal.by_year.keys().min().copied());
     let resolved_start_year = start_year.or(calendar_start_year);
     let normalize_sim_years = resolved_start_year.is_some();
     let mut sim_start_year = resolved_start_year;
@@ -283,13 +317,9 @@ pub fn hillslope_ebe_to_columns(
             sim_start_year = Some(year_val);
         }
 
-        let julian = calendar_day_to_julian(year_val, month, day_of_month, lookup.as_ref())?;
-        let sim_day_index = compute_sim_day_index(
-            year_val,
-            julian,
-            sim_start_year.unwrap_or(year_val),
-            lookup.as_ref(),
-        );
+        let julian = calendar_day_to_julian(year_val, month, day_of_month, lookup)?;
+        let sim_day_index =
+            compute_sim_day_index(year_val, julian, sim_start_year.unwrap_or(year_val), lookup);
         let water_year = determine_wateryear(year_val, julian);
 
         let mut row_measurements: Vec<Option<f64>> = vec![None; MEASUREMENT_FIELD_NAMES.len()];
@@ -326,6 +356,30 @@ pub fn hillslope_ebe_to_columns(
     }
 
     Ok(out)
+}
+
+pub fn hillslope_ebe_files_to_parquet(
+    paths: &[PathBuf],
+    output_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+    start_year: Option<i32>,
+) -> Result<WriteSummary, InterchangeError> {
+    let lookup = match cli_calendar_path {
+        Some(path) => Some(load_cli_calendar(path)?),
+        None => None,
+    };
+    let schema = hill_ebe_schema(version);
+    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    if paths.is_empty() {
+        sink.write_chunk(empty_chunk(&schema))?;
+    } else {
+        for path in paths {
+            let columns = hillslope_ebe_to_columns_with_lookup(path, lookup.as_ref(), start_year)?;
+            sink.write_chunk(columns.into_chunk())?;
+        }
+    }
+    sink.finish()
 }
 
 fn normalize_column_names(
@@ -493,7 +547,33 @@ fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
     use std::collections::HashMap;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_dir() -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "wepp_interchange_hill_ebe_{}_{}",
+            std::process::id(),
+            nonce
+        ));
+        fs::create_dir_all(&path).expect("create temp directory");
+        path
+    }
+
+    fn write_ebe(path: &Path) {
+        let payload = format!(
+            "WEPP EBE\n{}\n{}\n1 1 2000 1 2 3 4 5 6 7 8 9 10 11\n",
+            RAW_HEADER_STANDARD.join(" "),
+            RAW_UNITS_STANDARD.join(" ")
+        );
+        fs::write(path, payload).expect("write EBE fixture");
+    }
 
     #[test]
     fn calendar_day_to_julian_falls_back_to_any_year() {
@@ -503,5 +583,40 @@ mod tests {
 
         let julian = calendar_day_to_julian(2000, 1, 29, Some(&lookup)).unwrap();
         assert_eq!(julian, 1);
+    }
+
+    #[test]
+    fn bulk_writer_preserves_path_order_and_row_groups() {
+        let dir = temp_dir();
+        let first = dir.join("H7.ebe.dat");
+        let second = dir.join("H3.ebe.dat");
+        let output = dir.join("H.ebe.parquet");
+        write_ebe(&first);
+        write_ebe(&second);
+
+        let version = VersionInfo::new(1, 0);
+        let summary =
+            hillslope_ebe_files_to_parquet(&[first, second], &output, None, &version, Some(2000))
+                .expect("write EBE parquet");
+        assert_eq!(summary.rows_written, 2);
+        assert_eq!(summary.row_groups, 2);
+
+        let builder = ParquetRecordBatchReaderBuilder::try_new(
+            File::open(&output).expect("open EBE parquet"),
+        )
+        .expect("build EBE parquet reader");
+        assert_eq!(builder.schema().as_ref(), &hill_ebe_schema(&version));
+        assert_eq!(builder.metadata().num_row_groups(), 2);
+        let mut ids = Vec::new();
+        for batch in builder.build().expect("build batch reader") {
+            let batch = batch.expect("read EBE batch");
+            let values = batch
+                .column(0)
+                .as_any()
+                .downcast_ref::<Int32Array>()
+                .expect("wepp_id Int32");
+            ids.extend(values.values().iter().copied());
+        }
+        assert_eq!(ids, [7, 3]);
     }
 }

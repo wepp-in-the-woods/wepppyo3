@@ -65,6 +65,41 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: bounded direct hillslope WAT Parquet
+
+`confirmed`: the `wepp_interchange` shared object was rebuilt from source commit
+`361c9ac` on 2026-07-15. The additive
+`hillslope_wat_files_to_parquet` API consumes a source-ordered file list, loads
+the climate calendar once, parses one hillslope at a time into compact Rust Arrow
+arrays, and writes each source as the next Parquet row group. It avoids returning
+full multi-OFE WAT tables through Python process-pool futures while preserving the
+existing schema, source order, Snappy compression, and atomic output replacement.
+
+Build and atomic refresh commands:
+
+```sh
+cd /home/workdir/wepppyo3
+cargo build -p wepp_interchange_rust --release
+dst=release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+tmp=$(mktemp "$(dirname "$dst")/.wepp_interchange_rust.so.XXXXXX")
+cp target/release/libwepp_interchange_rust.so "$tmp"
+chmod 0755 "$tmp"
+mv -f "$tmp" "$dst"
+```
+
+`confirmed`: validation passed:
+
+- `cargo test -p wepp_interchange_rust`: 45 passed;
+- the release-tree direct multi-file WAT API test passed;
+- WEPPpy schema/value parity with the Python reference passed; and
+- the generated 25,567,139,478-byte Hybrid WAT corpus wrote
+  `H.wat.parquet` in 571.737 seconds while sampled worker-cgroup anonymous
+  memory peaked at 489,709,568 bytes, with no OOM event.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `6ea01a3983de350a6029c4fce47bd59d8a0d2fad927feecf00cf7cb958d3bdd1` |
+
 ### Targeted Refresh: schema-compatible UTF-8 interchange batches
 
 `confirmed`: the `wepp_interchange` shared object was rebuilt from source commit

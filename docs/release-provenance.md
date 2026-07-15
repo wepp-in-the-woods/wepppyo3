@@ -65,6 +65,42 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: failure-atomic native interchange publication
+
+`confirmed`: the `wepp_interchange` shared object was rebuilt from source commit
+`5819cb3d124cb65e253445cb1b2e83d22df9b4e2` on 2026-07-15. Native Parquet
+writers now allocate collision-resistant same-directory staging paths, remove
+incomplete stages, count physical row groups, and serialize publishers. The
+two-file watershed PASS and eight-file watershed LOSS operations stage every
+output before publication and restore the prior generation if a later rename
+fails. Their path updates remain sequential, so this guarantee is
+failure-atomic rollback rather than simultaneous multi-path visibility.
+
+Build and atomic refresh commands:
+
+```sh
+cd /home/workdir/wepppyo3
+cargo build -p wepp_interchange_rust --release
+cp target/release/libwepp_interchange_rust.so \
+  release/linux/py312/wepppyo3/wepp_interchange/.wepp_interchange_rust.so.new
+mv release/linux/py312/wepppyo3/wepp_interchange/.wepp_interchange_rust.so.new \
+  release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+```
+
+`confirmed`: validation passed before and after the refresh:
+
+- `cargo fmt --check -p wepp_interchange_rust`;
+- `cargo check -p wepp_interchange_rust`;
+- `cargo test -p wepp_interchange_rust`: 68 unit and 16 TC_OUT integration
+  tests passed; and
+- release-tree Python tests: 22 passed.
+
+Build environment: Python 3.12.3, rustc 1.92.0, and cargo 1.92.0.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `7419203c8b91db1b595590b7c9a28040662d5fad9fdf8b182a17c85a76d518e4` |
+
 ### Targeted Refresh: required native interchange data plane
 
 `confirmed`: the `wepp_interchange` shared object was rebuilt from source commit

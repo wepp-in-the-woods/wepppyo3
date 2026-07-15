@@ -352,9 +352,11 @@ mod tests {
             vec![field],
             HashMap::from([("dataset_version".to_string(), "3.0".to_string())]),
         );
-        let chunk = Chunk::new(vec![
-            arrow_array::Float64Array::from(vec![Some(1.25), None]).boxed(),
-        ]);
+        let chunk = Chunk::new(vec![arrow_array::Float64Array::from(vec![
+            Some(1.25),
+            None,
+        ])
+        .boxed()]);
 
         let path = temp_path("schema");
         write_single_chunk(&path, schema, chunk).expect("write parquet");

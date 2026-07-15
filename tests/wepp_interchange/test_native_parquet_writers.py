@@ -175,7 +175,7 @@ def test_hillslope_bulk_writers_publish_versioned_empty_parquet(tmp_path: Path) 
         summary = writer([], str(target), 1, 2, **kwargs)
 
         assert summary["rows_written"] == 0
-        assert summary["row_groups"] == 1
+        assert summary["row_groups"] == 0
         assert summary["output_paths"] == [str(target)]
         _assert_versioned_empty_parquet(target, HILLSLOPE_SCHEMAS[label])
 

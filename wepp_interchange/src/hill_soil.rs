@@ -617,7 +617,7 @@ mod tests {
         let summary = hillslope_soil_files_to_parquet(&[], &output, None, &version, Some(2000))
             .expect("write empty SOIL parquet");
         assert_eq!(summary.rows_written, 0);
-        assert_eq!(summary.row_groups, 1);
+        assert_eq!(summary.row_groups, 0);
 
         let builder = ParquetRecordBatchReaderBuilder::try_new(
             File::open(&output).expect("open empty SOIL parquet"),

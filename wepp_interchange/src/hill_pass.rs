@@ -757,6 +757,22 @@ mod tests {
         .expect("write PASS fixture");
     }
 
+    fn temporary_artifacts(path: &Path) -> Vec<PathBuf> {
+        let filename = path.file_name().expect("target filename").to_string_lossy();
+        let prefix = format!(".{filename}.wepp-");
+        fs::read_dir(path.parent().expect("target parent"))
+            .expect("read target parent")
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|candidate| {
+                candidate
+                    .file_name()
+                    .map(|name| name.to_string_lossy().starts_with(&prefix))
+                    .unwrap_or(false)
+            })
+            .collect()
+    }
+
     #[test]
     fn bulk_writer_preserves_path_order_and_row_groups() {
         let dir = temp_dir();
@@ -812,5 +828,30 @@ mod tests {
         .expect_err("invalid HBP name must fail");
         assert!(err.display_message().contains("invalid process HBP name"));
         assert!(!output.exists());
+    }
+
+    #[test]
+    fn bulk_writer_later_source_failure_preserves_prior_output_and_cleans_stage() {
+        let dir = temp_dir();
+        let first = dir.join("H1.pass.dat");
+        let missing_second = dir.join("H2.pass.dat");
+        let output = dir.join("H.pass.parquet");
+        write_pass(&first);
+        fs::write(&output, b"prior-generation").expect("write prior output");
+
+        hillslope_pass_files_to_parquet(
+            &[first, missing_second],
+            &output,
+            None,
+            &VersionInfo::new(1, 0),
+            Some("legacy_ascii"),
+        )
+        .expect_err("missing later source must fail");
+
+        assert_eq!(
+            fs::read(&output).expect("read prior output"),
+            b"prior-generation"
+        );
+        assert!(temporary_artifacts(&output).is_empty());
     }
 }

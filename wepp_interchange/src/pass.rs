@@ -13,7 +13,7 @@ use crate::calendar::{
 };
 use crate::errors::InterchangeError;
 use crate::floats::{parse_float_loose, parse_required_float, tokenize_numeric_line};
-use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::parquet::{commit_staged, empty_chunk, ParquetSink, StagedParquet, WriteSummary};
 use crate::schema::{field_with_meta, schema_with_version, VersionInfo};
 
 const EVENT_CHUNK_SIZE: usize = 250_000;
@@ -643,6 +643,28 @@ pub fn watershed_pass_to_parquet(
     version: &VersionInfo,
     chunk_rows: Option<usize>,
 ) -> Result<(WriteSummary, WriteSummary), InterchangeError> {
+    let staged = stage_watershed_pass_outputs(
+        pass_path,
+        events_path,
+        metadata_path,
+        cli_calendar_path,
+        version,
+        chunk_rows,
+    )?;
+    let mut summaries = commit_staged(staged)?;
+    let metadata_summary = summaries.pop().expect("PASS metadata summary");
+    let event_summary = summaries.pop().expect("PASS event summary");
+    Ok((event_summary, metadata_summary))
+}
+
+fn stage_watershed_pass_outputs(
+    pass_path: &Path,
+    events_path: &Path,
+    metadata_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+    chunk_rows: Option<usize>,
+) -> Result<Vec<StagedParquet>, InterchangeError> {
     let reader = open_pass_reader(pass_path)?;
     let mut pass_reader = PassReader::new(reader, pass_path);
 
@@ -849,16 +871,16 @@ pub fn watershed_pass_to_parquet(
         event_writer.write_chunk(empty_chunk(&event_schema))?;
     }
 
-    let event_summary = event_writer.finish()?;
+    let event_staged = event_writer.finish_staged()?;
 
     let metadata_chunk = build_metadata_chunk(&meta, &metadata_schema);
-    let metadata_summary = {
+    let metadata_staged = {
         let mut metadata_writer = ParquetSink::try_new(metadata_path, metadata_schema)?;
         metadata_writer.write_chunk(metadata_chunk)?;
-        metadata_writer.finish()?
+        metadata_writer.finish_staged()?
     };
 
-    Ok((event_summary, metadata_summary))
+    Ok(vec![event_staged, metadata_staged])
 }
 
 fn build_metadata_chunk(meta: &PassMetadata, schema: &Schema) -> Chunk<Box<dyn Array>> {
@@ -942,6 +964,22 @@ mod tests {
         )
     }
 
+    fn temporary_artifacts(path: &Path) -> Vec<PathBuf> {
+        let filename = path.file_name().expect("target filename").to_string_lossy();
+        let prefix = format!(".{filename}.wepp-");
+        std::fs::read_dir(path.parent().expect("target parent"))
+            .expect("read target parent")
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|candidate| {
+                candidate
+                    .file_name()
+                    .map(|name| name.to_string_lossy().starts_with(&prefix))
+                    .unwrap_or(false)
+            })
+            .collect()
+    }
+
     #[test]
     fn pass_cli_hint_reads_plain_pass_metadata() {
         let path = temp_path("cli_hint", ".txt");
@@ -975,5 +1013,41 @@ mod tests {
         std::fs::write(&path, "not a pass file\n").expect("write malformed fixture");
         assert_eq!(watershed_pass_cli_hint(&path), None);
         std::fs::remove_file(path).expect("cleanup");
+    }
+
+    #[test]
+    fn watershed_pass_later_output_failure_restores_both_prior_outputs() {
+        let pass_path = temp_path("atomic_source", ".txt");
+        let events_path = temp_path("atomic_events", ".parquet");
+        let metadata_path = temp_path("atomic_metadata", ".parquet");
+        std::fs::write(&pass_path, pass_header("climate/example.cli")).expect("write PASS fixture");
+        std::fs::write(&events_path, b"old-events").expect("write prior events");
+        std::fs::write(&metadata_path, b"old-metadata").expect("write prior metadata");
+
+        let staged = stage_watershed_pass_outputs(
+            &pass_path,
+            &events_path,
+            &metadata_path,
+            None,
+            &VersionInfo::new(1, 2),
+            None,
+        )
+        .expect("stage PASS outputs");
+        crate::parquet::commit_staged_with_failure(staged, 1)
+            .expect_err("metadata publication must fail");
+
+        assert_eq!(
+            std::fs::read(&events_path).expect("read restored events"),
+            b"old-events"
+        );
+        assert_eq!(
+            std::fs::read(&metadata_path).expect("read restored metadata"),
+            b"old-metadata"
+        );
+        assert!(temporary_artifacts(&events_path).is_empty());
+        assert!(temporary_artifacts(&metadata_path).is_empty());
+        std::fs::remove_file(pass_path).expect("cleanup source");
+        std::fs::remove_file(events_path).expect("cleanup events");
+        std::fs::remove_file(metadata_path).expect("cleanup metadata");
     }
 }

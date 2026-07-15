@@ -9,7 +9,7 @@ use arrow_schema::{DataType, Schema};
 
 use crate::arrays::string_array_from_optional_strings;
 use crate::errors::InterchangeError;
-use crate::parquet::{empty_chunk, write_single_chunk, WriteSummary};
+use crate::parquet::{commit_staged, empty_chunk, ParquetSink, StagedParquet, WriteSummary};
 use crate::schema::{field_with_meta, schema_with_version, VersionInfo};
 
 const SCHEMA_VERSION: &str = "1";
@@ -192,17 +192,40 @@ pub struct LossOutputs {
     pub summaries: HashMap<String, WriteSummary>,
 }
 
+struct StagedLossOutputs {
+    paths: HashMap<String, PathBuf>,
+    keys: Vec<String>,
+    staged: Vec<StagedParquet>,
+}
+
 pub fn watershed_loss_to_parquet(
     loss_path: &Path,
     output_dir: &Path,
     version: &VersionInfo,
 ) -> Result<LossOutputs, InterchangeError> {
+    let staged_outputs = stage_watershed_loss_outputs(loss_path, output_dir, version)?;
+    let write_summaries = commit_staged(staged_outputs.staged)?;
+    let summaries = staged_outputs
+        .keys
+        .into_iter()
+        .zip(write_summaries)
+        .collect::<HashMap<_, _>>();
+    Ok(LossOutputs {
+        paths: staged_outputs.paths,
+        summaries,
+    })
+}
+
+fn stage_watershed_loss_outputs(
+    loss_path: &Path,
+    output_dir: &Path,
+    version: &VersionInfo,
+) -> Result<StagedLossOutputs, InterchangeError> {
     let parsed = parse_loss_file(loss_path)?;
 
     let hill_count = max_hill_id(&parsed.average_hill);
 
     let mut paths: HashMap<String, PathBuf> = HashMap::new();
-    let mut summaries: HashMap<String, WriteSummary> = HashMap::new();
 
     std::fs::create_dir_all(output_dir).map_err(|err| InterchangeError::io(output_dir, err))?;
 
@@ -316,17 +339,25 @@ pub fn watershed_loss_to_parquet(
         paths.insert(key.to_string(), path);
     }
 
+    let mut keys = Vec::with_capacity(chunks.len());
+    let mut staged = Vec::with_capacity(chunks.len());
     for (key, chunk, schema) in chunks {
         let path = paths.get(key).expect("output path").clone();
-        let summary = if chunk.len() == 0 {
-            write_single_chunk(&path, schema.clone(), empty_chunk(&schema))?
+        let mut sink = ParquetSink::try_new(&path, schema.clone())?;
+        if chunk.len() == 0 {
+            sink.write_chunk(empty_chunk(&schema))?;
         } else {
-            write_single_chunk(&path, schema.clone(), chunk)?
-        };
-        summaries.insert(key.to_string(), summary);
+            sink.write_chunk(chunk)?;
+        }
+        keys.push(key.to_string());
+        staged.push(sink.finish_staged()?);
     }
 
-    Ok(LossOutputs { paths, summaries })
+    Ok(StagedLossOutputs {
+        paths,
+        keys,
+        staged,
+    })
 }
 
 fn hill_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, Schema) {
@@ -1138,5 +1169,91 @@ fn truncate_line(line: &str) -> String {
         line.to_string()
     } else {
         format!("{}...", &line[..LIMIT])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    const OUTPUT_FILENAMES: [&str; 8] = [
+        "loss_pw0.hill.parquet",
+        "loss_pw0.chn.parquet",
+        "loss_pw0.out.parquet",
+        "loss_pw0.class_data.parquet",
+        "loss_pw0.all_years.hill.parquet",
+        "loss_pw0.all_years.chn.parquet",
+        "loss_pw0.all_years.out.parquet",
+        "loss_pw0.all_years.class_data.parquet",
+    ];
+
+    fn temp_dir() -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "wepp_interchange_loss_atomic_{}_{}",
+            std::process::id(),
+            nonce
+        ));
+        fs::create_dir_all(&path).expect("create temp directory");
+        path
+    }
+
+    fn minimal_loss_fixture() -> &'static str {
+        "1 YEAR AVERAGE ANNUAL VALUES FOR WATERSHED\n\
+         header\n\
+         ----\n\
+         Hill 1 1 1 1 1 1 1 1 1 1 1\n\
+         \n\
+         ----\n\
+         channel header\n\
+         Channel 1 1 1 1 1 1 1 1 1 1\n\
+         \n\
+         ----\n\
+         outlet header\n\
+         Total = 1.0 mm\n\
+         \n"
+    }
+
+    fn temporary_artifacts(dir: &Path) -> Vec<PathBuf> {
+        fs::read_dir(dir)
+            .expect("read output directory")
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| {
+                path.file_name()
+                    .map(|name| name.to_string_lossy().contains(".wepp-"))
+                    .unwrap_or(false)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn watershed_loss_later_output_failure_restores_all_eight_prior_outputs() {
+        let dir = temp_dir();
+        let source = dir.join("loss_pw0.txt");
+        fs::write(&source, minimal_loss_fixture()).expect("write LOSS fixture");
+        for filename in OUTPUT_FILENAMES {
+            fs::write(dir.join(filename), format!("old-{filename}")).expect("write prior output");
+        }
+
+        let staged = stage_watershed_loss_outputs(&source, &dir, &VersionInfo::new(1, 2))
+            .expect("stage LOSS outputs");
+        assert_eq!(staged.staged.len(), 8);
+        crate::parquet::commit_staged_with_failure(staged.staged, 6)
+            .expect_err("later LOSS output publication must fail");
+
+        for filename in OUTPUT_FILENAMES {
+            assert_eq!(
+                fs::read(dir.join(filename)).expect("read restored output"),
+                format!("old-{filename}").as_bytes()
+            );
+        }
+        assert!(temporary_artifacts(&dir).is_empty());
+        fs::remove_dir_all(dir).expect("cleanup LOSS fixture");
     }
 }

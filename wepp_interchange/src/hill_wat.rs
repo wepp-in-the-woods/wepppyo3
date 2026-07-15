@@ -1,15 +1,21 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-use crate::calendar::{determine_wateryear, julian_to_calendar, load_cli_calendar};
+use crate::arrow_support::{BoxedArray, Chunk};
+use crate::calendar::{
+    compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
+    CalendarLookup,
+};
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
-use crate::schema::VersionInfo;
+use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::schema::{hill_wat_schema, VersionInfo};
 
 const RAW_HEADER_SUBSTITUTIONS: [(&str, &str); 5] = [
     (" -", ""),
@@ -197,17 +203,62 @@ impl WatColumns {
             .unwrap();
         dict.into_py(py)
     }
+
+    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+        Chunk::new(vec![
+            Int32Array::from(self.wepp_id).boxed(),
+            Int16Array::from(self.ofe_id).boxed(),
+            Int16Array::from(self.year).boxed(),
+            Int32Array::from(self.sim_day_index).boxed(),
+            Int16Array::from(self.julian).boxed(),
+            Int8Array::from(self.month).boxed(),
+            Int8Array::from(self.day_of_month).boxed(),
+            Int16Array::from(self.water_year).boxed(),
+            Int16Array::from(self.ofe).boxed(),
+            Float64Array::from(self.p).boxed(),
+            Float64Array::from(self.rm).boxed(),
+            Float64Array::from(self.q).boxed(),
+            Float64Array::from(self.ep).boxed(),
+            Float64Array::from(self.es).boxed(),
+            Float64Array::from(self.er).boxed(),
+            Float64Array::from(self.dp).boxed(),
+            Float64Array::from(self.upstrmq).boxed(),
+            Float64Array::from(self.subrin).boxed(),
+            Float64Array::from(self.latqcc).boxed(),
+            Float64Array::from(self.total_soil_water).boxed(),
+            Float64Array::from(self.frozwt).boxed(),
+            Float64Array::from(self.snow_water).boxed(),
+            Float64Array::from(self.qofe).boxed(),
+            Float64Array::from(self.tile).boxed(),
+            Float64Array::from(self.irr).boxed(),
+            Float64Array::from(self.area).boxed(),
+            Float64Array::from(self.soil_water_total).boxed(),
+            Float64Array::from(self.profile_depth).boxed(),
+            Float64Array::from(self.profile_porosity_cap).boxed(),
+            Float64Array::from(self.profile_fc_store).boxed(),
+            Float64Array::from(self.profile_wp_store).boxed(),
+            Float64Array::from(self.interception_storage).boxed(),
+        ])
+    }
 }
 
 pub fn hillslope_wat_to_columns(
     path: &Path,
     cli_calendar_path: Option<&Path>,
-    _version: &VersionInfo,
+    version: &VersionInfo,
 ) -> Result<WatColumns, InterchangeError> {
     let lookup = match cli_calendar_path {
         Some(path) => Some(load_cli_calendar(path)?),
         None => None,
     };
+    hillslope_wat_to_columns_with_lookup(path, lookup.as_ref(), version)
+}
+
+fn hillslope_wat_to_columns_with_lookup(
+    path: &Path,
+    lookup: Option<&CalendarLookup>,
+    _version: &VersionInfo,
+) -> Result<WatColumns, InterchangeError> {
     let wepp_id = extract_wepp_id(path)?;
 
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
@@ -216,7 +267,7 @@ pub fn hillslope_wat_to_columns(
     let mut header: Option<Vec<String>> = None;
     let mut column_positions: HashMap<String, usize> = HashMap::new();
     let mut out = WatColumns::new();
-    let mut data_line_index: usize = 0;
+    let mut start_year: Option<i32> = None;
 
     enum ParseState {
         SeekingHeaderStart,
@@ -264,9 +315,6 @@ pub fn hillslope_wat_to_columns(
                 }
             }
             ParseState::Data => {
-                let current_index = data_line_index;
-                data_line_index += 1;
-
                 if stripped.is_empty() {
                     continue;
                 }
@@ -298,9 +346,18 @@ pub fn hillslope_wat_to_columns(
                             Some(raw_line.clone()),
                         )
                     })?;
-                let (month, day_of_month) =
-                    julian_to_calendar(year_val, julian_val, lookup.as_ref());
+                let (month, day_of_month) = julian_to_calendar(year_val, julian_val, lookup);
                 let water_year = determine_wateryear(year_val, julian_val);
+                let first_year = *start_year.get_or_insert(year_val);
+                let sim_day_index = compute_sim_day_index(year_val, julian_val, first_year, lookup);
+                if sim_day_index < 1 {
+                    return Err(InterchangeError::parse(
+                        path,
+                        None,
+                        format!("Computed negative simulation day index ({sim_day_index})"),
+                        Some(raw_line.clone()),
+                    ));
+                }
                 let ofe_val: i32 = tokens[*column_positions.get("OFE").unwrap()]
                     .parse()
                     .map_err(|_| {
@@ -315,7 +372,7 @@ pub fn hillslope_wat_to_columns(
                 out.wepp_id.push(wepp_id);
                 out.ofe_id.push(ofe_val as i16);
                 out.year.push(year_val as i16);
-                out.sim_day_index.push((current_index + 1) as i32);
+                out.sim_day_index.push(sim_day_index);
                 out.julian.push(julian_val as i16);
                 out.month.push(month as i8);
                 out.day_of_month.push(day_of_month as i8);
@@ -390,6 +447,29 @@ pub fn hillslope_wat_to_columns(
     }
 
     Ok(out)
+}
+
+pub fn hillslope_wat_files_to_parquet(
+    paths: &[PathBuf],
+    output_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+) -> Result<WriteSummary, InterchangeError> {
+    let lookup = match cli_calendar_path {
+        Some(path) => Some(load_cli_calendar(path)?),
+        None => None,
+    };
+    let schema = hill_wat_schema(version);
+    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    if paths.is_empty() {
+        sink.write_chunk(empty_chunk(&schema))?;
+    } else {
+        for path in paths {
+            let columns = hillslope_wat_to_columns_with_lookup(path, lookup.as_ref(), version)?;
+            sink.write_chunk(columns.into_chunk())?;
+        }
+    }
+    sink.finish()
 }
 
 fn build_header_from_rows(
@@ -467,6 +547,7 @@ fn build_header_from_rows(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
     use std::fs;
     use std::path::{Path, PathBuf};
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -569,6 +650,49 @@ mod tests {
         assert_eq!(cols.profile_fc_store[0], Some(310.0));
         assert_eq!(cols.profile_wp_store[0], Some(130.0));
         assert_eq!(cols.interception_storage[0], None);
+    }
+
+    #[test]
+    fn writes_multiple_files_directly_with_calendar_day_indices() {
+        let temp_dir = make_temp_dir("direct_parquet");
+        let first_path = temp_dir.join("H1.wat.dat");
+        let second_path = temp_dir.join("H2.wat.dat");
+        let output_path = temp_dir.join("H.wat.parquet");
+        let rows = "     1    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00
+     2    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      75.00
+     1    2 2000   11.00   11.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00
+     2    2 2000   11.00   11.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      75.00";
+        write_wat(&first_path, HEADER_BASE, rows);
+        write_wat(&second_path, HEADER_BASE, rows);
+
+        let version = VersionInfo::new(1, 0);
+        let summary = hillslope_wat_files_to_parquet(
+            &[first_path, second_path],
+            &output_path,
+            None,
+            &version,
+        )
+        .expect("direct WAT parquet failed");
+
+        assert_eq!(summary.rows_written, 8);
+        assert_eq!(summary.row_groups, 2);
+        let builder = ParquetRecordBatchReaderBuilder::try_new(
+            File::open(&output_path).expect("open direct parquet"),
+        )
+        .expect("build direct parquet reader");
+        assert_eq!(builder.schema().as_ref(), &hill_wat_schema(&version));
+        let reader = builder.build().expect("build record batch reader");
+        let mut sim_days: Vec<i32> = Vec::new();
+        for batch in reader {
+            let batch = batch.expect("read record batch");
+            let values = batch
+                .column(3)
+                .as_any()
+                .downcast_ref::<Int32Array>()
+                .expect("sim_day_index Int32");
+            sim_days.extend(values.values().iter().copied());
+        }
+        assert_eq!(sim_days, [1, 1, 2, 2, 1, 1, 2, 2]);
     }
 
     #[test]

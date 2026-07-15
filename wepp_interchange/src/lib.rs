@@ -564,6 +564,40 @@ fn hillslope_wat_to_columns(
 }
 
 #[pyfunction]
+#[pyo3(signature = (wat_paths, output_path, version_major, version_minor, cli_calendar_path=None, compression="snappy"))]
+fn hillslope_wat_files_to_parquet(
+    wat_paths: Vec<String>,
+    output_path: String,
+    version_major: u32,
+    version_minor: u32,
+    cli_calendar_path: Option<String>,
+    compression: &str,
+) -> PyResult<PyObject> {
+    ensure_snappy(compression)?;
+    let version = VersionInfo::new(version_major, version_minor);
+    let wat_paths = wat_paths.into_iter().map(PathBuf::from).collect::<Vec<_>>();
+    let output_path = PathBuf::from(output_path);
+    let cli_calendar_path = cli_calendar_path.map(PathBuf::from);
+
+    let start = Instant::now();
+    let summary = hill_wat::hillslope_wat_files_to_parquet(
+        &wat_paths,
+        &output_path,
+        cli_calendar_path.as_deref(),
+        &version,
+    )
+    .map_err(to_py_err)?;
+
+    Ok(build_summary_dict(
+        start.elapsed().as_millis() as u64,
+        summary.rows_written,
+        summary.row_groups,
+        version_major,
+        vec![output_path.display().to_string()],
+    ))
+}
+
+#[pyfunction]
 #[pyo3(signature = (base_path))]
 fn catalog_scan(base_path: String) -> PyResult<PyObject> {
     let base_path = PathBuf::from(base_path);
@@ -628,6 +662,7 @@ fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hillslope_loss_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_soil_to_columns, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_wat_to_columns, m)?)?;
+    m.add_function(wrap_pyfunction!(hillslope_wat_files_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(catalog_scan, m)?)?;
     m.add_function(wrap_pyfunction!(segment_single_ofe_slope, m)?)?;
     m.add_function(wrap_pyfunction!(

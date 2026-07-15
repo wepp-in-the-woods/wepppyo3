@@ -65,6 +65,43 @@ This package intentionally does not rebuild or replace shared objects.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: required native interchange data plane
+
+`confirmed`: the `wepp_interchange` shared object was rebuilt from source commit
+`942adff` on 2026-07-15. The release adds ordered direct-to-Parquet writers for
+hillslope PASS/HBP, EBE, ELEMENT, LOSS, and SOIL; adds native TC_OUT outlet
+selection/writing; moves PASS climate-hint extraction and watershed EBE outlet
+inference/channel-peak auditing into Rust; and retains the existing direct WAT
+and watershed writers. WEPPpy can now require one native parser/writer data
+plane without returning report records through Python.
+
+Build and atomic refresh commands:
+
+```sh
+cd /home/workdir/wepppyo3
+PYO3_PYTHON=/usr/bin/python3.12 \
+  PYTHON_SYS_EXECUTABLE=/usr/bin/python3.12 \
+  cargo build -p wepp_interchange_rust --release
+dst=release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+tmp=$(mktemp "$(dirname "$dst")/.wepp_interchange_rust.so.XXXXXX")
+cp target/release/libwepp_interchange_rust.so "$tmp"
+chmod --reference="$dst" "$tmp"
+mv -f "$tmp" "$dst"
+```
+
+`confirmed`: validation passed before the refresh:
+
+- `cargo check -p wepp_interchange_rust`;
+- `cargo test -p wepp_interchange_rust`: 59 unit and 10 TC_OUT integration
+  tests passed;
+- seven focused bulk-writer Rust regressions passed; and
+- five release-tree Python API/schema/order tests passed against a temporary
+  package containing the rebuilt shared object.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `92b180d5bc383165eb71e767285bfab1cd3ad24d48fe356145aef645bc185163` |
+
 ### Targeted Refresh: bounded direct hillslope WAT Parquet
 
 `confirmed`: the `wepp_interchange` shared object was rebuilt from source commit

@@ -6,6 +6,7 @@ use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::ag_fields::{self, Source as AgFieldsSource};
 use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
@@ -175,7 +176,7 @@ impl SoilColumns {
         dict.into_py(py)
     }
 
-    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+    pub(crate) fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
         Chunk::new(vec![
             Int32Array::from(self.wepp_id).boxed(),
             Int16Array::from(self.ofe_id).boxed(),
@@ -504,6 +505,24 @@ pub fn hillslope_soil_files_to_parquet(
     sink.finish()
 }
 
+pub fn ag_fields_hillslope_soil_files_to_parquet(
+    sources: &[AgFieldsSource],
+    output_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+    start_year: Option<i32>,
+) -> Result<WriteSummary, InterchangeError> {
+    let lookup = match cli_calendar_path {
+        Some(path) => Some(load_cli_calendar(path)?),
+        None => None,
+    };
+    let schema = ag_fields::schema_from_hillslope(hill_soil_schema(version));
+    ag_fields::write_sources(sources, output_path, schema, |path| {
+        hillslope_soil_to_columns_with_lookup(path, lookup.as_ref(), start_year)
+            .map(SoilColumns::into_chunk)
+    })
+}
+
 fn extract_wepp_id(path: &Path) -> Result<i32, InterchangeError> {
     let name = path
         .file_name()
@@ -607,6 +626,42 @@ mod tests {
             ids.extend(values.values().iter().copied());
         }
         assert_eq!(ids, [8, 5]);
+    }
+
+    #[test]
+    fn ag_fields_writer_preserves_all_soil_values_and_coupled_identity() {
+        let dir = temp_dir();
+        let paths = [
+            dir.join("H8.soil.dat"),
+            dir.join("H5.soil.dat"),
+            dir.join("H9.soil.dat"),
+        ];
+        for path in &paths {
+            write_soil(path);
+        }
+        let ordinary = dir.join("ordinary.soil.parquet");
+        let ag_output = dir.join("ag_fields.soil.parquet");
+        let version = VersionInfo::new(1, 2);
+        let ordinary_summary =
+            hillslope_soil_files_to_parquet(&paths, &ordinary, None, &version, Some(2000))
+                .expect("write ordinary SOIL parquet");
+        let sources = vec![
+            AgFieldsSource::new(paths[0].clone(), 80, 8),
+            AgFieldsSource::new(paths[1].clone(), 80, 5),
+            AgFieldsSource::new(paths[2].clone(), 81, 9),
+        ];
+        let ag_summary = ag_fields_hillslope_soil_files_to_parquet(
+            &sources,
+            &ag_output,
+            None,
+            &version,
+            Some(2000),
+        )
+        .expect("write AgFields SOIL parquet");
+
+        assert_eq!(ordinary_summary.rows_written, ag_summary.rows_written);
+        assert_eq!(ordinary_summary.row_groups, ag_summary.row_groups);
+        crate::ag_fields::assert_parquet_parity(&ordinary, &ag_output, &sources);
     }
 
     #[test]

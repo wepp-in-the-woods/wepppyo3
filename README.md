@@ -150,6 +150,12 @@ Deterministic-order contract:
 - `hillslope_loss_files_to_parquet(...)`
 - `hillslope_soil_files_to_parquet(...)`
 - `hillslope_wat_files_to_parquet(...)`
+- `ag_fields_hillslope_pass_files_to_parquet(sources, ...)`
+- `ag_fields_hillslope_ebe_files_to_parquet(sources, ...)`
+- `ag_fields_hillslope_element_files_to_parquet(sources, ...)`
+- `ag_fields_hillslope_loss_files_to_parquet(sources, ...)`
+- `ag_fields_hillslope_soil_files_to_parquet(sources, ...)`
+- `ag_fields_hillslope_wat_files_to_parquet(sources, ...)`
 - `catalog_scan(base_path)`
 - `segment_single_ofe_slope(...)`
 - `segment_single_ofe_slope_at_breakpoints(src_fn, breakpoints, dst_fn=None, target_width=None)`
@@ -161,6 +167,15 @@ legacy parent PASS atomically, reparses it, and returns per-source, per-event, a
 full-run conservation diagnostics. Its normative field rules and
 serialization-derived budgets are maintained in WEPPpy ADR-0018 and the associated
 AgFields work package.
+
+The six `ag_fields_hillslope_*_files_to_parquet` functions are isolated sibling
+writers for sub-field reports. Each source is one coupled
+`(path, field_id, sub_field_id)` tuple. Their Parquet schemas replace the
+ordinary `wepp_id` with required `field_id` and `sub_field_id` columns and add
+`dataset_kind=ag_fields_hillslope` plus `ag_fields_schema_version=1` metadata.
+They validate positive, unique sub-field identity and require the filename's
+`H<n>` token to equal `sub_field_id`. The six ordinary writer signatures and
+schemas are unchanged.
 
 ### `wepppyo3.swat_interchange`
 

@@ -6,6 +6,7 @@ use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::ag_fields::{self, Source as AgFieldsSource};
 use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::determine_wateryear;
 use crate::errors::InterchangeError;
@@ -131,7 +132,7 @@ impl ElementColumns {
         dict.into_py(py)
     }
 
-    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+    pub(crate) fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
         Chunk::new(vec![
             Int32Array::from(self.wepp_id).boxed(),
             Int16Array::from(self.ofe_id).boxed(),
@@ -293,6 +294,18 @@ pub fn hillslope_element_files_to_parquet(
         }
     }
     sink.finish()
+}
+
+pub fn ag_fields_hillslope_element_files_to_parquet(
+    sources: &[AgFieldsSource],
+    output_path: &Path,
+    version: &VersionInfo,
+    start_year: Option<i32>,
+) -> Result<WriteSummary, InterchangeError> {
+    let schema = ag_fields::schema_from_hillslope(hill_element_schema(version));
+    ag_fields::write_sources(sources, output_path, schema, |path| {
+        hillslope_element_to_columns(path, version, start_year).map(ElementColumns::into_chunk)
+    })
 }
 
 fn split_fixed_width_payload(raw_line: &str, field_widths: &[usize]) -> (Vec<String>, String) {
@@ -512,5 +525,40 @@ mod tests {
             ids.extend(values.values().iter().copied());
         }
         assert_eq!(ids, [9, 4]);
+    }
+
+    #[test]
+    fn ag_fields_writer_preserves_all_element_values_and_coupled_identity() {
+        let dir = temp_dir();
+        let paths = [
+            dir.join("H9.element.dat"),
+            dir.join("H4.element.dat"),
+            dir.join("H10.element.dat"),
+        ];
+        for path in &paths {
+            write_element(path);
+        }
+        let ordinary = dir.join("ordinary.element.parquet");
+        let ag_output = dir.join("ag_fields.element.parquet");
+        let version = VersionInfo::new(1, 2);
+        let ordinary_summary =
+            hillslope_element_files_to_parquet(&paths, &ordinary, &version, Some(2000))
+                .expect("write ordinary ELEMENT parquet");
+        let sources = vec![
+            AgFieldsSource::new(paths[0].clone(), 60, 9),
+            AgFieldsSource::new(paths[1].clone(), 60, 4),
+            AgFieldsSource::new(paths[2].clone(), 61, 10),
+        ];
+        let ag_summary = ag_fields_hillslope_element_files_to_parquet(
+            &sources,
+            &ag_output,
+            &version,
+            Some(2000),
+        )
+        .expect("write AgFields ELEMENT parquet");
+
+        assert_eq!(ordinary_summary.rows_written, ag_summary.rows_written);
+        assert_eq!(ordinary_summary.row_groups, ag_summary.row_groups);
+        crate::ag_fields::assert_parquet_parity(&ordinary, &ag_output, &sources);
     }
 }

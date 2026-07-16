@@ -7,6 +7,7 @@ use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::ag_fields::{self, Source as AgFieldsSource};
 use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, load_cli_calendar, CalendarLookup,
@@ -176,7 +177,7 @@ impl EbeColumns {
         dict.into_py(py)
     }
 
-    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+    pub(crate) fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
         Chunk::new(vec![
             Int32Array::from(self.wepp_id).boxed(),
             Int16Array::from(self.year).boxed(),
@@ -380,6 +381,24 @@ pub fn hillslope_ebe_files_to_parquet(
         }
     }
     sink.finish()
+}
+
+pub fn ag_fields_hillslope_ebe_files_to_parquet(
+    sources: &[AgFieldsSource],
+    output_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+    start_year: Option<i32>,
+) -> Result<WriteSummary, InterchangeError> {
+    let lookup = match cli_calendar_path {
+        Some(path) => Some(load_cli_calendar(path)?),
+        None => None,
+    };
+    let schema = ag_fields::schema_from_hillslope(hill_ebe_schema(version));
+    ag_fields::write_sources(sources, output_path, schema, |path| {
+        hillslope_ebe_to_columns_with_lookup(path, lookup.as_ref(), start_year)
+            .map(EbeColumns::into_chunk)
+    })
 }
 
 fn normalize_column_names(
@@ -618,5 +637,41 @@ mod tests {
             ids.extend(values.values().iter().copied());
         }
         assert_eq!(ids, [7, 3]);
+    }
+
+    #[test]
+    fn ag_fields_writer_preserves_all_ebe_values_and_coupled_identity() {
+        let dir = temp_dir();
+        let paths = [
+            dir.join("H7.ebe.dat"),
+            dir.join("H3.ebe.dat"),
+            dir.join("H8.ebe.dat"),
+        ];
+        for path in &paths {
+            write_ebe(path);
+        }
+        let ordinary = dir.join("ordinary.ebe.parquet");
+        let ag_output = dir.join("ag_fields.ebe.parquet");
+        let version = VersionInfo::new(1, 2);
+        let ordinary_summary =
+            hillslope_ebe_files_to_parquet(&paths, &ordinary, None, &version, Some(2000))
+                .expect("write ordinary EBE parquet");
+        let sources = vec![
+            AgFieldsSource::new(paths[0].clone(), 50, 7),
+            AgFieldsSource::new(paths[1].clone(), 50, 3),
+            AgFieldsSource::new(paths[2].clone(), 51, 8),
+        ];
+        let ag_summary = ag_fields_hillslope_ebe_files_to_parquet(
+            &sources,
+            &ag_output,
+            None,
+            &version,
+            Some(2000),
+        )
+        .expect("write AgFields EBE parquet");
+
+        assert_eq!(ordinary_summary.rows_written, ag_summary.rows_written);
+        assert_eq!(ordinary_summary.row_groups, ag_summary.row_groups);
+        crate::ag_fields::assert_parquet_parity(&ordinary, &ag_output, &sources);
     }
 }

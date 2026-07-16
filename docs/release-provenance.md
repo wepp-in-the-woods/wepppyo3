@@ -61,9 +61,58 @@ file and atomic rename, as shown in the root README. Never truncate or overwrite
 a shared object in place while a process may have it mapped; restart target
 services after the atomic refresh.
 
-This package intentionally does not rebuild or replace shared objects.
+Except for a targeted refresh recorded below, this package process does not
+rebuild or replace shared objects implicitly.
 
 ## Latest Refresh Evidence (py312)
+
+### Targeted Refresh: dedicated AgFields sub-field interchange writers
+
+`confirmed`: On 2026-07-16, the `wepp_interchange` shared object was rebuilt
+from the local implementation worktree based on source commit
+`4d3c060a27133b9bd7335de3e1dee4d680db0fcf`. The additive release exports six
+`ag_fields_hillslope_*_files_to_parquet` functions for PASS/HBP, EBE, ELEMENT,
+LOSS, SOIL, and WAT. Each accepts coupled `(path, field_id, sub_field_id)`
+descriptors, rejects invalid or mismatched identity, and emits required
+`field_id` and `sub_field_id` columns with
+`dataset_kind=ag_fields_hillslope` and `ag_fields_schema_version=1`. The six
+ordinary writer signatures and schemas are unchanged.
+
+The candidate was built with:
+
+```sh
+cd /home/workdir/wepppyo3
+cargo build --release -p wepp_interchange_rust
+```
+
+The operator installed the candidate with a same-directory atomic replacement;
+the shared object was not overwritten in place. Canonical import and all six
+new signatures were then verified from
+`release/linux/py312/wepppyo3/wepp_interchange/`.
+
+`confirmed`: validation passed:
+
+- `cargo fmt -p wepp_interchange_rust -- --check`;
+- `cargo check -p wepp_interchange_rust` and full-workspace `cargo check`;
+- `cargo test -p wepp_interchange_rust`: 80 unit and 16 TC_OUT integration
+  tests passed;
+- canonical release-tree `tests/wepp_interchange`: 46 tests passed with one
+  unrelated `pytz` deprecation warning; and
+- all six ordinary three-source goldens retained full Arrow table, exact
+  schema/metadata, source-order, and row-group parity.
+
+`confirmed`: full-workspace `cargo test` remains unavailable in this host
+configuration because unrelated PyO3 crate test binaries fail to link Python C
+API symbols. The changed crate's complete Rust and release-tree Python suites
+pass. Full-workspace formatting also reports only preexisting formatting drift
+under `swat_interchange` and `swat_utils`; the changed crate passes its format
+gate.
+
+Build environment: Python 3.12.3, rustc 1.92.0, and cargo 1.92.0.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `8c42edd0a8e1b03bdaf423355a12414180c709efaac3e379e5dd23e6cc77214e` |
 
 ### Targeted Refresh: failure-atomic native interchange publication
 

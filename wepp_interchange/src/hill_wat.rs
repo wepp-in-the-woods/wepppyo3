@@ -7,6 +7,7 @@ use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::ag_fields::{self, Source as AgFieldsSource};
 use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
@@ -204,7 +205,7 @@ impl WatColumns {
         dict.into_py(py)
     }
 
-    fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
+    pub(crate) fn into_chunk(self) -> Chunk<Box<dyn arrow_array::Array>> {
         Chunk::new(vec![
             Int32Array::from(self.wepp_id).boxed(),
             Int16Array::from(self.ofe_id).boxed(),
@@ -472,6 +473,23 @@ pub fn hillslope_wat_files_to_parquet(
     sink.finish()
 }
 
+pub fn ag_fields_hillslope_wat_files_to_parquet(
+    sources: &[AgFieldsSource],
+    output_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+) -> Result<WriteSummary, InterchangeError> {
+    let lookup = match cli_calendar_path {
+        Some(path) => Some(load_cli_calendar(path)?),
+        None => None,
+    };
+    let schema = ag_fields::schema_from_hillslope(hill_wat_schema(version));
+    ag_fields::write_sources(sources, output_path, schema, |path| {
+        hillslope_wat_to_columns_with_lookup(path, lookup.as_ref(), version)
+            .map(WatColumns::into_chunk)
+    })
+}
+
 fn build_header_from_rows(
     raw_header_rows: &[Vec<String>],
     path: &Path,
@@ -693,6 +711,38 @@ mod tests {
             sim_days.extend(values.values().iter().copied());
         }
         assert_eq!(sim_days, [1, 1, 2, 2, 1, 1, 2, 2]);
+    }
+
+    #[test]
+    fn ag_fields_writer_preserves_all_wat_values_and_coupled_identity() {
+        let temp_dir = make_temp_dir("ag_fields_parity");
+        let paths = [
+            temp_dir.join("H2.wat.dat"),
+            temp_dir.join("H1.wat.dat"),
+            temp_dir.join("H3.wat.dat"),
+        ];
+        let rows = "     1    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00
+     2    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30    0.40   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      75.00";
+        for path in &paths {
+            write_wat(path, HEADER_BASE, rows);
+        }
+        let ordinary = temp_dir.join("ordinary.wat.parquet");
+        let ag_output = temp_dir.join("ag_fields.wat.parquet");
+        let version = VersionInfo::new(1, 2);
+        let ordinary_summary = hillslope_wat_files_to_parquet(&paths, &ordinary, None, &version)
+            .expect("write ordinary WAT parquet");
+        let sources = vec![
+            AgFieldsSource::new(paths[0].clone(), 90, 2),
+            AgFieldsSource::new(paths[1].clone(), 90, 1),
+            AgFieldsSource::new(paths[2].clone(), 91, 3),
+        ];
+        let ag_summary =
+            ag_fields_hillslope_wat_files_to_parquet(&sources, &ag_output, None, &version)
+                .expect("write AgFields WAT parquet");
+
+        assert_eq!(ordinary_summary.rows_written, ag_summary.rows_written);
+        assert_eq!(ordinary_summary.row_groups, ag_summary.row_groups);
+        crate::ag_fields::assert_parquet_parity(&ordinary, &ag_output, &sources);
     }
 
     #[test]

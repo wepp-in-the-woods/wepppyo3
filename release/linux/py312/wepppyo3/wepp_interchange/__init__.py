@@ -21,6 +21,12 @@ from .wepp_interchange_rust import hillslope_ebe_files_to_parquet
 from .wepp_interchange_rust import hillslope_element_files_to_parquet
 from .wepp_interchange_rust import hillslope_loss_files_to_parquet
 from .wepp_interchange_rust import hillslope_soil_files_to_parquet
+from .wepp_interchange_rust import ag_fields_hillslope_pass_files_to_parquet
+from .wepp_interchange_rust import ag_fields_hillslope_ebe_files_to_parquet
+from .wepp_interchange_rust import ag_fields_hillslope_element_files_to_parquet
+from .wepp_interchange_rust import ag_fields_hillslope_loss_files_to_parquet
+from .wepp_interchange_rust import ag_fields_hillslope_soil_files_to_parquet
+from .wepp_interchange_rust import ag_fields_hillslope_wat_files_to_parquet
 from .wepp_interchange_rust import catalog_scan
 from .wepp_interchange_rust import segment_single_ofe_slope
 from .wepp_interchange_rust import segment_single_ofe_slope_at_breakpoints
@@ -49,6 +55,12 @@ __all__ = [
     "hillslope_element_files_to_parquet",
     "hillslope_loss_files_to_parquet",
     "hillslope_soil_files_to_parquet",
+    "ag_fields_hillslope_pass_files_to_parquet",
+    "ag_fields_hillslope_ebe_files_to_parquet",
+    "ag_fields_hillslope_element_files_to_parquet",
+    "ag_fields_hillslope_loss_files_to_parquet",
+    "ag_fields_hillslope_soil_files_to_parquet",
+    "ag_fields_hillslope_wat_files_to_parquet",
     "catalog_scan",
     "segment_single_ofe_slope",
     "segment_single_ofe_slope_at_breakpoints",

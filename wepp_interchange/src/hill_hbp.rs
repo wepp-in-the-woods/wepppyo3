@@ -1323,7 +1323,11 @@ mod tests {
         crc32c, expected_state_schema, hillslope_hbp_to_columns, EntryPayload, REQUIRED_STATE_IDS,
         SUPPORTED_MAJOR_V1, SUPPORTED_MAJOR_V2,
     };
+    use crate::ag_fields::Source as AgFieldsSource;
     use crate::errors::InterchangeError;
+    use crate::hill_pass::{
+        ag_fields_hillslope_pass_files_to_parquet, hillslope_pass_files_to_parquet,
+    };
     use crate::schema::VersionInfo;
     use flate2::write::ZlibEncoder;
     use flate2::Compression;
@@ -1787,6 +1791,38 @@ mod tests {
         assert_eq!(out.julian[0], 1);
         assert_eq!(out.julian[365], 366);
         assert_eq!(out.year[0], 2004);
+    }
+
+    #[test]
+    fn ag_fields_pass_writer_preserves_schema2_hbp_values_and_identity() {
+        let fixture = build_schema2_fixture();
+        let first = write_temp_hbp(&fixture.bytes);
+        let second = first.parent().expect("fixture parent").join("H2.hbp");
+        fs::write(&second, &fixture.bytes).expect("write second HBP fixture");
+        let paths = [second.clone(), first.clone()];
+        let ordinary = first.parent().unwrap().join("ordinary.pass.parquet");
+        let ag_output = first.parent().unwrap().join("ag_fields.pass.parquet");
+        let version = VersionInfo::new(1, 2);
+
+        let ordinary_summary =
+            hillslope_pass_files_to_parquet(&paths, &ordinary, None, &version, Some("hbp"))
+                .expect("write ordinary HBP PASS parquet");
+        let sources = vec![
+            AgFieldsSource::new(second, 100, 2),
+            AgFieldsSource::new(first, 101, 1),
+        ];
+        let ag_summary = ag_fields_hillslope_pass_files_to_parquet(
+            &sources,
+            &ag_output,
+            None,
+            &version,
+            Some("hbp"),
+        )
+        .expect("write AgFields HBP PASS parquet");
+
+        assert_eq!(ordinary_summary.rows_written, ag_summary.rows_written);
+        assert_eq!(ordinary_summary.row_groups, ag_summary.row_groups);
+        crate::ag_fields::assert_parquet_parity(&ordinary, &ag_output, &sources);
     }
 
     fn mutate_schema2_and_expect_reject(

@@ -6,6 +6,7 @@ use arrow_array::{Float64Array, Int16Array, Int32Array, Int8Array, StringArray};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::ag_fields::{self, Source as AgFieldsSource};
 use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{
     compute_sim_day_index, determine_wateryear, julian_to_calendar, load_cli_calendar,
@@ -487,6 +488,43 @@ pub fn hillslope_pass_files_to_parquet(
     sink.finish()
 }
 
+pub fn ag_fields_hillslope_pass_files_to_parquet(
+    sources: &[AgFieldsSource],
+    output_path: &Path,
+    cli_calendar_path: Option<&Path>,
+    version: &VersionInfo,
+    pass_family: Option<&str>,
+) -> Result<WriteSummary, InterchangeError> {
+    let family = HillslopePassFamily::parse(pass_family)?;
+    let lookup = match cli_calendar_path {
+        Some(path) => Some(load_cli_calendar(path)?),
+        None => None,
+    };
+    let schema = ag_fields::schema_from_hillslope(hill_pass_schema(version));
+    ag_fields::write_sources(sources, output_path, schema, |path| {
+        let use_hbp = match family {
+            HillslopePassFamily::LegacyAscii => false,
+            HillslopePassFamily::Hbp => true,
+            HillslopePassFamily::Auto => is_hbp_path(path),
+        };
+        if use_hbp && has_invalid_hbp_name(path) {
+            return Err(InterchangeError::parse(
+                path,
+                None,
+                "invalid process HBP name; use H*.hbp (rejecting H*.pass.hbp and H*.pass.dat.hbp)",
+                None,
+            ));
+        }
+        if use_hbp {
+            crate::hill_hbp::hillslope_hbp_to_columns(path, cli_calendar_path, version)
+                .map(PassColumns::into_chunk)
+        } else {
+            hillslope_pass_to_columns_with_lookup(path, lookup.as_ref())
+                .map(PassColumns::into_chunk)
+        }
+    })
+}
+
 fn is_hbp_path(path: &Path) -> bool {
     path.file_name()
         .and_then(|value| value.to_str())
@@ -814,6 +852,47 @@ mod tests {
     }
 
     #[test]
+    fn ag_fields_writer_preserves_all_pass_values_and_coupled_identity() {
+        let dir = temp_dir();
+        let paths = [
+            dir.join("H2.pass.dat"),
+            dir.join("H1.pass.dat"),
+            dir.join("H3.pass.dat"),
+        ];
+        for path in &paths {
+            write_pass(path);
+        }
+        let ordinary = dir.join("ordinary.pass.parquet");
+        let ag_output = dir.join("ag_fields.pass.parquet");
+        let version = VersionInfo::new(1, 2);
+        let ordinary_summary = hillslope_pass_files_to_parquet(
+            &paths,
+            &ordinary,
+            None,
+            &version,
+            Some("legacy_ascii"),
+        )
+        .expect("write ordinary PASS parquet");
+        let sources = vec![
+            AgFieldsSource::new(paths[0].clone(), 40, 2),
+            AgFieldsSource::new(paths[1].clone(), 40, 1),
+            AgFieldsSource::new(paths[2].clone(), 41, 3),
+        ];
+        let ag_summary = ag_fields_hillslope_pass_files_to_parquet(
+            &sources,
+            &ag_output,
+            None,
+            &version,
+            Some("legacy_ascii"),
+        )
+        .expect("write AgFields PASS parquet");
+
+        assert_eq!(ordinary_summary.rows_written, ag_summary.rows_written);
+        assert_eq!(ordinary_summary.row_groups, ag_summary.row_groups);
+        crate::ag_fields::assert_parquet_parity(&ordinary, &ag_output, &sources);
+    }
+
+    #[test]
     fn bulk_writer_rejects_invalid_hbp_process_name() {
         let dir = temp_dir();
         let invalid = dir.join("H1.pass.hbp");
@@ -841,6 +920,35 @@ mod tests {
 
         hillslope_pass_files_to_parquet(
             &[first, missing_second],
+            &output,
+            None,
+            &VersionInfo::new(1, 0),
+            Some("legacy_ascii"),
+        )
+        .expect_err("missing later source must fail");
+
+        assert_eq!(
+            fs::read(&output).expect("read prior output"),
+            b"prior-generation"
+        );
+        assert!(temporary_artifacts(&output).is_empty());
+    }
+
+    #[test]
+    fn ag_fields_writer_later_source_failure_preserves_prior_output_and_cleans_stage() {
+        let dir = temp_dir();
+        let first = dir.join("H1.pass.dat");
+        let missing_second = dir.join("H2.pass.dat");
+        let output = dir.join("H.pass.parquet");
+        write_pass(&first);
+        fs::write(&output, b"prior-generation").expect("write prior output");
+        let sources = vec![
+            AgFieldsSource::new(first, 3, 1),
+            AgFieldsSource::new(missing_second, 3, 2),
+        ];
+
+        ag_fields_hillslope_pass_files_to_parquet(
+            &sources,
             &output,
             None,
             &VersionInfo::new(1, 0),

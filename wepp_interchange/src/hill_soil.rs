@@ -398,10 +398,20 @@ fn hillslope_soil_to_columns_with_lookup(
                     {
                         tokens = recovered;
                     } else {
-                        continue;
+                        return Err(InterchangeError::parse(
+                            path,
+                            None,
+                            format!("Unsupported hillslope SOIL record width: expected {expected_columns} fields, found {}", tokens.len()),
+                            Some(raw_line.clone()),
+                        ));
                     }
                 } else {
-                    continue;
+                    return Err(InterchangeError::parse(
+                        path,
+                        None,
+                        format!("Unsupported hillslope SOIL record width: expected {expected_columns} fields, found {}", tokens.len()),
+                        Some(raw_line.clone()),
+                    ));
                 }
             }
 

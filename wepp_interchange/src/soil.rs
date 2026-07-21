@@ -367,7 +367,12 @@ pub fn watershed_soil_to_parquet(
         }
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
         if tokens.is_empty() || !tokens[0].chars().all(|c| c.is_ascii_digit()) {
-            continue;
+            return Err(InterchangeError::parse(
+                soil_path,
+                Some(line_no),
+                "Expected a watershed SOIL data record after the header",
+                Some(line.clone()),
+            ));
         }
         let mut tokens: Vec<String> = stripped.split_whitespace().map(|s| s.to_string()).collect();
         if tokens.len() != expected_tokens {

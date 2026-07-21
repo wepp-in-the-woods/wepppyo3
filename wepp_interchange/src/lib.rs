@@ -1130,6 +1130,11 @@ fn build_tc_out_summary_dict(
     Python::with_gil(|py| {
         let dict = PyDict::new_bound(py);
         dict.set_item("rows_written", summary.rows_written).unwrap();
+        dict.set_item("candidate_records", summary.rows_written)
+            .unwrap();
+        dict.set_item("accepted_records", summary.rows_written)
+            .unwrap();
+        dict.set_item("rejected_records", 0usize).unwrap();
         dict.set_item("row_groups", summary.row_groups).unwrap();
         dict.set_item("elapsed_ms", elapsed_ms).unwrap();
         dict.set_item("schema_version", schema_version.to_string())
@@ -1152,6 +1157,9 @@ fn build_summary_dict(
     Python::with_gil(|py| {
         let dict = PyDict::new_bound(py);
         dict.set_item("rows_written", rows_written).unwrap();
+        dict.set_item("candidate_records", rows_written).unwrap();
+        dict.set_item("accepted_records", rows_written).unwrap();
+        dict.set_item("rejected_records", 0usize).unwrap();
         dict.set_item("row_groups", row_groups).unwrap();
         dict.set_item("elapsed_ms", elapsed_ms).unwrap();
         dict.set_item("schema_version", schema_version.to_string())

@@ -7,10 +7,12 @@ use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{determine_wateryear, julian_to_calendar, load_cli_calendar};
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
-use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::parquet::{ParquetSink, WriteSummary};
 use crate::schema::{watershed_chnwb_schema, VersionInfo};
 
 const DEFAULT_CHUNK_ROWS: usize = 250_000;
+const LEGACY_TOKEN_COUNT: usize = 22;
+const CURRENT_TOKEN_COUNT: usize = 27;
 
 pub fn watershed_chnwb_to_parquet(
     chnwb_path: &Path,
@@ -84,8 +86,16 @@ pub fn watershed_chnwb_to_parquet(
             continue;
         }
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
-        if tokens.len() != 22 {
-            continue;
+        if tokens.len() != LEGACY_TOKEN_COUNT && tokens.len() != CURRENT_TOKEN_COUNT {
+            return Err(InterchangeError::parse(
+                chnwb_path,
+                Some(idx + 1),
+                format!(
+                    "Unsupported CHNWB record width: expected {LEGACY_TOKEN_COUNT} legacy or {CURRENT_TOKEN_COUNT} current fields, found {}",
+                    tokens.len()
+                ),
+                Some(raw_line.clone()),
+            ));
         }
 
         let ofe_val: i32 = tokens[0].parse().map_err(|_| {
@@ -290,8 +300,21 @@ pub fn watershed_chnwb_to_parquet(
         }
     }
 
+    if !header_found {
+        return Err(InterchangeError::parse(
+            chnwb_path,
+            None,
+            "Unable to locate CHNWB header",
+            None,
+        ));
+    }
     if row_counter == 0 {
-        sink.write_chunk(empty_chunk(&schema))?;
+        return Err(InterchangeError::parse(
+            chnwb_path,
+            None,
+            "CHNWB header found but no data records were accepted",
+            None,
+        ));
     } else if !wepp_id.is_empty() {
         flush_chunk(
             &mut sink,
@@ -328,6 +351,63 @@ pub fn watershed_chnwb_to_parquet(
     }
 
     sink.finish()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use super::*;
+
+    fn temporary_path(stem: &str) -> std::path::PathBuf {
+        std::env::temp_dir().join(format!(
+            "wepp_interchange_{stem}_{}_{}",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ))
+    }
+
+    fn current_row() -> &'static str {
+        "1 19 2012 88.70 88.70 0.3646212E+07 0.00 0.57 0.00 0.00 0.3646255E+07 0.00 0.00 253.68 0.00 0.00 0.3646212E+07 0.00 0.00 1097.80 0.00 2497.73 253.68 600.00 253.95 127.20 60.18"
+    }
+
+    #[test]
+    fn accepts_current_27_field_chnwb_rows() {
+        let source = temporary_path("chnwb_current.txt");
+        let output = temporary_path("chnwb_current.parquet");
+        fs::write(
+            &source,
+            format!("header\nOFE J Y\nunits\n-----\n\n{}\n", current_row()),
+        )
+        .unwrap();
+
+        let summary =
+            watershed_chnwb_to_parquet(&source, &output, None, &VersionInfo::new(1, 2), None, None)
+                .unwrap();
+
+        assert_eq!(summary.rows_written, 1);
+        fs::remove_file(source).unwrap();
+        fs::remove_file(output).unwrap();
+    }
+
+    #[test]
+    fn rejects_unsupported_chnwb_candidate_width() {
+        let source = temporary_path("chnwb_bad_width.txt");
+        let output = temporary_path("chnwb_bad_width.parquet");
+        fs::write(&source, "OFE J Y\nunits\n-----\n\n1 19 2012 88.70\n").unwrap();
+
+        let error =
+            watershed_chnwb_to_parquet(&source, &output, None, &VersionInfo::new(1, 2), None, None)
+                .unwrap_err();
+
+        assert!(error.to_string().contains("Unsupported CHNWB record width"));
+        fs::remove_file(source).unwrap();
+        assert!(!output.exists());
+    }
 }
 
 fn next_token<'a>(

@@ -107,23 +107,31 @@ pub fn watershed_tc_out_to_parquet(
         }
 
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
-        if tokens.len() < 9 || tokens[1] != "C" {
-            continue;
-        }
-
-        let Ok(channel_id) = tokens[2].parse::<i32>() else {
+        let Some(channel_id) =
+            channel_id_from_tokens(&tokens, tc_out_path, line_idx + 1, &raw_line)?
+        else {
             continue;
         };
         if channel_id != outlet_channel {
             continue;
         }
 
-        let Ok(day) = tokens[3].parse::<i16>() else {
-            continue;
-        };
-        let Ok(raw_year) = tokens[4].parse::<i32>() else {
-            continue;
-        };
+        let day = tokens[3].parse::<i16>().map_err(|_| {
+            InterchangeError::parse(
+                tc_out_path,
+                Some(line_idx + 1),
+                "Invalid tc_out day token",
+                Some(raw_line.clone()),
+            )
+        })?;
+        let raw_year = tokens[4].parse::<i32>().map_err(|_| {
+            InterchangeError::parse(
+                tc_out_path,
+                Some(line_idx + 1),
+                "Invalid tc_out simulation-year token",
+                Some(raw_line.clone()),
+            )
+        })?;
         let year = if normalize_sim_years && raw_year < 1000 {
             resolved_start_year.unwrap_or(raw_year) + raw_year - 1
         } else {
@@ -188,17 +196,16 @@ fn find_outlet_channel(tc_out_path: &Path) -> Result<Option<i32>, InterchangeErr
     );
     let mut outlet_channel: Option<i32> = None;
 
-    for line in reader.lines() {
+    for (line_idx, line) in reader.lines().enumerate() {
         let raw_line = line.map_err(|err| InterchangeError::io(tc_out_path, err))?;
         let stripped = raw_line.trim();
         if should_skip_line(stripped) {
             continue;
         }
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
-        if tokens.len() < 9 || tokens[1] != "C" {
-            continue;
-        }
-        let Ok(channel_id) = tokens[2].parse::<i32>() else {
+        let Some(channel_id) =
+            channel_id_from_tokens(&tokens, tc_out_path, line_idx + 1, &raw_line)?
+        else {
             continue;
         };
         outlet_channel = Some(outlet_channel.map_or(channel_id, |current| current.max(channel_id)));
@@ -209,6 +216,36 @@ fn find_outlet_channel(tc_out_path: &Path) -> Result<Option<i32>, InterchangeErr
 
 fn should_skip_line(line: &str) -> bool {
     line.is_empty() || line.starts_with("Element") || line.starts_with('-')
+}
+
+fn channel_id_from_tokens(
+    tokens: &[&str],
+    path: &Path,
+    line_no: usize,
+    raw_line: &str,
+) -> Result<Option<i32>, InterchangeError> {
+    if tokens.get(1) != Some(&"C") {
+        return Ok(None);
+    }
+    if tokens.len() < 9 {
+        return Err(InterchangeError::parse(
+            path,
+            Some(line_no),
+            format!(
+                "Unsupported tc_out channel record width: expected at least 9 fields, found {}",
+                tokens.len()
+            ),
+            Some(raw_line.to_string()),
+        ));
+    }
+    tokens[2].parse::<i32>().map(Some).map_err(|_| {
+        InterchangeError::parse(
+            path,
+            Some(line_no),
+            "Invalid tc_out channel id token",
+            Some(raw_line.to_string()),
+        )
+    })
 }
 
 fn parse_measurement(

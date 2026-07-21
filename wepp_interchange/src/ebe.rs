@@ -161,6 +161,20 @@ pub fn watershed_ebe_to_parquet(
 
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
         if tokens.len() != 10 && tokens.len() != 11 {
+            if tokens
+                .first()
+                .is_some_and(|token| token.chars().all(|c| c.is_ascii_digit()))
+            {
+                return Err(InterchangeError::parse(
+                    ebe_path,
+                    Some(line_no + 1),
+                    format!(
+                        "Unsupported EBE record width: expected 10 or 11 fields, found {}",
+                        tokens.len()
+                    ),
+                    Some(raw_line.clone()),
+                ));
+            }
             continue;
         }
 

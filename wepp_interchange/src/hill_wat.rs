@@ -324,7 +324,16 @@ fn hillslope_wat_to_columns_with_lookup(
                 })?;
                 let tokens: Vec<&str> = raw_line.split_whitespace().collect();
                 if tokens.len() != header.len() {
-                    continue;
+                    return Err(InterchangeError::parse(
+                        path,
+                        None,
+                        format!(
+                            "Unsupported hillslope WAT record width: expected {} fields, found {}",
+                            header.len(),
+                            tokens.len()
+                        ),
+                        Some(raw_line.clone()),
+                    ));
                 }
 
                 let julian_val: i32 = tokens[*column_positions.get("J").unwrap()]

@@ -297,7 +297,12 @@ fn hillslope_ebe_to_columns_with_lookup(
             .map(|tokens| tokens.len())
             .unwrap_or(0);
         if tokens.len() != header_len {
-            continue;
+            return Err(InterchangeError::parse(
+                path,
+                None,
+                format!("Unsupported hillslope EBE record width: expected {header_len} fields, found {}", tokens.len()),
+                Some(raw_line.clone()),
+            ));
         }
         let day_of_month: i32 = tokens[0].parse().map_err(|_| {
             InterchangeError::parse(path, None, "Invalid day token", Some(raw_line.clone()))

@@ -298,7 +298,7 @@ mod tests {
         let target = dir.path().join("tc_out.parquet");
         fs::write(
             &source,
-            "Element header\n1 H 99 1 1 0 1.0 2.0 3.0\n2 C bad 1 1 0 1.0 2.0 3.0\n",
+            "Element header\n1 H 99 1 1 0 1.0 2.0 3.0\n",
         )
         .expect("write source");
 
@@ -316,6 +316,27 @@ mod tests {
         assert_eq!(summary.row_groups, 0);
         assert!(summary.output_paths.is_empty());
         assert_eq!(summary.outlet_channel, None);
+        assert!(!target.exists());
+    }
+
+    #[test]
+    fn malformed_channel_record_is_a_contextual_parse_error() {
+        let dir = TestDir::new("bad_channel_record");
+        let source = dir.path().join("tc_out.txt");
+        let target = dir.path().join("tc_out.parquet");
+        fs::write(&source, "1 C bad 1 1 0 1.0 2.0 3.0\n").expect("write source");
+
+        let error = watershed_tc_out_to_parquet(
+            &source,
+            &target,
+            None,
+            &VersionInfo::new(1, 2),
+            None,
+            None,
+        )
+        .expect_err("malformed channel record must fail");
+
+        assert!(matches!(error, InterchangeError::Parse { .. }));
         assert!(!target.exists());
     }
 

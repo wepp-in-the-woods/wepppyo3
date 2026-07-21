@@ -138,7 +138,12 @@ pub fn hillslope_loss_to_columns(
         }
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
         if tokens.len() < MEASUREMENT_COLUMNS.len() {
-            continue;
+            return Err(InterchangeError::parse(
+                path,
+                None,
+                format!("Unsupported hillslope LOSS record width: expected at least {} fields, found {}", MEASUREMENT_COLUMNS.len(), tokens.len()),
+                Some(raw_line.clone()),
+            ));
         }
 
         let class_val: i32 = tokens[0].parse().map_err(|_| {

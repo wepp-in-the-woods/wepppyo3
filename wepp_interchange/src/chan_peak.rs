@@ -162,7 +162,15 @@ pub fn watershed_chan_peak_to_parquet(
         }
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
         if tokens.len() != 6 {
-            continue;
+            return Err(InterchangeError::parse(
+                chan_path,
+                Some(line_no),
+                format!(
+                    "Unsupported channel-peak record width: expected 6 fields, found {}",
+                    tokens.len()
+                ),
+                Some(line),
+            ));
         }
 
         let sim_year = tokens[0].parse::<i16>().map_err(|_| {
@@ -246,6 +254,14 @@ pub fn watershed_chan_peak_to_parquet(
         }
     }
 
+    if !data_section {
+        return Err(InterchangeError::parse(
+            chan_path,
+            None,
+            "Unable to locate channel-peak header",
+            None,
+        ));
+    }
     if store.len() > 0 {
         let chunk = store.to_chunk(&schema);
         writer.write_chunk(chunk)?;

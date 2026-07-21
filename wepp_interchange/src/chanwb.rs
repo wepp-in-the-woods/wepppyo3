@@ -7,7 +7,7 @@ use crate::arrow_support::{BoxedArray, Chunk};
 use crate::calendar::{determine_wateryear, julian_to_calendar, load_cli_calendar};
 use crate::errors::InterchangeError;
 use crate::floats::parse_required_float;
-use crate::parquet::{empty_chunk, ParquetSink, WriteSummary};
+use crate::parquet::{ParquetSink, WriteSummary};
 use crate::schema::{watershed_chanwb_schema, VersionInfo};
 
 const DEFAULT_CHUNK_ROWS: usize = 500_000;
@@ -62,7 +62,15 @@ pub fn watershed_chanwb_to_parquet(
         }
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
         if tokens.len() != 10 {
-            continue;
+            return Err(InterchangeError::parse(
+                chanwb_path,
+                Some(line_no + 1),
+                format!(
+                    "Unsupported CHANWB record width: expected 10 fields, found {}",
+                    tokens.len()
+                ),
+                Some(raw_line.clone()),
+            ));
         }
 
         let sim_year: i32 = tokens[0].parse().map_err(|_| {
@@ -156,8 +164,21 @@ pub fn watershed_chanwb_to_parquet(
         }
     }
 
+    if !data_section {
+        return Err(InterchangeError::parse(
+            chanwb_path,
+            None,
+            "Unable to locate CHANWB header",
+            None,
+        ));
+    }
     if row_counter == 0 {
-        sink.write_chunk(empty_chunk(&schema))?;
+        return Err(InterchangeError::parse(
+            chanwb_path,
+            None,
+            "CHANWB header found but no data records were accepted",
+            None,
+        ));
     } else if !years.is_empty() {
         flush_chunk(
             &mut sink,

@@ -5,7 +5,7 @@
 use pyo3::exceptions::{PyIOError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 use std::thread;
@@ -644,7 +644,21 @@ fn calculate_median(mut values: Vec<f64>) -> f64 {
 }
 
 type MukeyClusterRequest = (String, Vec<u32>, (f64, f64, f64, f64));
-type MukeyClusterResult = (Vec<u32>, Option<f64>, Vec<u32>, bool, usize);
+type MukeyClusterResult = (Vec<u32>, Option<f64>, Vec<(u32, usize)>, bool, usize);
+
+fn valid_mukey_support(
+    values: &[u32],
+    nodata: Option<u32>,
+    valid_mukeys: &HashSet<u32>,
+) -> BTreeMap<u32, usize> {
+    let mut support = BTreeMap::new();
+    for mukey in values {
+        if Some(*mukey) != nodata && valid_mukeys.contains(mukey) {
+            *support.entry(*mukey).or_insert(0) += 1;
+        }
+    }
+    support
+}
 
 fn inverse_affine(transform: [f64; 6]) -> Result<[f64; 4], String> {
     let determinant = transform[1] * transform[5] - transform[2] * transform[4];
@@ -754,7 +768,7 @@ fn scan_mukey_cluster(
     let mut radius = initial_radius_m;
     let mut pixels_read = 0usize;
     loop {
-        let mut candidates = BTreeSet::new();
+        let mut candidates = BTreeMap::new();
         if let Some((x, y, window_width, window_height)) =
             window_for_bounds(*bounds, radius, transform, width, height)?
         {
@@ -767,11 +781,7 @@ fn scan_mukey_cluster(
                 )
                 .map_err(|error| error.to_string())?;
             pixels_read += buffer.data.len();
-            for mukey in buffer.data {
-                if Some(mukey) != nodata && valid_mukeys.contains(&mukey) {
-                    candidates.insert(mukey);
-                }
-            }
+            candidates = valid_mukey_support(&buffer.data, nodata, valid_mukeys);
         }
         if candidates.len() >= min_candidates || radius >= max_radius_m {
             let mut sources = source_mukeys.clone();
@@ -948,5 +958,61 @@ mod tests {
             .expect("valid out-of-raster bounds"),
             None
         );
+    }
+
+    #[test]
+    fn valid_mukey_support_filters_nodata_and_counts_local_pixels() {
+        let support = valid_mukey_support(
+            &[0, 10, 10, 20, 30, 20, 10],
+            Some(0),
+            &HashSet::from([10, 20]),
+        );
+        assert_eq!(support, BTreeMap::from([(10, 3), (20, 2)]));
+    }
+
+    #[test]
+    fn synthetic_raster_fixture_returns_pixel_support_from_smallest_window() {
+        use gdal::raster::Buffer;
+
+        let path = std::env::temp_dir().join(format!(
+            "ssurgo-candidate-fixture-{}-{}.tif",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("system clock")
+                .as_nanos()
+        ));
+        {
+            let driver = gdal::DriverManager::get_driver_by_name("GTiff").expect("GTiff driver");
+            let mut dataset = driver
+                .create_with_band_type::<u32, _>(&path, 3, 3, 1)
+                .expect("create fixture raster");
+            dataset
+                .set_geo_transform(&[0.0, 30.0, 0.0, 90.0, 0.0, -30.0])
+                .expect("set fixture transform");
+            let mut band = dataset.rasterband(1).expect("fixture band");
+            band.write(
+                (0, 0),
+                (3, 3),
+                &Buffer::new((3, 3), vec![0_u32, 10, 10, 20, 10, 30, 20, 20, 30]),
+            )
+            .expect("write fixture data");
+            band.set_no_data_value(Some(0.0))
+                .expect("set fixture nodata");
+        }
+        let request = ("cluster".to_string(), vec![999], (0.0, 0.0, 90.0, 90.0));
+        let (_, result) = scan_mukey_cluster(
+            path.to_str().expect("UTF-8 fixture path"),
+            &request,
+            &HashSet::from([10, 20]),
+            0.0,
+            0.0,
+            1,
+        )
+        .expect("scan fixture raster");
+        assert_eq!(result.1, Some(0.0));
+        assert_eq!(result.2, vec![(10, 3), (20, 3)]);
+        assert_eq!(result.4, 9);
+        std::fs::remove_file(path).expect("remove fixture raster");
     }
 }

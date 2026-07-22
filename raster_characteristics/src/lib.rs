@@ -5,8 +5,12 @@
 use pyo3::exceptions::{PyIOError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Mutex;
+use std::thread;
 
+use gdal::Dataset;
 use raster::raster::Raster;
 
 fn read_i32_raster(path: &str) -> PyResult<Raster<i32>> {
@@ -639,6 +643,234 @@ fn calculate_median(mut values: Vec<f64>) -> f64 {
     }
 }
 
+type MukeyClusterRequest = (String, Vec<u32>, (f64, f64, f64, f64));
+type MukeyClusterResult = (Vec<u32>, Option<f64>, Vec<u32>, bool, usize);
+
+fn inverse_affine(transform: [f64; 6]) -> Result<[f64; 4], String> {
+    let determinant = transform[1] * transform[5] - transform[2] * transform[4];
+    if determinant.abs() < f64::EPSILON {
+        return Err("raster geotransform is not invertible".to_string());
+    }
+    Ok([
+        transform[5] / determinant,
+        -transform[2] / determinant,
+        -transform[4] / determinant,
+        transform[1] / determinant,
+    ])
+}
+
+fn world_to_pixel(inverse: [f64; 4], transform: [f64; 6], x: f64, y: f64) -> (f64, f64) {
+    let dx = x - transform[0];
+    let dy = y - transform[3];
+    (
+        inverse[0] * dx + inverse[1] * dy,
+        inverse[2] * dx + inverse[3] * dy,
+    )
+}
+
+fn window_for_bounds(
+    bounds: (f64, f64, f64, f64),
+    radius_m: f64,
+    transform: [f64; 6],
+    width: usize,
+    height: usize,
+) -> Result<Option<(isize, isize, usize, usize)>, String> {
+    let (min_x, min_y, max_x, max_y) = bounds;
+    if !min_x.is_finite()
+        || !min_y.is_finite()
+        || !max_x.is_finite()
+        || !max_y.is_finite()
+        || min_x >= max_x
+        || min_y >= max_y
+        || radius_m < 0.0
+    {
+        return Err(
+            "cluster bounds must be finite, ordered, and use a non-negative radius".to_string(),
+        );
+    }
+    let inverse = inverse_affine(transform)?;
+    let corners = [
+        world_to_pixel(inverse, transform, min_x - radius_m, min_y - radius_m),
+        world_to_pixel(inverse, transform, min_x - radius_m, max_y + radius_m),
+        world_to_pixel(inverse, transform, max_x + radius_m, min_y - radius_m),
+        world_to_pixel(inverse, transform, max_x + radius_m, max_y + radius_m),
+    ];
+    let min_col = corners
+        .iter()
+        .map(|corner| corner.0)
+        .fold(f64::INFINITY, f64::min)
+        .floor()
+        .max(0.0) as usize;
+    let max_col = corners
+        .iter()
+        .map(|corner| corner.0)
+        .fold(f64::NEG_INFINITY, f64::max)
+        .ceil()
+        .max(0.0) as usize;
+    let min_row = corners
+        .iter()
+        .map(|corner| corner.1)
+        .fold(f64::INFINITY, f64::min)
+        .floor()
+        .max(0.0) as usize;
+    let max_row = corners
+        .iter()
+        .map(|corner| corner.1)
+        .fold(f64::NEG_INFINITY, f64::max)
+        .ceil()
+        .max(0.0) as usize;
+    let start_col = min_col.min(width);
+    let end_col = max_col.min(width);
+    let start_row = min_row.min(height);
+    let end_row = max_row.min(height);
+    if start_col >= end_col || start_row >= end_row {
+        return Ok(None);
+    }
+    Ok(Some((
+        start_col as isize,
+        start_row as isize,
+        end_col - start_col,
+        end_row - start_row,
+    )))
+}
+
+fn scan_mukey_cluster(
+    raster_path: &str,
+    request: &MukeyClusterRequest,
+    valid_mukeys: &HashSet<u32>,
+    initial_radius_m: f64,
+    max_radius_m: f64,
+    min_candidates: usize,
+) -> Result<(String, MukeyClusterResult), String> {
+    let (cluster_id, source_mukeys, bounds) = request;
+    if source_mukeys.is_empty() {
+        return Err(format!("cluster {cluster_id:?} has no source MUKEYs"));
+    }
+    let dataset = Dataset::open(raster_path).map_err(|error| error.to_string())?;
+    let transform = dataset.geo_transform().map_err(|error| error.to_string())?;
+    let (width, height) = dataset.raster_size();
+    let band = dataset.rasterband(1).map_err(|error| error.to_string())?;
+    let nodata = band.no_data_value().map(|value| value as u32);
+    let mut radius = initial_radius_m;
+    let mut pixels_read = 0usize;
+    loop {
+        let mut candidates = BTreeSet::new();
+        if let Some((x, y, window_width, window_height)) =
+            window_for_bounds(*bounds, radius, transform, width, height)?
+        {
+            let buffer = band
+                .read_as::<u32>(
+                    (x, y),
+                    (window_width, window_height),
+                    (window_width, window_height),
+                    None,
+                )
+                .map_err(|error| error.to_string())?;
+            pixels_read += buffer.data.len();
+            for mukey in buffer.data {
+                if Some(mukey) != nodata && valid_mukeys.contains(&mukey) {
+                    candidates.insert(mukey);
+                }
+            }
+        }
+        if candidates.len() >= min_candidates || radius >= max_radius_m {
+            let mut sources = source_mukeys.clone();
+            sources.sort_unstable();
+            sources.dedup();
+            return Ok((
+                cluster_id.clone(),
+                (
+                    sources,
+                    (candidates.len() >= min_candidates).then_some(radius),
+                    candidates.into_iter().collect(),
+                    radius >= max_radius_m,
+                    pixels_read,
+                ),
+            ));
+        }
+        radius = (radius * 2.0).min(max_radius_m);
+    }
+}
+
+/// Return valid MUKEY candidates for adjacent invalid-MUKEY clusters using bounded raster windows.
+///
+/// ``clusters`` contains ``(cluster_id, source_mukeys, (min_x, min_y, max_x, max_y))`` tuples in
+/// the raster CRS. Each worker opens its own GDAL dataset handle; no national raster scan occurs.
+#[pyfunction]
+#[pyo3(signature = (raster_path, clusters, valid_mukeys, initial_radius_m=250.0, max_radius_m=2000.0, min_candidates=1, workers=None))]
+fn local_mukey_candidates(
+    raster_path: &str,
+    clusters: Vec<MukeyClusterRequest>,
+    valid_mukeys: HashSet<u32>,
+    initial_radius_m: f64,
+    max_radius_m: f64,
+    min_candidates: usize,
+    workers: Option<usize>,
+) -> PyResult<BTreeMap<String, MukeyClusterResult>> {
+    if initial_radius_m <= 0.0 || max_radius_m < initial_radius_m || min_candidates == 0 {
+        return Err(PyValueError::new_err(
+            "radii must be positive and ordered; min_candidates must be positive",
+        ));
+    }
+    let worker_count = workers
+        .unwrap_or_else(|| {
+            thread::available_parallelism()
+                .map(|count| count.get())
+                .unwrap_or(1)
+        })
+        .max(1)
+        .min(clusters.len().max(1));
+    let next = AtomicUsize::new(0);
+    let results = Mutex::new(Vec::with_capacity(clusters.len()));
+    let failures = Mutex::new(Vec::new());
+    thread::scope(|scope| {
+        for _ in 0..worker_count {
+            scope.spawn(|| loop {
+                let index = next.fetch_add(1, Ordering::Relaxed);
+                if index >= clusters.len() {
+                    break;
+                }
+                match scan_mukey_cluster(
+                    raster_path,
+                    &clusters[index],
+                    &valid_mukeys,
+                    initial_radius_m,
+                    max_radius_m,
+                    min_candidates,
+                ) {
+                    Ok(result) => results
+                        .lock()
+                        .expect("candidate result lock poisoned")
+                        .push(result),
+                    Err(error) => failures
+                        .lock()
+                        .expect("candidate failure lock poisoned")
+                        .push(error),
+                }
+            });
+        }
+    });
+    if let Some(error) = failures
+        .lock()
+        .expect("candidate failure lock poisoned")
+        .first()
+    {
+        return Err(PyIOError::new_err(error.clone()));
+    }
+    let mut output = BTreeMap::new();
+    for (cluster_id, result) in results
+        .into_inner()
+        .expect("candidate result lock poisoned")
+    {
+        if output.insert(cluster_id.clone(), result).is_some() {
+            return Err(PyValueError::new_err(format!(
+                "duplicate cluster_id: {cluster_id}"
+            )));
+        }
+    }
+    Ok(output)
+}
+
 /// A PyO3 module
 /// This module is a container for the Python-callable functions we define
 #[pymodule]
@@ -651,6 +883,7 @@ fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
         identify_median_intersecting_raster_keys,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(local_mukey_candidates, m)?)?;
     Ok(())
 }
 
@@ -688,5 +921,32 @@ mod tests {
 
         let expected = BTreeMap::from([(11, BTreeMap::from([(1, 1)]))]);
         assert_eq!(counts, expected);
+    }
+
+    #[test]
+    fn window_for_bounds_clips_and_handles_rotated_affine_transforms() {
+        let transform = [500_000.0, 30.0, 0.0, 4_700_000.0, 0.0, -30.0];
+        assert_eq!(
+            window_for_bounds(
+                (499_970.0, 4_699_910.0, 500_090.0, 4_700_030.0),
+                0.0,
+                transform,
+                4,
+                4,
+            )
+            .expect("valid bounds"),
+            Some((0, 0, 3, 3))
+        );
+        assert_eq!(
+            window_for_bounds(
+                (600_000.0, 4_800_000.0, 600_030.0, 4_800_030.0),
+                0.0,
+                transform,
+                4,
+                4,
+            )
+            .expect("valid out-of-raster bounds"),
+            None
+        );
     }
 }

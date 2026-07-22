@@ -109,6 +109,8 @@ release artifact paths.
 - `identify_mode_intersecting_raster_keys(...)`
 - `identify_median_single_raster_key(...)`
 - `identify_median_intersecting_raster_keys(...)`
+- `local_mukey_candidates(...)` — research-only concurrent clustered-window
+  SSURGO candidate discovery; it is not wired to production fallback policy.
 
 Deterministic-order contract:
 

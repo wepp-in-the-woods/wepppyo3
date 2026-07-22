@@ -10,7 +10,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 use std::thread;
 
+use gdal::raster::{Buffer, RasterCreationOption};
 use gdal::Dataset;
+use proj::Proj;
 use raster::raster::Raster;
 
 fn read_i32_raster(path: &str) -> PyResult<Raster<i32>> {
@@ -956,6 +958,397 @@ fn categorical_support_within_bounds(
     Ok(support.into_iter().collect())
 }
 
+/// Return categorical support in a square radius around a WGS84 longitude/latitude point.
+#[pyfunction]
+#[pyo3(signature = (raster_path, longitude_wgs84, latitude_wgs84, radius_m, excluded_values=None, band_index=1))]
+fn categorical_support_within_wgs84_radius(
+    raster_path: &str,
+    longitude_wgs84: f64,
+    latitude_wgs84: f64,
+    radius_m: f64,
+    excluded_values: Option<HashSet<u32>>,
+    band_index: usize,
+) -> PyResult<Vec<(u32, usize)>> {
+    if !longitude_wgs84.is_finite()
+        || !latitude_wgs84.is_finite()
+        || radius_m < 0.0
+        || band_index == 0
+    {
+        return Err(PyValueError::new_err(
+            "longitude/latitude must be finite, radius_m non-negative, and band_index positive",
+        ));
+    }
+    let dataset =
+        Dataset::open(raster_path).map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let projection = dataset.projection();
+    if projection.trim().is_empty() {
+        return Err(PyValueError::new_err(
+            "categorical raster must define a projection",
+        ));
+    }
+    let transformer = Proj::new_known_crs("EPSG:4326", &projection, None)
+        .map_err(|error| PyValueError::new_err(error.to_string()))?;
+    let (x, y) = transformer
+        .convert((longitude_wgs84, latitude_wgs84))
+        .map_err(|_| {
+            PyValueError::new_err("failed to transform WGS84 source location to raster CRS")
+        })?;
+    categorical_support_within_bounds(
+        raster_path,
+        (x - 1.0e-9, y - 1.0e-9, x + 1.0e-9, y + 1.0e-9),
+        radius_m,
+        excluded_values,
+        band_index,
+    )
+}
+
+/// Return the centroid of matching positive categorical raster cells in WGS84.
+#[pyfunction]
+#[pyo3(signature = (raster_path, value, band_index=1))]
+fn categorical_value_centroid_wgs84(
+    raster_path: &str,
+    value: u32,
+    band_index: usize,
+) -> PyResult<(f64, f64)> {
+    if value == 0 || band_index == 0 {
+        return Err(PyValueError::new_err(
+            "value and band_index must be positive",
+        ));
+    }
+    let dataset =
+        Dataset::open(raster_path).map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let projection = dataset.projection();
+    if projection.trim().is_empty() {
+        return Err(PyValueError::new_err(
+            "source raster must define a projection",
+        ));
+    }
+    let transform = dataset
+        .geo_transform()
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let (width, height) = dataset.raster_size();
+    let band_index = isize::try_from(band_index)
+        .map_err(|_| PyValueError::new_err("band_index is too large"))?;
+    let band = dataset
+        .rasterband(band_index)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let buffer = band
+        .read_as::<u32>((0, 0), (width, height), (width, height), None)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let mut sum_column = 0.0;
+    let mut sum_row = 0.0;
+    let mut count = 0usize;
+    for (index, cell) in buffer.data.iter().enumerate() {
+        if *cell == value {
+            sum_column += (index % width) as f64 + 0.5;
+            sum_row += (index / width) as f64 + 0.5;
+            count += 1;
+        }
+    }
+    if count == 0 {
+        return Err(PyValueError::new_err(
+            "requested categorical value is absent from source raster",
+        ));
+    }
+    let column = sum_column / count as f64;
+    let row = sum_row / count as f64;
+    let x = transform[0] + column * transform[1] + row * transform[2];
+    let y = transform[3] + column * transform[4] + row * transform[5];
+    let transformer = Proj::new_known_crs(&projection, "EPSG:4326", None)
+        .map_err(|error| PyValueError::new_err(error.to_string()))?;
+    transformer
+        .convert((x, y))
+        .map_err(|_| PyValueError::new_err("failed to transform source centroid to WGS84"))
+}
+
+/// Return WGS84 centroids for requested `(key, categorical value)` intersections.
+///
+/// This scans the aligned project key and categorical rasters once, preserving
+/// raw-map locations without treating hillslope topology as a donor feature.
+#[pyfunction]
+#[pyo3(signature = (key_raster_path, categorical_raster_path, pairs, key_band_index=1, categorical_band_index=1))]
+fn intersecting_categorical_value_centroids_wgs84(
+    key_raster_path: &str,
+    categorical_raster_path: &str,
+    pairs: Vec<(i32, i32)>,
+    key_band_index: usize,
+    categorical_band_index: usize,
+) -> PyResult<BTreeMap<String, (f64, f64)>> {
+    if pairs.is_empty() || key_band_index == 0 || categorical_band_index == 0 {
+        return Err(PyValueError::new_err(
+            "pairs and band indexes must be positive",
+        ));
+    }
+    let key_map = Raster::<i32>::read_band(key_raster_path, key_band_index as isize)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let categorical_map =
+        Raster::<i32>::read_band(categorical_raster_path, categorical_band_index as isize)
+            .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    validate_equal_shape(
+        "key raster",
+        &key_map,
+        "categorical raster",
+        &categorical_map,
+    )?;
+    if key_map.geo_transform != categorical_map.geo_transform
+        || key_map.proj4 != categorical_map.proj4
+    {
+        return Err(PyValueError::new_err(
+            "key and categorical rasters must be aligned in one CRS",
+        ));
+    }
+    let requested: HashSet<(i32, i32)> = pairs.into_iter().collect();
+    let mut accumulators: BTreeMap<(i32, i32), (f64, f64, usize)> = BTreeMap::new();
+    for (index, (key, categorical)) in key_map
+        .data
+        .iter()
+        .zip(categorical_map.data.iter())
+        .enumerate()
+    {
+        let pair = (*key, *categorical);
+        if !requested.contains(&pair) {
+            continue;
+        }
+        let entry = accumulators.entry(pair).or_insert((0.0, 0.0, 0));
+        entry.0 += (index % key_map.width) as f64 + 0.5;
+        entry.1 += (index / key_map.width) as f64 + 0.5;
+        entry.2 += 1;
+    }
+    let projection = key_map
+        .proj4
+        .as_deref()
+        .ok_or_else(|| PyValueError::new_err("aligned project rasters must define a projection"))?;
+    let transformer = Proj::new_known_crs(projection, "EPSG:4326", None)
+        .map_err(|error| PyValueError::new_err(error.to_string()))?;
+    let transform = key_map.geo_transform;
+    let mut output = BTreeMap::new();
+    for pair in requested {
+        let Some((sum_column, sum_row, count)) = accumulators.get(&pair) else {
+            return Err(PyValueError::new_err(format!(
+                "requested key/categorical pair is absent: {}, {}",
+                pair.0, pair.1
+            )));
+        };
+        let column = sum_column / *count as f64;
+        let row = sum_row / *count as f64;
+        let x = transform[0] + column * transform[1] + row * transform[2];
+        let y = transform[3] + column * transform[4] + row * transform[5];
+        let point = transformer
+            .convert((x, y))
+            .map_err(|_| PyValueError::new_err("failed to transform raw map centroid to WGS84"))?;
+        output.insert(pair.0.to_string(), point);
+    }
+    Ok(output)
+}
+
+/// Return categorical raster bounds, CRS WKT, and dimensions without exposing cells to Python.
+#[pyfunction]
+fn categorical_raster_metadata(
+    raster_path: &str,
+) -> PyResult<((f64, f64, f64, f64), String, usize, usize)> {
+    let dataset =
+        Dataset::open(raster_path).map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let transform = dataset
+        .geo_transform()
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let projection = dataset.projection();
+    if projection.trim().is_empty() {
+        return Err(PyValueError::new_err(
+            "categorical raster must define a projection",
+        ));
+    }
+    let (width, height) = dataset.raster_size();
+    let corners = [
+        (0.0, 0.0),
+        (width as f64, 0.0),
+        (0.0, height as f64),
+        (width as f64, height as f64),
+    ];
+    let mut xs = Vec::with_capacity(corners.len());
+    let mut ys = Vec::with_capacity(corners.len());
+    for (column, row) in corners {
+        xs.push(transform[0] + column * transform[1] + row * transform[2]);
+        ys.push(transform[3] + column * transform[4] + row * transform[5]);
+    }
+    Ok((
+        (
+            xs.iter().copied().fold(f64::INFINITY, f64::min),
+            ys.iter().copied().fold(f64::INFINITY, f64::min),
+            xs.iter().copied().fold(f64::NEG_INFINITY, f64::max),
+            ys.iter().copied().fold(f64::NEG_INFINITY, f64::max),
+        ),
+        projection,
+        width,
+        height,
+    ))
+}
+
+/// Crop a categorical source raster to a reference raster's extent plus padding.
+///
+/// The reference extent is transformed into the source raster CRS, so callers do
+/// not need to perform geometry work or inspect national raster cells in Python.
+/// The output is a single-band UInt32 GeoTIFF in the source CRS. The caller owns
+/// destination containment and atomic publication.
+#[pyfunction]
+#[pyo3(signature = (source_path, reference_path, destination_path, padding_m=2000.0, band_index=1))]
+fn crop_categorical_raster_to_padded_reference(
+    source_path: &str,
+    reference_path: &str,
+    destination_path: &str,
+    padding_m: f64,
+    band_index: usize,
+) -> PyResult<(f64, f64, f64, f64, String, usize, usize)> {
+    if padding_m < 0.0 || band_index == 0 {
+        return Err(PyValueError::new_err(
+            "padding_m must be non-negative and band_index must be positive",
+        ));
+    }
+    let source =
+        Dataset::open(source_path).map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let reference =
+        Dataset::open(reference_path).map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let source_projection = source.projection();
+    let reference_projection = reference.projection();
+    if source_projection.trim().is_empty() || reference_projection.trim().is_empty() {
+        return Err(PyValueError::new_err(
+            "source and reference rasters must both define a projection",
+        ));
+    }
+    let transformer = Proj::new_known_crs(&reference_projection, &source_projection, None)
+        .map_err(|error| PyValueError::new_err(error.to_string()))?;
+    let reference_transform = reference
+        .geo_transform()
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let (reference_width, reference_height) = reference.raster_size();
+    let corners = [
+        (0.0, 0.0),
+        (reference_width as f64, 0.0),
+        (0.0, reference_height as f64),
+        (reference_width as f64, reference_height as f64),
+    ];
+    let mut transformed = Vec::with_capacity(corners.len());
+    for (pixel, line) in corners {
+        let x =
+            reference_transform[0] + pixel * reference_transform[1] + line * reference_transform[2];
+        let y =
+            reference_transform[3] + pixel * reference_transform[4] + line * reference_transform[5];
+        transformed.push(transformer.convert((x, y)).map_err(|_| {
+            PyValueError::new_err("failed to transform reference extent to source CRS")
+        })?);
+    }
+    let bounds = (
+        transformed
+            .iter()
+            .map(|point| point.0)
+            .fold(f64::INFINITY, f64::min),
+        transformed
+            .iter()
+            .map(|point| point.1)
+            .fold(f64::INFINITY, f64::min),
+        transformed
+            .iter()
+            .map(|point| point.0)
+            .fold(f64::NEG_INFINITY, f64::max),
+        transformed
+            .iter()
+            .map(|point| point.1)
+            .fold(f64::NEG_INFINITY, f64::max),
+    );
+    let source_transform = source
+        .geo_transform()
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let (source_width, source_height) = source.raster_size();
+    let Some((x_offset, y_offset, width, height)) = window_for_bounds(
+        bounds,
+        padding_m,
+        source_transform,
+        source_width,
+        source_height,
+    )
+    .map_err(PyValueError::new_err)?
+    else {
+        return Err(PyValueError::new_err(
+            "padded reference extent does not intersect source raster",
+        ));
+    };
+    let band_index = isize::try_from(band_index)
+        .map_err(|_| PyValueError::new_err("band_index is too large"))?;
+    let source_band = source
+        .rasterband(band_index)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let buffer = source_band
+        .read_as::<u32>((x_offset, y_offset), (width, height), (width, height), None)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let driver = gdal::DriverManager::get_driver_by_name("GTiff")
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let options = [
+        RasterCreationOption {
+            key: "COMPRESS",
+            value: "LZW",
+        },
+        RasterCreationOption {
+            key: "TILED",
+            value: "YES",
+        },
+    ];
+    let mut destination = driver
+        .create_with_band_type_with_options::<u32, _>(
+            destination_path,
+            width as isize,
+            height as isize,
+            1,
+            &options,
+        )
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let destination_transform = [
+        source_transform[0]
+            + x_offset as f64 * source_transform[1]
+            + y_offset as f64 * source_transform[2],
+        source_transform[1],
+        source_transform[2],
+        source_transform[3]
+            + x_offset as f64 * source_transform[4]
+            + y_offset as f64 * source_transform[5],
+        source_transform[4],
+        source_transform[5],
+    ];
+    destination
+        .set_geo_transform(&destination_transform)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    destination
+        .set_projection(&source_projection)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let mut destination_band = destination
+        .rasterband(1)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    destination_band
+        .set_no_data_value(source_band.no_data_value())
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    destination_band
+        .write(
+            (0, 0),
+            (width, height),
+            &Buffer::new((width, height), buffer.data),
+        )
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    destination
+        .flush_cache()
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let lower_x = destination_transform[0];
+    let upper_y = destination_transform[3];
+    let upper_x = lower_x + width as f64 * destination_transform[1];
+    let lower_y = upper_y + height as f64 * destination_transform[5];
+    Ok((
+        lower_x,
+        lower_y,
+        upper_x,
+        upper_y,
+        source_projection,
+        width,
+        height,
+    ))
+}
+
 /// Return valid MUKEY candidates for adjacent invalid-MUKEY clusters using bounded raster windows.
 ///
 /// ``clusters`` contains ``(cluster_id, source_mukeys, (min_x, min_y, max_x, max_y))`` tuples in
@@ -1126,6 +1519,20 @@ fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     m.add_function(wrap_pyfunction!(local_mukey_candidates, m)?)?;
     m.add_function(wrap_pyfunction!(categorical_support_within_bounds, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        categorical_support_within_wgs84_radius,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(categorical_value_centroid_wgs84, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        intersecting_categorical_value_centroids_wgs84,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(categorical_raster_metadata, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        crop_categorical_raster_to_padded_reference,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(local_mukey_geometry, m)?)?;
     Ok(())
 }
@@ -1265,5 +1672,80 @@ mod tests {
         assert!(!result.3);
         assert_eq!(result.4, 9);
         std::fs::remove_file(path).expect("remove fixture raster");
+    }
+
+    #[test]
+    fn crop_categorical_raster_uses_padded_reference_extent() {
+        use gdal::raster::Buffer;
+        use gdal::spatial_ref::SpatialRef;
+
+        let suffix = format!(
+            "{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("system clock")
+                .as_nanos()
+        );
+        let source_path = std::env::temp_dir().join(format!("source-{suffix}.tif"));
+        let reference_path = std::env::temp_dir().join(format!("reference-{suffix}.tif"));
+        let destination_path = std::env::temp_dir().join(format!("destination-{suffix}.tif"));
+        let projection = SpatialRef::from_epsg(5070)
+            .expect("EPSG:5070")
+            .to_wkt()
+            .expect("WKT");
+        let driver = gdal::DriverManager::get_driver_by_name("GTiff").expect("GTiff driver");
+        {
+            let mut source = driver
+                .create_with_band_type::<u32, _>(&source_path, 8, 8, 1)
+                .expect("source");
+            source
+                .set_geo_transform(&[0.0, 10.0, 0.0, 80.0, 0.0, -10.0])
+                .expect("source transform");
+            source
+                .set_projection(&projection)
+                .expect("source projection");
+            source
+                .rasterband(1)
+                .expect("source band")
+                .write((0, 0), (8, 8), &Buffer::new((8, 8), (1..=64).collect()))
+                .expect("source data");
+        }
+        {
+            let mut reference = driver
+                .create_with_band_type::<u32, _>(&reference_path, 2, 2, 1)
+                .expect("reference");
+            reference
+                .set_geo_transform(&[20.0, 10.0, 0.0, 60.0, 0.0, -10.0])
+                .expect("reference transform");
+            reference
+                .set_projection(&projection)
+                .expect("reference projection");
+        }
+        let (_, _, _, _, returned_projection, width, height) =
+            crop_categorical_raster_to_padded_reference(
+                source_path.to_str().expect("UTF-8 source"),
+                reference_path.to_str().expect("UTF-8 reference"),
+                destination_path.to_str().expect("UTF-8 destination"),
+                10.0,
+                1,
+            )
+            .expect("crop");
+        assert_eq!((width, height), (4, 4));
+        assert!(!returned_projection.is_empty());
+        let destination = Dataset::open(&destination_path).expect("destination open");
+        assert_eq!(destination.raster_size(), (4, 4));
+        assert_eq!(
+            destination
+                .rasterband(1)
+                .expect("destination band")
+                .read_as::<u32>((0, 0), (4, 4), (4, 4), None)
+                .expect("destination data")
+                .data,
+            vec![10, 11, 12, 13, 18, 19, 20, 21, 26, 27, 28, 29, 34, 35, 36, 37],
+        );
+        for path in [source_path, reference_path, destination_path] {
+            std::fs::remove_file(path).expect("remove fixture raster");
+        }
     }
 }

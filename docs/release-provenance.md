@@ -566,6 +566,31 @@ passed. Refreshed shared-object SHA256:
 | --- | --- |
 | `raster_characteristics/raster_characteristics_rust.so` | `4009ec7351ee640cb693dd8f35e5efbc43d36744cd344a1cc25c3b391f6b2095` |
 
+### Targeted Refresh: `categorical_support_within_bounds`
+
+`confirmed`: the `raster_characteristics` release artifact was refreshed from
+source commit `10db015f8ce4` on 2026-07-22 for the additive generic
+`categorical_support_within_bounds` API. It reads one raster window, excludes
+requested category values, and returns deterministic category/pixel-support
+pairs; the WEPPpy SSURGO wrapper filters those pairs to buildable MUKEYs.
+
+```sh
+export PYO3_PYTHON=/usr/bin/python3.12
+export PYTHON_SYS_EXECUTABLE=/usr/bin/python3.12
+cargo build --release -p raster_characteristics_rust
+cp target/release/libraster_characteristics_rust.so \
+  release/linux/py312/wepppyo3/raster_characteristics/raster_characteristics_rust.so
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 -c \
+  "from wepppyo3.raster_characteristics import categorical_support_within_bounds; print(callable(categorical_support_within_bounds))"
+```
+
+`confirmed`: the release-tree import check and targeted WEPPpy fixture test
+passed. Refreshed shared-object SHA256:
+
+| Shared object | SHA256 |
+| --- | --- |
+| `raster_characteristics/raster_characteristics_rust.so` | `a5df2ac0836087e1c54d8137afb39d8607b41465f126ecb648bab92441d2567e` |
+
 ### Prior Full Refresh Snapshot
 
 `confirmed`: release tree refreshed from local source commit `34ab963842c8` at

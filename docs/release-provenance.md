@@ -66,6 +66,36 @@ rebuild or replace shared objects implicitly.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: bounded categorical SSURGO candidate support
+
+`confirmed`: On 2026-07-22, the `raster_characteristics` shared object was
+rebuilt from source commit `3aedb43bd7305e82876e26acb443436591ba5787`. The
+release adds native crop-to-padded-reference, WGS84-radius categorical support,
+categorical metadata inspection, and batched intersecting key/category centroids.
+These are generic raster primitives; WEPPpy supplies SSURGO provenance and
+fallback policy. The intersection primitive derives a raw category location
+inside its supplied project key, without iterating raster cells in Python.
+
+Build and validation commands:
+
+```sh
+cd /home/workdir/wepppyo3
+cargo fmt -p raster_characteristics_rust -- --check
+cargo check -p raster_characteristics_rust
+RUSTFLAGS='-C link-arg=-lpython3.12' cargo test -p raster_characteristics_rust --lib
+cargo build --release -p raster_characteristics_rust
+```
+
+`confirmed`: formatting and `cargo check` passed; the changed crate's seven
+Rust tests passed with the explicit host PyO3 link argument; and imports of
+the four new functions passed from the canonical release tree. The ordinary
+host `cargo test` linker limitation remains documented below; no new external
+dependency was introduced.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `raster_characteristics/raster_characteristics_rust.so` | `4d5700bde43b515f91098a5a9b6b1f5c18a3dbb74d393bcf8bde811d9abd2c3e` |
+
 ### Targeted Refresh: dedicated AgFields sub-field interchange writers
 
 `confirmed`: On 2026-07-16, the `wepp_interchange` shared object was rebuilt

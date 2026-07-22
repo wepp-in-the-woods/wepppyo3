@@ -787,13 +787,14 @@ fn scan_mukey_cluster(
             let mut sources = source_mukeys.clone();
             sources.sort_unstable();
             sources.dedup();
+            let exhausted = radius >= max_radius_m && candidates.len() < min_candidates;
             return Ok((
                 cluster_id.clone(),
                 (
                     sources,
                     (candidates.len() >= min_candidates).then_some(radius),
                     candidates.into_iter().collect(),
-                    radius >= max_radius_m,
+                    exhausted,
                     pixels_read,
                 ),
             ));
@@ -1012,6 +1013,7 @@ mod tests {
         .expect("scan fixture raster");
         assert_eq!(result.1, Some(0.0));
         assert_eq!(result.2, vec![(10, 3), (20, 3)]);
+        assert!(!result.3);
         assert_eq!(result.4, 9);
         std::fs::remove_file(path).expect("remove fixture raster");
     }

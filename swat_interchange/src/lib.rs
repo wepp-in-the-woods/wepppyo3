@@ -1493,8 +1493,14 @@ mod tests {
 
         let (read_schema, rows) = read_parquet_preview(&parquet_path, 10).expect("read preview");
         assert_eq!(read_schema.fields().len(), 2);
-        assert_eq!(data_type_display(read_schema.fields()[0].data_type()), "int32");
-        assert_eq!(data_type_display(read_schema.fields()[1].data_type()), "utf8");
+        assert_eq!(
+            data_type_display(read_schema.fields()[0].data_type()),
+            "int32"
+        );
+        assert_eq!(
+            data_type_display(read_schema.fields()[1].data_type()),
+            "utf8"
+        );
         assert_eq!(rows.len(), 2);
         assert_eq!(rows[0], vec!["1".to_string(), "alpha".to_string()]);
         assert_eq!(rows[1], vec!["".to_string(), "".to_string()]);

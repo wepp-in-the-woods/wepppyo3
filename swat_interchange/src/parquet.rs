@@ -209,7 +209,10 @@ mod tests {
             Some("swat-interchange-v1")
         );
         assert_eq!(
-            read_schema.metadata().get("source_file").map(String::as_str),
+            read_schema
+                .metadata()
+                .get("source_file")
+                .map(String::as_str),
             Some("output.rch")
         );
         let read_field = &read_schema.fields()[0];
@@ -288,7 +291,10 @@ mod tests {
             .expect_err("expected Arrow mapping error");
         match err {
             SwatError::Arrow(message) => {
-                assert!(!message.is_empty(), "arrow error message should not be empty");
+                assert!(
+                    !message.is_empty(),
+                    "arrow error message should not be empty"
+                );
             }
             other => panic!("expected SwatError::Arrow, got {other:?}"),
         }

@@ -905,6 +905,57 @@ fn scan_mukey_geometry(
     }
 }
 
+/// Return categorical value support in one bounded raster-CRS crop.
+#[pyfunction]
+#[pyo3(signature = (raster_path, bounds, radius_m, excluded_values=None, band_index=1))]
+fn categorical_support_within_bounds(
+    raster_path: &str,
+    bounds: (f64, f64, f64, f64),
+    radius_m: f64,
+    excluded_values: Option<HashSet<u32>>,
+    band_index: usize,
+) -> PyResult<Vec<(u32, usize)>> {
+    if radius_m < 0.0 || band_index == 0 {
+        return Err(PyValueError::new_err(
+            "radius_m must be non-negative and band_index must be positive",
+        ));
+    }
+    let dataset =
+        Dataset::open(raster_path).map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let transform = dataset
+        .geo_transform()
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let (width, height) = dataset.raster_size();
+    let band_index = isize::try_from(band_index)
+        .map_err(|_| PyValueError::new_err("band_index is too large"))?;
+    let band = dataset
+        .rasterband(band_index)
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let nodata = band.no_data_value().map(|value| value as u32);
+    let Some((x, y, window_width, window_height)) =
+        window_for_bounds(bounds, radius_m, transform, width, height)
+            .map_err(PyValueError::new_err)?
+    else {
+        return Ok(Vec::new());
+    };
+    let buffer = band
+        .read_as::<u32>(
+            (x, y),
+            (window_width, window_height),
+            (window_width, window_height),
+            None,
+        )
+        .map_err(|error| PyIOError::new_err(error.to_string()))?;
+    let excluded = excluded_values.unwrap_or_default();
+    let mut support = BTreeMap::new();
+    for value in buffer.data {
+        if Some(value) != nodata && !excluded.contains(&value) {
+            *support.entry(value).or_insert(0) += 1;
+        }
+    }
+    Ok(support.into_iter().collect())
+}
+
 /// Return valid MUKEY candidates for adjacent invalid-MUKEY clusters using bounded raster windows.
 ///
 /// ``clusters`` contains ``(cluster_id, source_mukeys, (min_x, min_y, max_x, max_y))`` tuples in
@@ -1074,6 +1125,7 @@ fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(local_mukey_candidates, m)?)?;
+    m.add_function(wrap_pyfunction!(categorical_support_within_bounds, m)?)?;
     m.add_function(wrap_pyfunction!(local_mukey_geometry, m)?)?;
     Ok(())
 }

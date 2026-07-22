@@ -339,7 +339,10 @@ mod tests {
         let lookup = load_cli_calendar(&path).expect("load calendar");
         assert_eq!(lookup.year_len(2000), Some(2));
         assert_eq!(lookup.year_len(2001), Some(1));
-        assert_eq!(lookup.by_year.get(&2000).cloned(), Some(vec![(1, 1), (1, 2)]));
+        assert_eq!(
+            lookup.by_year.get(&2000).cloned(),
+            Some(vec![(1, 1), (1, 2)])
+        );
         assert_eq!(julian_to_calendar(2000, 2, Some(&lookup)), (1, 2));
 
         std::fs::remove_file(path).expect("cleanup parquet");

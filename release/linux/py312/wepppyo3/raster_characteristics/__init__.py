@@ -8,6 +8,7 @@ from .raster_characteristics_rust import (
     identify_median_single_raster_key as _identify_median_single_raster_key,
     local_mukey_candidates as _local_mukey_candidates,
     local_mukey_geometry as _local_mukey_geometry,
+    categorical_support_within_bounds as _categorical_support_within_bounds,
 )
 
 
@@ -88,6 +89,12 @@ def local_mukey_geometry(
         raster_path, sources, set(valid_mukeys), initial_radius_m,
         max_radius_m, min_candidates, workers,
     )
+
+
+def categorical_support_within_bounds(
+    raster_path: str, bounds, radius_m: float, excluded_values: Optional[Set[int]] = None, band_index: int = 1,
+):
+    return _categorical_support_within_bounds(raster_path, bounds, radius_m, set(excluded_values or ()), band_index)
 
 
 def identify_median_single_raster_key(

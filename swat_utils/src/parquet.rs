@@ -187,11 +187,17 @@ mod tests {
         let builder = ParquetRecordBatchReaderBuilder::try_new(file).expect("build reader");
         let read_schema = builder.schema().as_ref().clone();
         assert_eq!(
-            read_schema.metadata().get("dataset_version").map(String::as_str),
+            read_schema
+                .metadata()
+                .get("dataset_version")
+                .map(String::as_str),
             Some("3.0")
         );
         assert_eq!(
-            read_schema.metadata().get("source_file").map(String::as_str),
+            read_schema
+                .metadata()
+                .get("source_file")
+                .map(String::as_str),
             Some("calendar.parquet")
         );
         let read_field = &read_schema.fields()[0];

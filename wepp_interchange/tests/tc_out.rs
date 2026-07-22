@@ -296,11 +296,7 @@ mod tests {
         let dir = TestDir::new("empty");
         let source = dir.path().join("tc_out.txt");
         let target = dir.path().join("tc_out.parquet");
-        fs::write(
-            &source,
-            "Element header\n1 H 99 1 1 0 1.0 2.0 3.0\n",
-        )
-        .expect("write source");
+        fs::write(&source, "Element header\n1 H 99 1 1 0 1.0 2.0 3.0\n").expect("write source");
 
         let summary = watershed_tc_out_to_parquet(
             &source,

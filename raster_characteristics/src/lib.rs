@@ -645,6 +645,8 @@ fn calculate_median(mut values: Vec<f64>) -> f64 {
 
 type MukeyClusterRequest = (String, Vec<u32>, (f64, f64, f64, f64));
 type MukeyClusterResult = (Vec<u32>, Option<f64>, Vec<(u32, usize)>, bool, usize);
+type MukeyGeometryRequest = (String, u32, (f64, f64, f64, f64));
+type MukeyGeometryResult = (u32, Option<f64>, Vec<(u32, usize, usize)>, bool, usize);
 
 fn valid_mukey_support(
     values: &[u32],
@@ -658,6 +660,47 @@ fn valid_mukey_support(
         }
     }
     support
+}
+
+fn valid_mukey_geometry(
+    values: &[u32],
+    width: usize,
+    height: usize,
+    nodata: Option<u32>,
+    source_mukey: u32,
+    valid_mukeys: &HashSet<u32>,
+) -> BTreeMap<u32, (usize, usize)> {
+    let mut geometry = BTreeMap::new();
+    for mukey in values {
+        if Some(*mukey) != nodata && valid_mukeys.contains(mukey) {
+            geometry.entry(*mukey).or_insert((0, 0)).0 += 1;
+        }
+    }
+    for row in 0..height {
+        for col in 0..width {
+            let index = row * width + col;
+            if values[index] != source_mukey {
+                continue;
+            }
+            for (neighbor_row, neighbor_col) in [
+                row.checked_sub(1).zip(Some(col)),
+                row.checked_add(1)
+                    .filter(|candidate| *candidate < height)
+                    .zip(Some(col)),
+                Some(row).zip(col.checked_sub(1)),
+                Some(row).zip(col.checked_add(1).filter(|candidate| *candidate < width)),
+            ]
+            .into_iter()
+            .flatten()
+            {
+                let neighbor = values[neighbor_row * width + neighbor_col];
+                if Some(neighbor) != nodata && valid_mukeys.contains(&neighbor) {
+                    geometry.entry(neighbor).or_insert((0, 0)).1 += 1;
+                }
+            }
+        }
+    }
+    geometry
 }
 
 fn inverse_affine(transform: [f64; 6]) -> Result<[f64; 4], String> {
@@ -803,6 +846,65 @@ fn scan_mukey_cluster(
     }
 }
 
+fn scan_mukey_geometry(
+    raster_path: &str,
+    request: &MukeyGeometryRequest,
+    valid_mukeys: &HashSet<u32>,
+    initial_radius_m: f64,
+    max_radius_m: f64,
+    min_candidates: usize,
+) -> Result<(String, MukeyGeometryResult), String> {
+    let (source_id, source_mukey, bounds) = request;
+    let dataset = Dataset::open(raster_path).map_err(|error| error.to_string())?;
+    let transform = dataset.geo_transform().map_err(|error| error.to_string())?;
+    let (width, height) = dataset.raster_size();
+    let band = dataset.rasterband(1).map_err(|error| error.to_string())?;
+    let nodata = band.no_data_value().map(|value| value as u32);
+    let mut radius = initial_radius_m;
+    let mut pixels_read = 0usize;
+    loop {
+        let mut geometry = BTreeMap::new();
+        if let Some((x, y, window_width, window_height)) =
+            window_for_bounds(*bounds, radius, transform, width, height)?
+        {
+            let buffer = band
+                .read_as::<u32>(
+                    (x, y),
+                    (window_width, window_height),
+                    (window_width, window_height),
+                    None,
+                )
+                .map_err(|error| error.to_string())?;
+            pixels_read += buffer.data.len();
+            geometry = valid_mukey_geometry(
+                &buffer.data,
+                window_width,
+                window_height,
+                nodata,
+                *source_mukey,
+                valid_mukeys,
+            );
+        }
+        if geometry.len() >= min_candidates || radius >= max_radius_m {
+            let exhausted = radius >= max_radius_m && geometry.len() < min_candidates;
+            return Ok((
+                source_id.clone(),
+                (
+                    *source_mukey,
+                    (geometry.len() >= min_candidates).then_some(radius),
+                    geometry
+                        .into_iter()
+                        .map(|(mukey, (support, shared_edges))| (mukey, support, shared_edges))
+                        .collect(),
+                    exhausted,
+                    pixels_read,
+                ),
+            ));
+        }
+        radius = (radius * 2.0).min(max_radius_m);
+    }
+}
+
 /// Return valid MUKEY candidates for adjacent invalid-MUKEY clusters using bounded raster windows.
 ///
 /// ``clusters`` contains ``(cluster_id, source_mukeys, (min_x, min_y, max_x, max_y))`` tuples in
@@ -882,6 +984,83 @@ fn local_mukey_candidates(
     Ok(output)
 }
 
+/// Return per-source local candidate support and shared raster-edge evidence.
+///
+/// ``sources`` contains ``(source_id, source_mukey, bounds)`` tuples in the
+/// raster CRS. Shared edges count four-neighbor source/candidate contacts;
+/// candidate support is reported separately and is not an adjacency measure.
+#[pyfunction]
+#[pyo3(signature = (raster_path, sources, valid_mukeys, initial_radius_m=250.0, max_radius_m=2000.0, min_candidates=1, workers=None))]
+fn local_mukey_geometry(
+    raster_path: &str,
+    sources: Vec<MukeyGeometryRequest>,
+    valid_mukeys: HashSet<u32>,
+    initial_radius_m: f64,
+    max_radius_m: f64,
+    min_candidates: usize,
+    workers: Option<usize>,
+) -> PyResult<BTreeMap<String, MukeyGeometryResult>> {
+    if initial_radius_m <= 0.0 || max_radius_m < initial_radius_m || min_candidates == 0 {
+        return Err(PyValueError::new_err(
+            "radii must be positive and ordered; min_candidates must be positive",
+        ));
+    }
+    let worker_count = workers
+        .unwrap_or_else(|| {
+            thread::available_parallelism()
+                .map(|count| count.get())
+                .unwrap_or(1)
+        })
+        .max(1)
+        .min(sources.len().max(1));
+    let next = AtomicUsize::new(0);
+    let results = Mutex::new(Vec::with_capacity(sources.len()));
+    let failures = Mutex::new(Vec::new());
+    thread::scope(|scope| {
+        for _ in 0..worker_count {
+            scope.spawn(|| loop {
+                let index = next.fetch_add(1, Ordering::Relaxed);
+                if index >= sources.len() {
+                    break;
+                }
+                match scan_mukey_geometry(
+                    raster_path,
+                    &sources[index],
+                    &valid_mukeys,
+                    initial_radius_m,
+                    max_radius_m,
+                    min_candidates,
+                ) {
+                    Ok(result) => results
+                        .lock()
+                        .expect("geometry result lock poisoned")
+                        .push(result),
+                    Err(error) => failures
+                        .lock()
+                        .expect("geometry failure lock poisoned")
+                        .push(error),
+                }
+            });
+        }
+    });
+    if let Some(error) = failures
+        .lock()
+        .expect("geometry failure lock poisoned")
+        .first()
+    {
+        return Err(PyIOError::new_err(error.clone()));
+    }
+    let mut output = BTreeMap::new();
+    for (source_id, result) in results.into_inner().expect("geometry result lock poisoned") {
+        if output.insert(source_id.clone(), result).is_some() {
+            return Err(PyValueError::new_err(format!(
+                "duplicate source_id: {source_id}"
+            )));
+        }
+    }
+    Ok(output)
+}
+
 /// A PyO3 module
 /// This module is a container for the Python-callable functions we define
 #[pymodule]
@@ -895,6 +1074,7 @@ fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(local_mukey_candidates, m)?)?;
+    m.add_function(wrap_pyfunction!(local_mukey_geometry, m)?)?;
     Ok(())
 }
 
@@ -969,6 +1149,23 @@ mod tests {
             &HashSet::from([10, 20]),
         );
         assert_eq!(support, BTreeMap::from([(10, 3), (20, 2)]));
+    }
+
+    #[test]
+    fn valid_mukey_geometry_separates_support_from_shared_edges() {
+        let geometry = valid_mukey_geometry(
+            &[
+                10, 20, 20, // source shares two edges with 20
+                10, 10, 30, // 30 has distinct local support and two shared edges
+                0, 30, 30,
+            ],
+            3,
+            3,
+            Some(0),
+            10,
+            &HashSet::from([20, 30]),
+        );
+        assert_eq!(geometry, BTreeMap::from([(20, (2, 2)), (30, (3, 2))]));
     }
 
     #[test]

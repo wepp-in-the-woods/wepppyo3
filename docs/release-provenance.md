@@ -543,6 +543,29 @@ layouts:
 | --- | --- |
 | `wepp_interchange/wepp_interchange_rust.so` | `3fe8dfd05ad248fa7a49b6f8810ed9bd1a06e8519bd163670df6f58428a0194a` |
 
+### Targeted Refresh: `raster_characteristics` MUKEY geometry evidence
+
+`confirmed`: the `raster_characteristics` release artifact was refreshed for
+the additive `local_mukey_geometry` API on 2026-07-22. The API returns each
+source MUKEY's local valid-candidate support independently from its
+four-neighbor shared-edge count; it is a research-only input to the SSURGO
+fallback scoring experiment.
+
+```sh
+cargo build -p raster_characteristics_rust --release
+cp target/release/libraster_characteristics_rust.so \
+  release/linux/py312/wepppyo3/raster_characteristics/raster_characteristics_rust.so
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 -c \
+  "from wepppyo3.raster_characteristics import local_mukey_geometry; print(callable(local_mukey_geometry))"
+```
+
+`confirmed`: the targeted Rust crate tests and release-tree import check
+passed. Refreshed shared-object SHA256:
+
+| Shared object | SHA256 |
+| --- | --- |
+| `raster_characteristics/raster_characteristics_rust.so` | `4009ec7351ee640cb693dd8f35e5efbc43d36744cd344a1cc25c3b391f6b2095` |
+
 ### Prior Full Refresh Snapshot
 
 `confirmed`: release tree refreshed from local source commit `34ab963842c8` at

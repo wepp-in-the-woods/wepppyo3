@@ -7,6 +7,7 @@ from .raster_characteristics_rust import (
     identify_median_intersecting_raster_keys as _identify_median_intersecting_raster_keys,
     identify_median_single_raster_key as _identify_median_single_raster_key,
     local_mukey_candidates as _local_mukey_candidates,
+    local_mukey_geometry as _local_mukey_geometry,
 )
 
 
@@ -70,6 +71,21 @@ def local_mukey_candidates(
 ):
     return _local_mukey_candidates(
         raster_path, clusters, set(valid_mukeys), initial_radius_m,
+        max_radius_m, min_candidates, workers,
+    )
+
+
+def local_mukey_geometry(
+    raster_path: str,
+    sources,
+    valid_mukeys: Set[int],
+    initial_radius_m: float = 250.0,
+    max_radius_m: float = 2000.0,
+    min_candidates: int = 1,
+    workers: Optional[int] = None,
+):
+    return _local_mukey_geometry(
+        raster_path, sources, set(valid_mukeys), initial_radius_m,
         max_radius_m, min_candidates, workers,
     )
 

@@ -634,9 +634,29 @@ mod tests {
         let version = VersionInfo::new(1, 0);
         let cols = hillslope_wat_to_columns(&wat_path, None, &version).expect("parse failed");
         assert_eq!(cols.p.len(), 1);
+        assert_eq!(cols.dp[0], 0.40);
         assert_eq!(cols.total_soil_water[0], 100.0);
         assert_eq!(cols.soil_water_total[0], None);
         assert_eq!(cols.interception_storage[0], None);
+    }
+
+    #[test]
+    fn parses_widened_scientific_dp_without_shifting_following_fields() {
+        let temp_dir = make_temp_dir("widened_dp");
+        let wat_path = temp_dir.join("H1.wat.dat");
+        write_wat(
+            &wat_path,
+            HEADER_BASE,
+            "     1    1 2000   10.00   10.00   0.0000000E+00    0.10    0.20    0.30   0.9158381E-02   0.0000000E+00    0.00    0.50  100.00    1.25    0.00    0.0000000E+00    0.00    0.00      50.00",
+        );
+
+        let version = VersionInfo::new(1, 0);
+        let cols = hillslope_wat_to_columns(&wat_path, None, &version).expect("parse failed");
+        assert_eq!(cols.dp[0], 0.009158381);
+        assert_eq!(cols.upstrmq[0], 0.0);
+        assert_eq!(cols.subrin[0], 0.0);
+        assert_eq!(cols.latqcc[0], 0.50);
+        assert_eq!(cols.total_soil_water[0], 100.0);
     }
 
     #[test]

@@ -66,6 +66,44 @@ rebuild or replace shared objects implicitly.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: widened WEPP deep-percolation output
+
+`confirmed`: On 2026-07-24, the `wepp_interchange` shared object was rebuilt
+from source commit `f8648d57d7e754f10b83cfcac66e697afe6f5d15`. The parser
+continues to accept the legacy two-decimal hillslope WAT representation and
+also accepts the widened scientific-notation `Dp` field without shifting
+`UpStrmQ`, `SubRIn`, or later fields.
+
+Build and atomic refresh commands:
+
+```sh
+cd /home/workdir/wepppyo3
+PYO3_PYTHON=/usr/bin/python3.12 \
+  PYTHON_SYS_EXECUTABLE=/usr/bin/python3.12 \
+  cargo build -p wepp_interchange_rust --release
+dst=release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+tmp=$(mktemp "$(dirname "$dst")/.wepp_interchange_rust.so.XXXXXX")
+cp target/release/libwepp_interchange_rust.so "$tmp"
+chmod 0755 "$tmp"
+mv -f "$tmp" "$dst"
+```
+
+`confirmed`: validation passed:
+
+- `cargo fmt -p wepp_interchange_rust -- --check`;
+- `cargo check -p wepp_interchange_rust`;
+- `RUSTFLAGS='-C link-arg=-lpython3.12' cargo test -p
+  wepp_interchange_rust`: 83 unit and 17 TC_OUT integration tests passed;
+- canonical release-tree import succeeded; and
+- canonical release-tree `tests/wepp_interchange`: 46 tests passed with one
+  unrelated `pytz` deprecation warning.
+
+Build environment: Python 3.12.3, rustc 1.92.0, and cargo 1.92.0.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `de0c1bdc8cc5e5e0ccebb8b1b6bbfe1b519c9746601721a62f42a96774b5b18f` |
+
 ### Targeted Refresh: bounded categorical SSURGO candidate support
 
 `confirmed`: On 2026-07-22, the `raster_characteristics` shared object was

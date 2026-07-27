@@ -13,8 +13,9 @@ use crate::parquet::{commit_staged, empty_chunk, ParquetSink, StagedParquet, Wri
 use crate::schema::{field_with_meta, schema_with_version, VersionInfo};
 
 const SCHEMA_VERSION: &str = "1";
+const ALL_YEARS_HILL_SCHEMA_VERSION: &str = "2";
 
-const HILL_HEADER: [&str; 11] = [
+const HILL_HEADER: [&str; 12] = [
     "Type",
     "wepp_id",
     "Runoff Volume",
@@ -23,6 +24,7 @@ const HILL_HEADER: [&str; 11] = [
     "Soil Loss",
     "Sediment Deposition",
     "Sediment Yield",
+    "Hillslope Area",
     "Solub. React. Pollutant",
     "Particulate Pollutant",
     "Total Pollutant",
@@ -43,7 +45,7 @@ const HILL_AVG_HEADER: [&str; 12] = [
     "Total Pollutant",
 ];
 
-const HILL_UNITS: [Option<&str>; 11] = [
+const HILL_UNITS: [Option<&str>; 12] = [
     None,
     None,
     Some("m^3"),
@@ -52,6 +54,7 @@ const HILL_UNITS: [Option<&str>; 11] = [
     Some("kg"),
     Some("kg"),
     Some("kg"),
+    Some("ha"),
     Some("kg"),
     Some("kg"),
     Some("kg"),
@@ -158,6 +161,7 @@ const UNIT_CONSISTENCY_MAP: [(&str, &str); 3] = [
 
 #[derive(Debug, Clone)]
 enum LossValue {
+    Missing,
     Int(i32),
     Float(f64),
     Str(String),
@@ -376,6 +380,12 @@ fn hill_schemas(version: &VersionInfo, average_years: Option<i16>) -> (Schema, S
         Schema::new(hill_fields).with_metadata(loss_metadata("loss_pw0.all_years.hill")),
         version,
     );
+    let mut hill_metadata = hill_schema.metadata().clone();
+    hill_metadata.insert(
+        "schema_version".to_string(),
+        ALL_YEARS_HILL_SCHEMA_VERSION.to_string(),
+    );
+    let hill_schema = hill_schema.with_metadata(hill_metadata);
 
     let mut avg_fields = vec![field_with_meta("Type", DataType::Utf8, None, None)];
     for (idx, name) in HILL_AVG_HEADER.iter().enumerate().skip(1) {
@@ -704,6 +714,7 @@ fn build_chunk(
 
 fn coerce_int(value: Option<&LossValue>) -> Option<i32> {
     match value? {
+        LossValue::Missing => None,
         LossValue::Int(v) => Some(*v),
         LossValue::Float(v) => {
             if v.is_nan() {
@@ -731,6 +742,7 @@ fn coerce_int(value: Option<&LossValue>) -> Option<i32> {
 
 fn coerce_float(value: Option<&LossValue>) -> Option<f64> {
     match value? {
+        LossValue::Missing => None,
         LossValue::Int(v) => Some(*v as f64),
         LossValue::Float(v) => Some(*v),
         LossValue::Str(s) => {
@@ -748,6 +760,7 @@ fn coerce_float(value: Option<&LossValue>) -> Option<f64> {
 
 fn coerce_string(value: Option<&LossValue>) -> Option<String> {
     match value? {
+        LossValue::Missing => None,
         LossValue::Int(v) => Some(v.to_string()),
         LossValue::Float(v) => Some(v.to_string()),
         LossValue::Str(s) => Some(s.clone()),
@@ -819,6 +832,7 @@ fn parse_loss_file(path: &Path) -> Result<ParsedLossData, InterchangeError> {
     let mut parsed = ParsedLossData::default();
     parsed.average_years = average_years;
 
+    let mut annual_hill_width: Option<usize> = None;
     for (idx, year) in yearly_sections {
         let (hill_start, chn_start, out_start) = find_tbl_starts(idx, &lines, path)?;
         let next_section = section_indices
@@ -827,7 +841,12 @@ fn parse_loss_file(path: &Path) -> Result<ParsedLossData, InterchangeError> {
             .find(|pos| *pos > idx)
             .unwrap_or(lines.len());
 
-        let hill_rows = parse_tbl(&lines[hill_start..], HILL_HEADER.len(), path, hill_start)?;
+        let hill_rows = parse_annual_hill_tbl(
+            &lines[hill_start..],
+            path,
+            hill_start,
+            &mut annual_hill_width,
+        )?;
         for row in hill_rows {
             parsed.yearly_hill.push(row);
             parsed.yearly_hill_years.push(year);
@@ -950,6 +969,65 @@ fn parse_tbl(
                 ),
                 None,
             ));
+        }
+        data.push(row);
+    }
+    Ok(data)
+}
+
+fn parse_annual_hill_tbl(
+    lines: &[String],
+    path: &Path,
+    start_line: usize,
+    expected_width: &mut Option<usize>,
+) -> Result<Vec<Vec<LossValue>>, InterchangeError> {
+    const LEGACY_HEADER_LEN: usize = 11;
+    const HILLSLOPE_AREA_INDEX: usize = 8;
+
+    let mut data: Vec<Vec<LossValue>> = Vec::new();
+    for (idx, line) in lines.iter().enumerate() {
+        if line.is_empty() {
+            break;
+        }
+        let mut row: Vec<LossValue> = Vec::new();
+        let line_no = start_line + idx + 1;
+        for token in line.split_whitespace() {
+            extend_row_from_token(&mut row, token, line, path, line_no)?;
+        }
+        let actual = row.len();
+        if let Some(expected) = *expected_width {
+            if actual != expected {
+                return Err(InterchangeError::parse(
+                    path,
+                    Some(line_no),
+                    format!(
+                        "Mixed annual hillslope loss layouts: expected {expected} columns \
+                         from the first annual Hill row, got {actual}, line={line:?}"
+                    ),
+                    None,
+                ));
+            }
+        } else if actual == LEGACY_HEADER_LEN || actual == HILL_HEADER.len() {
+            *expected_width = Some(actual);
+        }
+
+        match actual {
+            LEGACY_HEADER_LEN => {
+                row.insert(HILLSLOPE_AREA_INDEX, LossValue::Missing);
+            }
+            len if len == HILL_HEADER.len() => {}
+            actual => {
+                return Err(InterchangeError::parse(
+                    path,
+                    Some(line_no),
+                    format!(
+                        "Unexpected column count while parsing annual hillslope loss table: \
+                         expected {LEGACY_HEADER_LEN} or {}, got {actual}, line={line:?}",
+                        HILL_HEADER.len()
+                    ),
+                    None,
+                ));
+            }
         }
         data.push(row);
     }
@@ -1230,6 +1308,86 @@ mod tests {
                     .unwrap_or(false)
             })
             .collect()
+    }
+
+    #[test]
+    fn annual_hill_parser_preserves_current_hillslope_area_and_pollutants() {
+        let lines = vec![
+            "Hill 1 768.0 13741.4 118.0 0.0 -0.0 0.0 1.539 0.1 0.2 0.3".to_string(),
+            String::new(),
+        ];
+        let rows = parse_annual_hill_tbl(&lines, Path::new("loss_pw0.txt"), 549, &mut None)
+            .expect("parse current annual hillslope row");
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].len(), HILL_HEADER.len());
+        assert_eq!(coerce_float(rows[0].get(6)), Some(0.0));
+        assert_eq!(coerce_float(rows[0].get(7)), Some(0.0));
+        assert_eq!(coerce_float(rows[0].get(8)), Some(1.539));
+        assert_eq!(coerce_float(rows[0].get(9)), Some(0.1));
+        assert_eq!(coerce_float(rows[0].get(10)), Some(0.2));
+        assert_eq!(coerce_float(rows[0].get(11)), Some(0.3));
+    }
+
+    #[test]
+    fn annual_hill_parser_accepts_exact_incident_row() {
+        let lines = vec![
+            "Hill 1 768.0 13741.4 118.0 0.0 -0.0 0.0 1.539 0.0 0.0 0.0".to_string(),
+            String::new(),
+        ];
+        let rows = parse_annual_hill_tbl(&lines, Path::new("loss_pw0.txt"), 549, &mut None)
+            .expect("parse exact production incident row");
+        assert_eq!(coerce_float(rows[0].get(8)), Some(1.539));
+        assert_eq!(coerce_float(rows[0].get(9)), Some(0.0));
+        assert_eq!(coerce_float(rows[0].get(10)), Some(0.0));
+        assert_eq!(coerce_float(rows[0].get(11)), Some(0.0));
+    }
+
+    #[test]
+    fn annual_hill_parser_normalizes_legacy_row_with_null_area() {
+        let lines = vec![
+            "Hill 1 768.0 13741.4 118.0 0.0 -0.0 0.0 0.1 0.2 0.3".to_string(),
+            String::new(),
+        ];
+        let rows = parse_annual_hill_tbl(&lines, Path::new("loss_pw0.txt"), 549, &mut None)
+            .expect("parse legacy annual hillslope row");
+        assert_eq!(rows[0].len(), HILL_HEADER.len());
+        assert_eq!(coerce_float(rows[0].get(8)), None);
+        assert_eq!(coerce_float(rows[0].get(9)), Some(0.1));
+        assert_eq!(coerce_float(rows[0].get(10)), Some(0.2));
+        assert_eq!(coerce_float(rows[0].get(11)), Some(0.3));
+    }
+
+    #[test]
+    fn annual_hill_parser_rejects_unknown_row_width() {
+        for (line, actual) in [
+            ("Hill 1 1 1 1 1 1 1 1 1", 10),
+            ("Hill 1 1 1 1 1 1 1 1 1 1 1 1", 13),
+        ] {
+            let lines = vec![line.to_string(), String::new()];
+            let err = parse_annual_hill_tbl(&lines, Path::new("loss_pw0.txt"), 549, &mut None)
+                .expect_err("unknown annual hillslope row width must fail");
+            let message = err.to_string();
+            assert!(
+                message.contains(&format!("expected 11 or 12, got {actual}")),
+                "{message}"
+            );
+        }
+    }
+
+    #[test]
+    fn annual_hill_parser_rejects_mixed_layouts() {
+        let lines = vec![
+            "Hill 1 768.0 13741.4 118.0 0.0 -0.0 0.0 1.539 0.1 0.2 0.3".to_string(),
+            "Hill 2 870.1 8719.1 67.8 683.9 -0.0 683.9 0.1 0.2 0.3".to_string(),
+            String::new(),
+        ];
+        let err = parse_annual_hill_tbl(&lines, Path::new("loss_pw0.txt"), 549, &mut None)
+            .expect_err("mixed annual hillslope layouts must fail");
+        assert!(
+            err.to_string()
+                .contains("expected 12 columns from the first annual Hill row, got 11"),
+            "{err}"
+        );
     }
 
     #[test]

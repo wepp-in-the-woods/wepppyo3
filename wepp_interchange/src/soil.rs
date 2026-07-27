@@ -86,6 +86,15 @@ const LEGACY_MEASUREMENT_COLUMNS: [&str; 9] = [
 ];
 
 fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option<Vec<String>> {
+    split_soil_row_fixed_width_with_ofe_width(raw_line, expected_columns, 5)
+        .or_else(|| split_soil_row_fixed_width_with_ofe_width(raw_line, expected_columns, 2))
+}
+
+fn split_soil_row_fixed_width_with_ofe_width(
+    raw_line: &str,
+    expected_columns: usize,
+    ofe_width: usize,
+) -> Option<Vec<String>> {
     if expected_columns != LEGACY_HEADER.len()
         && expected_columns != RAW_HEADER.len()
         && expected_columns != TSMF_HEADER.len()
@@ -104,10 +113,10 @@ fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option
         Some(chunk)
     }
 
-    // Matches `watbal.for` / `watbal_hourly.for` soil output:
-    //   1x,i2,2x,i3,2x,i5,1x,9f7.2,[1x,f7.2,1x,f7.2,[1x,f7.4]]
+    // Matches current and historical `watbal` SOIL output:
+    //   1x,i5|i2,2x,i3,2x,i5,1x,9f7.2,[1x,f7.2,1x,f7.2,[1x,f7.4]]
     take(raw_line, &mut idx, 1)?;
-    tokens.push(take(raw_line, &mut idx, 2)?.trim().to_string()); // OFE
+    tokens.push(take(raw_line, &mut idx, ofe_width)?.trim().to_string()); // OFE
     take(raw_line, &mut idx, 2)?;
     tokens.push(take(raw_line, &mut idx, 3)?.trim().to_string()); // Day
     take(raw_line, &mut idx, 2)?;
@@ -134,6 +143,86 @@ fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option
     take(raw_line, &mut idx, 1)?;
     tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSMF
     Some(tokens)
+}
+
+#[derive(Default)]
+struct LegacyOfeOverflowTracker {
+    current_date: Option<(i16, i16)>,
+    next_ofe: i16,
+    current_day_overflowed: bool,
+    overflow_seen: bool,
+    expected_daily_rows: Option<i16>,
+}
+
+impl LegacyOfeOverflowTracker {
+    fn resolve(&mut self, token: &str, year: i16, julian: i16) -> Result<i16, String> {
+        let date = (year, julian);
+        if self.current_date != Some(date) {
+            self.finish_day()?;
+            self.current_date = Some(date);
+            self.next_ofe = 1;
+            self.current_day_overflowed = false;
+        }
+
+        let ofe = if token == "**" {
+            if self.next_ofe < 100 {
+                return Err(format!(
+                    "Legacy OFE overflow marker appeared before OFE 100; expected {}",
+                    self.next_ofe
+                ));
+            }
+            self.current_day_overflowed = true;
+            self.overflow_seen = true;
+            self.next_ofe
+        } else {
+            let parsed = token
+                .parse::<i16>()
+                .map_err(|_| format!("Invalid OFE id: {token}"))?;
+            if self.current_day_overflowed {
+                return Err(format!(
+                    "Numeric OFE {parsed} appeared after a legacy overflow marker"
+                ));
+            }
+            if parsed != self.next_ofe {
+                return Err(format!(
+                    "Non-contiguous OFE sequence: expected {}, got {parsed}",
+                    self.next_ofe
+                ));
+            }
+            parsed
+        };
+
+        self.next_ofe = self
+            .next_ofe
+            .checked_add(1)
+            .ok_or_else(|| "OFE sequence exceeds Int16 capacity".to_string())?;
+        Ok(ofe)
+    }
+
+    fn finish_day(&mut self) -> Result<(), String> {
+        if self.current_date.is_none() {
+            return Ok(());
+        }
+        let rows = self.next_ofe - 1;
+        if self.overflow_seen {
+            if !self.current_day_overflowed {
+                return Err(
+                    "Legacy OFE overflow layout changed: a day contained no overflow markers"
+                        .to_string(),
+                );
+            }
+            match self.expected_daily_rows {
+                Some(expected) if rows != expected => {
+                    return Err(format!(
+                        "Legacy OFE overflow layout changed: expected {expected} rows, got {rows}"
+                    ));
+                }
+                None => self.expected_daily_rows = Some(rows),
+                _ => {}
+            }
+        }
+        Ok(())
+    }
 }
 
 pub fn soil_schema(version: &VersionInfo) -> Schema {
@@ -313,6 +402,7 @@ pub fn watershed_soil_to_parquet(
     let mut expected_tokens = RAW_HEADER.len();
 
     let mut row_counter: usize = 0;
+    let mut legacy_ofe_tracker = LegacyOfeOverflowTracker::default();
 
     while let Some((line_no, line)) = line_reader.next_line()? {
         let stripped = line.trim();
@@ -366,7 +456,9 @@ pub fn watershed_soil_to_parquet(
             continue;
         }
         let tokens: Vec<&str> = stripped.split_whitespace().collect();
-        if tokens.is_empty() || !tokens[0].chars().all(|c| c.is_ascii_digit()) {
+        if tokens.is_empty()
+            || (tokens[0] != "**" && !tokens[0].chars().all(|c| c.is_ascii_digit()))
+        {
             return Err(InterchangeError::parse(
                 soil_path,
                 Some(line_no),
@@ -397,14 +489,6 @@ pub fn watershed_soil_to_parquet(
             }
         }
 
-        let ofe = tokens[0].parse::<i16>().map_err(|_| {
-            InterchangeError::parse(
-                soil_path,
-                Some(line_no),
-                "Invalid OFE id",
-                Some(line.clone()),
-            )
-        })?;
         let julian = tokens[1].parse::<i16>().map_err(|_| {
             InterchangeError::parse(
                 soil_path,
@@ -416,6 +500,11 @@ pub fn watershed_soil_to_parquet(
         let year = tokens[2].parse::<i16>().map_err(|_| {
             InterchangeError::parse(soil_path, Some(line_no), "Invalid year", Some(line.clone()))
         })?;
+        let ofe = legacy_ofe_tracker
+            .resolve(&tokens[0], year, julian)
+            .map_err(|message| {
+                InterchangeError::parse(soil_path, Some(line_no), message, Some(line.clone()))
+            })?;
 
         let mut values_map = std::collections::HashMap::new();
         for (column, token) in measurement_columns.iter().zip(tokens[3..].iter()) {
@@ -454,6 +543,10 @@ pub fn watershed_soil_to_parquet(
             writer.write_chunk(chunk)?;
         }
     }
+
+    legacy_ofe_tracker
+        .finish_day()
+        .map_err(|message| InterchangeError::parse(soil_path, None, message, None))?;
 
     if store.len() > 0 {
         let chunk = store.to_chunk(&schema);
@@ -510,5 +603,70 @@ fn open_soil_reader(path: &Path) -> Result<Box<dyn BufRead>, InterchangeError> {
         Ok(Box::new(BufReader::new(decoder)))
     } else {
         Ok(Box::new(BufReader::new(file)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LegacyOfeOverflowTracker;
+
+    fn feed_day(
+        tracker: &mut LegacyOfeOverflowTracker,
+        year: i16,
+        julian: i16,
+        rows: i16,
+    ) -> Result<Vec<i16>, String> {
+        (1..=rows)
+            .map(|ofe| {
+                let token = if ofe < 100 {
+                    ofe.to_string()
+                } else {
+                    "**".to_string()
+                };
+                tracker.resolve(&token, year, julian)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn reconstructs_uniform_legacy_overflow_days() {
+        let mut tracker = LegacyOfeOverflowTracker::default();
+        let first = feed_day(&mut tracker, 2020, 1, 238).unwrap();
+        let second = feed_day(&mut tracker, 2020, 2, 238).unwrap();
+        tracker.finish_day().unwrap();
+
+        assert_eq!(first, (1..=238).collect::<Vec<_>>());
+        assert_eq!(second, first);
+    }
+
+    #[test]
+    fn rejects_overflow_before_100() {
+        let mut tracker = LegacyOfeOverflowTracker::default();
+        for ofe in 1..99 {
+            tracker.resolve(&ofe.to_string(), 2020, 1).unwrap();
+        }
+        assert!(tracker.resolve("**", 2020, 1).is_err());
+    }
+
+    #[test]
+    fn rejects_numeric_id_after_overflow() {
+        let mut tracker = LegacyOfeOverflowTracker::default();
+        feed_day(&mut tracker, 2020, 1, 100).unwrap();
+        assert!(tracker.resolve("101", 2020, 1).is_err());
+    }
+
+    #[test]
+    fn rejects_numeric_gap() {
+        let mut tracker = LegacyOfeOverflowTracker::default();
+        tracker.resolve("1", 2020, 1).unwrap();
+        assert!(tracker.resolve("3", 2020, 1).is_err());
+    }
+
+    #[test]
+    fn rejects_inconsistent_legacy_day_size() {
+        let mut tracker = LegacyOfeOverflowTracker::default();
+        feed_day(&mut tracker, 2020, 1, 238).unwrap();
+        feed_day(&mut tracker, 2020, 2, 237).unwrap();
+        assert!(tracker.finish_day().is_err());
     }
 }

@@ -659,6 +659,36 @@ passed. Refreshed shared-object SHA256:
 | --- | --- |
 | `raster_characteristics/raster_characteristics_rust.so` | `a5df2ac0836087e1c54d8137afb39d8607b41465f126ecb648bab92441d2567e` |
 
+### Targeted Refresh: annual LOSS hillslope area
+
+`confirmed`: the `wepp_interchange` release artifact was rebuilt from source
+commit `fc3e361` on 2026-07-27. The annual watershed LOSS parser accepts the
+uniform historical 11-field hillslope layout and the corrected uniform
+12-field layout. Historical rows receive a null `Hillslope Area`; corrected
+rows preserve the emitted area in hectares. Mixed or other-width layouts fail
+explicitly.
+
+```sh
+cargo fmt --check
+cargo test -p wepp_interchange_rust
+cargo build -p wepp_interchange_rust --release
+cp target/release/libwepp_interchange_rust.so \
+  release/linux/py312/wepppyo3/wepp_interchange/.wepp_interchange_rust.so.new
+mv release/linux/py312/wepppyo3/wepp_interchange/.wepp_interchange_rust.so.new \
+  release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+PYTHONPATH=/workdir/wepppyo3/release/linux/py312 python3.12 -c \
+  "import wepppyo3.wepp_interchange.wepp_interchange_rust"
+```
+
+`confirmed`: Rust 1.92.0 built the Python 3.12 artifact. All 105 targeted Rust
+tests passed. Five WEPPpyo3 native-writer tests and 95 targeted WEPPpy
+interchange and consumer tests passed in the WEPPpy container against the
+release-tree shared object. The standalone release-tree import also passed.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `faa9173665aee64e92ce077488121cc21b7a1cc06cb771b280df81c7862299f1` |
+
 ### Prior Full Refresh Snapshot
 
 `confirmed`: release tree refreshed from local source commit `34ab963842c8` at

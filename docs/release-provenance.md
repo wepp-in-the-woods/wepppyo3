@@ -689,6 +689,23 @@ release-tree shared object. The standalone release-tree import also passed.
 | --- | --- |
 | `wepp_interchange/wepp_interchange_rust.so` | `faa9173665aee64e92ce077488121cc21b7a1cc06cb771b280df81c7862299f1` |
 
+### Targeted Refresh: watershed SOIL OFE overflow recovery
+
+`confirmed`: the `wepp_interchange` release artifact was rebuilt from source
+commit `de575bc` on 2026-07-27. The watershed SOIL parser accepts current
+widened numeric OFE fields and reconstructs historical `**` identifiers only
+when daily identifiers are contiguous, overflow begins at 100, and every day
+has the same complete layout.
+
+Rust 1.92.0 built the Python 3.12 artifact. All 110 targeted Rust tests passed.
+The release-tree import passed. The release artifact converted the synced
+521,696-row `mdobre-foursquare-fovea` incident file and reconstructed exact
+daily OFEs 1 through 238.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `61db1daa36c7383f897e52e640e092b00490d04bab646b95e0b55ed608851777` |
+
 ### Prior Full Refresh Snapshot
 
 `confirmed`: release tree refreshed from local source commit `34ab963842c8` at

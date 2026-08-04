@@ -211,9 +211,6 @@ fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option
         return None;
     }
 
-    let mut idx: usize = 0;
-    let mut tokens: Vec<String> = Vec::with_capacity(expected_columns);
-
     fn take<'a>(line: &'a str, idx: &mut usize, n: usize) -> Option<&'a str> {
         let start = *idx;
         let end = start.saturating_add(n);
@@ -222,36 +219,55 @@ fn split_soil_row_fixed_width(raw_line: &str, expected_columns: usize) -> Option
         Some(chunk)
     }
 
-    // Matches `watbal.for` / `watbal_hourly.for` soil output:
-    //   1x,i2,2x,i3,2x,i5,1x,9f7.2,[1x,f7.2,1x,f7.2,[1x,f7.4]]
-    take(raw_line, &mut idx, 1)?;
-    tokens.push(take(raw_line, &mut idx, 2)?.trim().to_string()); // OFE
-    take(raw_line, &mut idx, 2)?;
-    tokens.push(take(raw_line, &mut idx, 3)?.trim().to_string()); // Day
-    take(raw_line, &mut idx, 2)?;
-    tokens.push(take(raw_line, &mut idx, 5)?.trim().to_string()); // Y
-    take(raw_line, &mut idx, 1)?;
+    fn split_with_ofe_width(
+        raw_line: &str,
+        expected_columns: usize,
+        ofe_width: usize,
+    ) -> Option<Vec<String>> {
+        let mut idx: usize = 0;
+        let mut tokens: Vec<String> = Vec::with_capacity(expected_columns);
 
-    for _ in 0..9 {
-        tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string());
+        take(raw_line, &mut idx, 1)?;
+        tokens.push(take(raw_line, &mut idx, ofe_width)?.trim().to_string());
+        take(raw_line, &mut idx, 2)?;
+        tokens.push(take(raw_line, &mut idx, 3)?.trim().to_string()); // Day
+        take(raw_line, &mut idx, 2)?;
+        tokens.push(take(raw_line, &mut idx, 5)?.trim().to_string()); // Y
+        take(raw_line, &mut idx, 1)?;
+
+        for _ in 0..9 {
+            tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string());
+        }
+
+        if expected_columns != LEGACY_HEADER.len() {
+            take(raw_line, &mut idx, 1)?;
+            tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // Saturation
+            take(raw_line, &mut idx, 1)?;
+            tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSW
+        }
+
+        if expected_columns == TSMF_HEADER.len() {
+            take(raw_line, &mut idx, 1)?;
+            tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSMF
+        }
+
+        if tokens.len() == expected_columns
+            && tokens
+                .iter()
+                .all(|token| !token.is_empty() && token.parse::<f64>().is_ok())
+        {
+            Some(tokens)
+        } else {
+            None
+        }
     }
 
-    if expected_columns == LEGACY_HEADER.len() {
-        return Some(tokens);
-    }
-
-    take(raw_line, &mut idx, 1)?;
-    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // Saturation
-    take(raw_line, &mut idx, 1)?;
-    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSW
-
-    if expected_columns == RAW_HEADER.len() {
-        return Some(tokens);
-    }
-
-    take(raw_line, &mut idx, 1)?;
-    tokens.push(take(raw_line, &mut idx, 7)?.trim().to_string()); // TSMF
-    Some(tokens)
+    // Current WEPP uses i5 for OFE after the 2026-07 overflow repair; older
+    // releases used i2. Try both complete fixed-width contracts and accept only
+    // a fully numeric reconstruction so a shifted layout cannot be selected.
+    //   1x,i[5|2],2x,i3,2x,i5,1x,9f7.2,[1x,f7.2,1x,f7.2,[1x,f7.4]]
+    split_with_ofe_width(raw_line, expected_columns, 5)
+        .or_else(|| split_with_ofe_width(raw_line, expected_columns, 2))
 }
 
 pub fn hillslope_soil_to_columns(

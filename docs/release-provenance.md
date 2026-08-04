@@ -66,6 +66,32 @@ rebuild or replace shared objects implicitly.
 
 ## Latest Refresh Evidence (py312)
 
+### Targeted Refresh: widened hillslope SOIL OFE recovery
+
+`confirmed`: On 2026-08-03, the `wepp_interchange` shared object was rebuilt
+from source based on commit `926cf1652883`. Hillslope SOIL fixed-width
+recovery now accepts both the historical `i2` and current `i5` OFE layouts and
+requires every reconstructed field to be numeric before accepting a layout.
+The exact `manual-rustle` failure row from `wepp_260727` is retained as a
+regression fixture and includes the trailing `TSMF` field.
+
+Validation passed:
+
+- `cargo fmt -p wepp_interchange_rust -- --check`;
+- `cargo check -p wepp_interchange_rust`;
+- `RUSTFLAGS='-C link-arg=-lpython3.12' cargo test -p
+  wepp_interchange_rust`: 93 unit and 17 TC_OUT integration tests passed;
+- release-tree fixed-width Python tests: 3 passed; and
+- the complete 36,525-row production `H111.soil.dat` converted with zero
+  rejected records.
+
+The canonical Python package version was advanced to `2026.08.03`. WEPPpy
+pins this artifact hash in its service-start preflight.
+
+| Shared object | SHA256 |
+| --- | --- |
+| `wepp_interchange/wepp_interchange_rust.so` | `9607fb39ee82aca6f00946a8b9100932155a4ef8e3a78e7f2a483d9421c31a77` |
+
 ### Targeted Refresh: widened WEPP deep-percolation output
 
 `confirmed`: On 2026-07-24, the `wepp_interchange` shared object was rebuilt

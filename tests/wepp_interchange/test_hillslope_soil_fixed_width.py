@@ -114,7 +114,55 @@ class TestHillslopeSoilFixedWidth(unittest.TestCase):
         self.assertIn("TSMF", columns)
         self.assertAlmostEqual(columns["TSMF"][0], 0.1234, places=4)
 
+    def test_recovers_widened_ofe_with_touching_values_and_tsmf(self):
+        header = [
+            "OFE",
+            "Day",
+            "Y",
+            "Poros",
+            "Keff",
+            "Suct",
+            "FC",
+            "WP",
+            "Rough",
+            "Ki",
+            "Kr",
+            "Tauc",
+            "Saturation",
+            "TSW",
+            "TSMF",
+        ]
+        units = [
+            "%",
+            "mm/hr",
+            "mm",
+            "mm/mm",
+            "mm/mm",
+            "mm",
+            "adjsmt",
+            "adjsmt",
+            "adjsmt",
+            "frac",
+            "mm",
+            "frac",
+        ]
+        # Exact failure from manual-rustle under the widened i5 OFE contract
+        # used by wepp_260727 and wepp_260803.
+        row = "     1  244     14   47.831119.01   7.99   0.14   0.07  20.00   0.03   0.27   1.48    0.99   47.13  0.8597"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            soil_path = self._write_soil_file(tmpdir, "H111.soil.dat", header, units, [row])
+
+            columns = hillslope_soil_to_columns(str(soil_path), 0, 0)
+
+        self.assertEqual(columns["wepp_id"], [111])
+        self.assertEqual(columns["OFE"], [1])
+        self.assertEqual(columns["julian"], [244])
+        self.assertEqual(columns["year"], [14])
+        self.assertAlmostEqual(columns["Poros"][0], 47.83, places=2)
+        self.assertAlmostEqual(columns["Keff"][0], 1119.01, places=2)
+        self.assertAlmostEqual(columns["TSMF"][0], 0.8597, places=4)
+
 
 if __name__ == "__main__":
     unittest.main()
-

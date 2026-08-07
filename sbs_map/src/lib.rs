@@ -58,6 +58,8 @@ fn default_color_map() -> HashMap<(i32, i32, i32), String> {
     map.insert((0, 100, 0), "unburned".to_string());
     map.insert((0, 0, 0), "unburned".to_string());
     map.insert((0, 115, 74), "unburned".to_string());
+    map.insert((0, 128, 128), "unburned".to_string());
+    map.insert((0, 158, 115), "unburned".to_string());
     map.insert((0, 175, 166), "unburned".to_string());
     map.insert((102, 204, 204), "low".to_string());
     map.insert((102, 205, 205), "low".to_string());
@@ -65,25 +67,85 @@ fn default_color_map() -> HashMap<(i32, i32, i32), String> {
     map.insert((127, 255, 212), "low".to_string());
     map.insert((0, 255, 255), "low".to_string());
     map.insert((77, 230, 0), "low".to_string());
+    map.insert((82, 204, 204), "low".to_string());
+    map.insert((86, 180, 233), "low".to_string());
     map.insert((255, 255, 0), "mod".to_string());
     map.insert((255, 232, 32), "mod".to_string());
+    map.insert((240, 228, 66), "mod".to_string());
+    map.insert((168, 0, 0), "high".to_string());
+    map.insert((204, 121, 167), "high".to_string());
     map.insert((255, 0, 0), "high".to_string());
     map
 }
 
+#[cfg(test)]
+mod tests {
+    use super::{apply_nodata_output, default_color_map, load_color_map_from_path};
+    use std::fs;
+
+    #[test]
+    fn default_color_map_contains_current_interagency_palette() {
+        let colors = default_color_map();
+        assert_eq!(
+            colors.get(&(0, 128, 128)).map(String::as_str),
+            Some("unburned")
+        );
+        assert_eq!(colors.get(&(82, 204, 204)).map(String::as_str), Some("low"));
+        assert_eq!(colors.get(&(255, 232, 32)).map(String::as_str), Some("mod"));
+        assert_eq!(colors.get(&(168, 0, 0)).map(String::as_str), Some("high"));
+    }
+
+    #[test]
+    fn missing_and_corrupt_color_maps_use_the_builtin_palette() {
+        let missing =
+            std::env::temp_dir().join(format!("wepppyo3-sbs-missing-{}.json", std::process::id()));
+        let missing_colors = load_color_map_from_path(missing.to_str().unwrap());
+        assert_eq!(
+            missing_colors.get(&(0, 128, 128)).map(String::as_str),
+            Some("unburned")
+        );
+
+        let corrupt =
+            std::env::temp_dir().join(format!("wepppyo3-sbs-corrupt-{}.json", std::process::id()));
+        fs::write(&corrupt, "not json").unwrap();
+        let corrupt_colors = load_color_map_from_path(corrupt.to_str().unwrap());
+        fs::remove_file(corrupt).unwrap();
+        assert_eq!(
+            corrupt_colors.get(&(168, 0, 0)).map(String::as_str),
+            Some("high")
+        );
+    }
+
+    #[test]
+    fn export_nodata_override_writes_255_without_changing_model_fallback() {
+        let nodata = [-9999];
+        assert_eq!(apply_nodata_output(-9999.0, &nodata, 0, Some(255)), 255);
+        assert_eq!(apply_nodata_output(-9999.0, &nodata, 130, None), 130);
+        assert_eq!(apply_nodata_output(3.0, &nodata, 3, Some(255)), 3);
+    }
+}
+
+fn load_color_map_from_path(path: &str) -> HashMap<(i32, i32, i32), String> {
+    let Ok(contents) = fs::read_to_string(path) else {
+        return default_color_map();
+    };
+    let Ok(parsed) = serde_json::from_str::<ColorMapFile>(&contents) else {
+        return default_color_map();
+    };
+    let mut map = HashMap::new();
+    for entry in parsed.colors {
+        map.insert((entry.rgb[0], entry.rgb[1], entry.rgb[2]), entry.severity);
+    }
+    if map.is_empty() {
+        default_color_map()
+    } else {
+        map
+    }
+}
+
 fn load_color_map(path: Option<&str>) -> PyResult<HashMap<(i32, i32, i32), String>> {
     match path {
-        Some(p) if !p.trim().is_empty() => {
-            let contents = fs::read_to_string(p)
-                .map_err(|e| pyo3::exceptions::PyIOError::new_err(format!("{}", e)))?;
-            let parsed: ColorMapFile = serde_json::from_str(&contents)
-                .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("{}", e)))?;
-            let mut map = HashMap::new();
-            for entry in parsed.colors {
-                map.insert((entry.rgb[0], entry.rgb[1], entry.rgb[2]), entry.severity);
-            }
-            Ok(map)
-        }
+        Some(p) if !p.trim().is_empty() => Ok(load_color_map_from_path(p)),
         _ => Ok(default_color_map()),
     }
 }
@@ -523,6 +585,14 @@ fn add_offset(offset: u8, code: u8) -> u8 {
     }
 }
 
+fn apply_nodata_output(v: f64, nodata: &[i64], classified: u8, nodata_output: Option<u8>) -> u8 {
+    if is_nodata(v, nodata) {
+        nodata_output.unwrap_or(classified)
+    } else {
+        classified
+    }
+}
+
 fn classify_breaks(v: f64, breaks: &[f64], nodata: &[i64], offset: u8) -> u8 {
     if is_nodata(v, nodata) {
         return offset;
@@ -559,6 +629,7 @@ fn classify_band(
     nodata: &[i64],
     offset: u8,
     transpose: bool,
+    nodata_output: Option<u8>,
 ) -> Result<Vec<u8>, GdalError> {
     let (width, height) = band.size();
     let (_, mut block_y) = band.block_size();
@@ -582,6 +653,7 @@ fn classify_band(
                     ClassifierMode::Breaks(breaks) => classify_breaks(v, breaks, nodata, offset),
                     ClassifierMode::Ct(value_map) => classify_ct(v, value_map, nodata, offset),
                 };
+                let class_val = apply_nodata_output(v, nodata, class_val, nodata_output);
                 let idx = if transpose {
                     col * height + out_row
                 } else {
@@ -933,7 +1005,7 @@ fn reclassify_sbs_raster(
     };
 
     let nodata_vals = nodata_to_i64(nodata);
-    let out = classify_band(&band, &classifier, &nodata_vals, offset, true)
+    let out = classify_band(&band, &classifier, &nodata_vals, offset, true, None)
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{}", e)))?;
 
     let (width, height) = band.size();
@@ -985,7 +1057,7 @@ fn export_sbs_4class(
     };
 
     let nodata_vals = nodata_to_i64(nodata);
-    let out = classify_band(&band, &classifier, &nodata_vals, 0, false)
+    let out = classify_band(&band, &classifier, &nodata_vals, 0, false, Some(255))
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{}", e)))?;
 
     let (width, height) = band.size();

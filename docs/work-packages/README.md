@@ -18,6 +18,11 @@ All evidence artifacts must separate:
 - `Ran:` executed command evidence.
 
 ## Package index
+- `20260907-totalwatsed3-native-producer-001/`
+  - Status: `ready`
+  - Purpose: replace WEPPpy's Python/DuckDB `totalwatsed3` producer with a
+    required, bounded-memory `wepppyo3.wepp_interchange` implementation and
+    prove parity and performance on Forest/HPC fixtures.
 - `20260524-arrow01-migrate-arrow2-to-arrow-rs-001/`
   - Status: `completed`
   - Purpose: migrate `wepppyo3` from deprecated `arrow2`/`parquet2` to

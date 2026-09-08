@@ -1,0 +1,5713 @@
+{
+  "evidence": "confirmed",
+  "run": "throbbing-sylvan",
+  "source_sha256": "303707b3997b0d2a9335e315bba27279f75713a0cdf185c30b8436a74aa5068c",
+  "mapping": {
+    "1": 11,
+    "2": 21,
+    "3": 31,
+    "4": 41,
+    "5": 51,
+    "6": 61,
+    "7": 71,
+    "8": 81,
+    "9": 91,
+    "10": 101,
+    "11": 111,
+    "12": 121,
+    "13": 131,
+    "14": 141,
+    "15": 151,
+    "16": 161,
+    "17": 171,
+    "18": 181,
+    "19": 191,
+    "20": 201,
+    "21": 211,
+    "22": 221,
+    "23": 231,
+    "24": 241,
+    "25": 251,
+    "26": 261,
+    "27": 271,
+    "28": 281,
+    "29": 291,
+    "30": 301,
+    "31": 311,
+    "32": 321,
+    "33": 331,
+    "34": 341,
+    "35": 351,
+    "36": 361,
+    "37": 371,
+    "38": 381,
+    "39": 391,
+    "40": 401,
+    "41": 411,
+    "42": 421,
+    "43": 431,
+    "44": 441,
+    "45": 451,
+    "46": 461,
+    "47": 471,
+    "48": 481,
+    "49": 491,
+    "50": 501,
+    "51": 511,
+    "52": 521,
+    "53": 531,
+    "54": 541,
+    "55": 551,
+    "56": 561,
+    "57": 571,
+    "58": 581,
+    "59": 591,
+    "60": 601,
+    "61": 611,
+    "62": 621,
+    "63": 631,
+    "64": 641,
+    "65": 651,
+    "66": 661,
+    "67": 671,
+    "68": 681,
+    "69": 691,
+    "70": 701,
+    "71": 711,
+    "72": 721,
+    "73": 731,
+    "74": 741,
+    "75": 751,
+    "76": 761,
+    "77": 771,
+    "78": 781,
+    "79": 791,
+    "80": 801,
+    "81": 811,
+    "82": 821,
+    "83": 831,
+    "84": 841,
+    "85": 851,
+    "86": 861,
+    "87": 871,
+    "88": 881,
+    "89": 891,
+    "90": 901,
+    "91": 911,
+    "92": 921,
+    "93": 931,
+    "94": 941,
+    "95": 951,
+    "96": 961,
+    "97": 971,
+    "98": 981,
+    "99": 991,
+    "100": 1001,
+    "101": 1011,
+    "102": 1021,
+    "103": 1031,
+    "104": 1041,
+    "105": 1051,
+    "106": 1061,
+    "107": 1071,
+    "108": 1081,
+    "109": 1091,
+    "110": 1101,
+    "111": 1111,
+    "112": 1121,
+    "113": 1131,
+    "114": 1141,
+    "115": 1151,
+    "116": 1161,
+    "117": 1171,
+    "118": 1181,
+    "119": 1191,
+    "120": 1201,
+    "121": 1211,
+    "122": 1221,
+    "123": 1231,
+    "124": 1241,
+    "125": 1251,
+    "126": 1261,
+    "127": 1271,
+    "128": 1281,
+    "129": 1291,
+    "130": 1301,
+    "131": 1311,
+    "132": 1321,
+    "133": 1331,
+    "134": 1341,
+    "135": 1351,
+    "136": 1361,
+    "137": 1371,
+    "138": 1381,
+    "139": 1391,
+    "140": 1401,
+    "141": 1411,
+    "142": 1421,
+    "143": 1431,
+    "144": 1441,
+    "145": 1451,
+    "146": 1461,
+    "147": 1471,
+    "148": 1481,
+    "149": 1491,
+    "150": 1501,
+    "151": 1511,
+    "152": 1521,
+    "153": 1531,
+    "154": 1541,
+    "155": 1551,
+    "156": 1561,
+    "157": 1571,
+    "158": 1581,
+    "159": 1591,
+    "160": 1601,
+    "161": 1611,
+    "162": 1621,
+    "163": 1631,
+    "164": 1641,
+    "165": 1651,
+    "166": 1661,
+    "167": 1671,
+    "168": 1681,
+    "169": 1691,
+    "170": 1701,
+    "171": 1711,
+    "172": 1721,
+    "173": 1731,
+    "174": 1741,
+    "175": 1751,
+    "176": 1761,
+    "177": 1771,
+    "178": 1781,
+    "179": 1791,
+    "180": 1801,
+    "181": 1811,
+    "182": 1821,
+    "183": 1831,
+    "184": 1841,
+    "185": 1851,
+    "186": 1861,
+    "187": 1871,
+    "188": 1881,
+    "189": 1891,
+    "190": 1901,
+    "191": 1911,
+    "192": 1921,
+    "193": 1931,
+    "194": 1941,
+    "195": 1951,
+    "196": 1961,
+    "197": 1971,
+    "198": 1981,
+    "199": 1991,
+    "200": 2001,
+    "201": 2011,
+    "202": 2021,
+    "203": 2031,
+    "204": 2041,
+    "205": 2051,
+    "206": 2061,
+    "207": 2071,
+    "208": 2081,
+    "209": 2091,
+    "210": 2101,
+    "211": 2111,
+    "212": 2121,
+    "213": 2131,
+    "214": 2141,
+    "215": 2151,
+    "216": 2161,
+    "217": 2171,
+    "218": 2181,
+    "219": 2191,
+    "220": 2201,
+    "221": 2211,
+    "222": 2221,
+    "223": 2231,
+    "224": 2241,
+    "225": 2251,
+    "226": 2261,
+    "227": 2271,
+    "228": 2281,
+    "229": 2291,
+    "230": 2301,
+    "231": 2311,
+    "232": 2321,
+    "233": 2331,
+    "234": 2341,
+    "235": 2351,
+    "236": 2361,
+    "237": 2371,
+    "238": 2381,
+    "239": 2391,
+    "240": 2401,
+    "241": 2411,
+    "242": 2421,
+    "243": 2431,
+    "244": 2441,
+    "245": 2451,
+    "246": 2461,
+    "247": 2471,
+    "248": 2481,
+    "249": 2491,
+    "250": 2501,
+    "251": 2511,
+    "252": 2521,
+    "253": 2531,
+    "254": 2541,
+    "255": 2551,
+    "256": 2561,
+    "257": 2571,
+    "258": 2581,
+    "259": 2591,
+    "260": 2601,
+    "261": 2611,
+    "262": 2621,
+    "263": 2631,
+    "264": 2641,
+    "265": 2651,
+    "266": 2661,
+    "267": 2671,
+    "268": 2681,
+    "269": 2691,
+    "270": 2701,
+    "271": 2711,
+    "272": 2721,
+    "273": 2731,
+    "274": 2741,
+    "275": 2751,
+    "276": 2761,
+    "277": 2771,
+    "278": 2781,
+    "279": 2791,
+    "280": 2801,
+    "281": 2811,
+    "282": 2821,
+    "283": 2831,
+    "284": 2841,
+    "285": 2851,
+    "286": 2861,
+    "287": 2871,
+    "288": 2881,
+    "289": 2891,
+    "290": 2901,
+    "291": 2911,
+    "292": 2921,
+    "293": 2931,
+    "294": 2941,
+    "295": 2951,
+    "296": 2961,
+    "297": 2971,
+    "298": 2981,
+    "299": 2991,
+    "300": 3001,
+    "301": 3011,
+    "302": 3021,
+    "303": 3031,
+    "304": 3041,
+    "305": 3051,
+    "306": 3061,
+    "307": 3071,
+    "308": 3081,
+    "309": 3091,
+    "310": 3101,
+    "311": 3111,
+    "312": 3121,
+    "313": 3131,
+    "314": 3141,
+    "315": 3151,
+    "316": 3161,
+    "317": 3171,
+    "318": 3181,
+    "319": 3191,
+    "320": 3201,
+    "321": 3211,
+    "322": 3221,
+    "323": 3231,
+    "324": 3241,
+    "325": 3251,
+    "326": 3261,
+    "327": 3271,
+    "328": 3281,
+    "329": 3291,
+    "330": 3301,
+    "331": 3311,
+    "332": 3321,
+    "333": 3331,
+    "334": 3341,
+    "335": 3351,
+    "336": 3361,
+    "337": 3371,
+    "338": 3381,
+    "339": 3391,
+    "340": 3401,
+    "341": 3411,
+    "342": 3421,
+    "343": 3431,
+    "344": 3441,
+    "345": 3451,
+    "346": 3461,
+    "347": 3471,
+    "348": 3481,
+    "349": 3491,
+    "350": 3501,
+    "351": 3511,
+    "352": 3521,
+    "353": 3531,
+    "354": 3541,
+    "355": 3551,
+    "356": 3561,
+    "357": 3571,
+    "358": 3581,
+    "359": 3591,
+    "360": 3601,
+    "361": 3611,
+    "362": 3621,
+    "363": 3631,
+    "364": 3641,
+    "365": 3651,
+    "366": 3661,
+    "367": 3671,
+    "368": 3681,
+    "369": 3691,
+    "370": 3701,
+    "371": 3711,
+    "372": 3721,
+    "373": 3731,
+    "374": 3741,
+    "375": 3751,
+    "376": 3761,
+    "377": 3771,
+    "378": 3781,
+    "379": 3791,
+    "380": 3801,
+    "381": 3811,
+    "382": 3821,
+    "383": 3831,
+    "384": 3841,
+    "385": 3851,
+    "386": 3861,
+    "387": 3871,
+    "388": 3881,
+    "389": 3891,
+    "390": 3901,
+    "391": 3911,
+    "392": 3921,
+    "393": 3931,
+    "394": 3941,
+    "395": 3951,
+    "396": 3961,
+    "397": 3971,
+    "398": 3981,
+    "399": 3991,
+    "400": 4001,
+    "401": 4011,
+    "402": 4021,
+    "403": 4031,
+    "404": 4041,
+    "405": 4051,
+    "406": 4061,
+    "407": 4071,
+    "408": 4081,
+    "409": 4091,
+    "410": 4101,
+    "411": 4111,
+    "412": 4121,
+    "413": 4131,
+    "414": 4141,
+    "415": 4151,
+    "416": 4161,
+    "417": 4171,
+    "418": 4181,
+    "419": 4191,
+    "420": 4201,
+    "421": 4211,
+    "422": 4221,
+    "423": 4231,
+    "424": 4241,
+    "425": 4251,
+    "426": 4261,
+    "427": 4271,
+    "428": 4281,
+    "429": 4291,
+    "430": 4301,
+    "431": 4311,
+    "432": 4321,
+    "433": 4331,
+    "434": 4341,
+    "435": 4351,
+    "436": 4361,
+    "437": 4371,
+    "438": 4381,
+    "439": 4391,
+    "440": 4401,
+    "441": 4411,
+    "442": 4421,
+    "443": 4431,
+    "444": 4441,
+    "445": 4451,
+    "446": 4461,
+    "447": 4471,
+    "448": 4481,
+    "449": 4491,
+    "450": 4501,
+    "451": 4511,
+    "452": 4521,
+    "453": 4531,
+    "454": 4541,
+    "455": 4551,
+    "456": 4561,
+    "457": 4571,
+    "458": 4581,
+    "459": 4591,
+    "460": 4601,
+    "461": 4611,
+    "462": 4621,
+    "463": 4631,
+    "464": 4641,
+    "465": 4651,
+    "466": 4661,
+    "467": 4671,
+    "468": 4681,
+    "469": 4691,
+    "470": 4701,
+    "471": 4711,
+    "472": 4721,
+    "473": 4731,
+    "474": 4741,
+    "475": 4751,
+    "476": 4761,
+    "477": 4771,
+    "478": 4781,
+    "479": 4791,
+    "480": 4801,
+    "481": 4811,
+    "482": 4821,
+    "483": 4831,
+    "484": 4841,
+    "485": 4851,
+    "486": 4861,
+    "487": 4871,
+    "488": 4881,
+    "489": 4891,
+    "490": 4901,
+    "491": 4911,
+    "492": 4921,
+    "493": 4931,
+    "494": 4941,
+    "495": 4951,
+    "496": 4961,
+    "497": 4971,
+    "498": 4981,
+    "499": 4991,
+    "500": 5001,
+    "501": 5011,
+    "502": 5021,
+    "503": 5031,
+    "504": 5041,
+    "505": 5051,
+    "506": 5061,
+    "507": 5071,
+    "508": 5081,
+    "509": 5091,
+    "510": 5101,
+    "511": 5111,
+    "512": 5121,
+    "513": 5131,
+    "514": 5141,
+    "515": 5151,
+    "516": 5161,
+    "517": 5171,
+    "518": 5181,
+    "519": 5191,
+    "520": 5201,
+    "521": 5211,
+    "522": 5221,
+    "523": 5231,
+    "524": 5241,
+    "525": 5251,
+    "526": 5261,
+    "527": 5271,
+    "528": 5281,
+    "529": 5291,
+    "530": 5301,
+    "531": 5311,
+    "532": 5321,
+    "533": 5331,
+    "534": 5341,
+    "535": 5351,
+    "536": 5361,
+    "537": 5371,
+    "538": 5381,
+    "539": 5391,
+    "540": 5401,
+    "541": 5411,
+    "542": 5421,
+    "543": 5431,
+    "544": 5441,
+    "545": 5451,
+    "546": 5461,
+    "547": 5471,
+    "548": 5481,
+    "549": 5491,
+    "550": 5501,
+    "551": 5511,
+    "552": 5521,
+    "553": 5531,
+    "554": 5541,
+    "555": 5551,
+    "556": 5561,
+    "557": 5571,
+    "558": 5581,
+    "559": 5591,
+    "560": 5601,
+    "561": 5611,
+    "562": 5621,
+    "563": 5631,
+    "564": 5641,
+    "565": 5651,
+    "566": 5661,
+    "567": 5671,
+    "568": 5681,
+    "569": 5691,
+    "570": 5701,
+    "571": 5711,
+    "572": 5721,
+    "573": 5731,
+    "574": 5741,
+    "575": 5751,
+    "576": 5761,
+    "577": 5771,
+    "578": 5781,
+    "579": 5791,
+    "580": 5801,
+    "581": 5811,
+    "582": 5821,
+    "583": 5831,
+    "584": 5841,
+    "585": 5851,
+    "586": 5861
+  },
+  "header": [
+    "Precipitation (mm)",
+    "Percolation (mm)",
+    "Surface Runoff (mm)",
+    "Lateral Flow (mm)",
+    "Transpiration + Evaporation (mm)"
+  ],
+  "units": {
+    "Precipitation (mm)": "mm",
+    "Percolation (mm)": "mm",
+    "Surface Runoff (mm)": "mm",
+    "Lateral Flow (mm)": "mm",
+    "Transpiration + Evaporation (mm)": "mm"
+  },
+  "avg_annual_header": [
+    "TopazID",
+    "Precipitation (mm)",
+    "Percolation (mm)",
+    "Surface Runoff (mm)",
+    "Lateral Flow (mm)",
+    "Transpiration + Evaporation (mm)"
+  ],
+  "avg_annual_units": [
+    null,
+    "mm",
+    "mm",
+    "mm",
+    "mm",
+    "mm"
+  ],
+  "yearly_header": [
+    "Year",
+    "Precipitation (mm)",
+    "Percolation (mm)",
+    "Surface Runoff (mm)",
+    "Lateral Flow (mm)",
+    "Transpiration + Evaporation (mm)"
+  ],
+  "yearly_units": [
+    null,
+    "mm",
+    "mm",
+    "mm",
+    "mm",
+    "mm"
+  ],
+  "avg_annual": [
+    {
+      "TopazID": 11,
+      "Precipitation (mm)": 883.4340909090909,
+      "Percolation (mm)": 4.265909090909091,
+      "Surface Runoff (mm)": 8.301843795454545,
+      "Lateral Flow (mm)": 184.92113636363635,
+      "Transpiration + Evaporation (mm)": 688.8311363636362
+    },
+    {
+      "TopazID": 21,
+      "Precipitation (mm)": 881.7409090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 6.5766231818181815,
+      "Lateral Flow (mm)": 231.47795454545457,
+      "Transpiration + Evaporation (mm)": 648.8475
+    },
+    {
+      "TopazID": 31,
+      "Precipitation (mm)": 928.5477272727272,
+      "Percolation (mm)": 51.407954545454544,
+      "Surface Runoff (mm)": 18.96861977231818,
+      "Lateral Flow (mm)": 439.37863636363636,
+      "Transpiration + Evaporation (mm)": 419.9443181818182
+    },
+    {
+      "TopazID": 41,
+      "Precipitation (mm)": 927.7636363636365,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 2.0776320153795456,
+      "Lateral Flow (mm)": 521.2172727272726,
+      "Transpiration + Evaporation (mm)": 405.3393181818182
+    },
+    {
+      "TopazID": 51,
+      "Precipitation (mm)": 958.9295454545456,
+      "Percolation (mm)": 45.947045454545446,
+      "Surface Runoff (mm)": 12.789372265909094,
+      "Lateral Flow (mm)": 151.92795454545455,
+      "Transpiration + Evaporation (mm)": 754.7404545454546
+    },
+    {
+      "TopazID": 61,
+      "Precipitation (mm)": 941.7272727272727,
+      "Percolation (mm)": 42.879999999999995,
+      "Surface Runoff (mm)": 7.554340217499999,
+      "Lateral Flow (mm)": 167.80977272727273,
+      "Transpiration + Evaporation (mm)": 729.9909090909091
+    },
+    {
+      "TopazID": 71,
+      "Precipitation (mm)": 975.2613636363636,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 2.608183801318182,
+      "Lateral Flow (mm)": 575.2563636363637,
+      "Transpiration + Evaporation (mm)": 398.4738636363636
+    },
+    {
+      "TopazID": 81,
+      "Precipitation (mm)": 945.0704545454547,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 0.5272282390909091,
+      "Lateral Flow (mm)": 587.5379545454545,
+      "Transpiration + Evaporation (mm)": 358.18113636363637
+    },
+    {
+      "TopazID": 91,
+      "Precipitation (mm)": 945.0454545454545,
+      "Percolation (mm)": 36.19,
+      "Surface Runoff (mm)": 5.462304850909091,
+      "Lateral Flow (mm)": 312.6470454545455,
+      "Transpiration + Evaporation (mm)": 597.460909090909
+    },
+    {
+      "TopazID": 101,
+      "Precipitation (mm)": 1020.1909090909093,
+      "Percolation (mm)": 45.01477272727272,
+      "Surface Runoff (mm)": 12.66921484090909,
+      "Lateral Flow (mm)": 227.99000000000007,
+      "Transpiration + Evaporation (mm)": 740.7568181818183
+    },
+    {
+      "TopazID": 111,
+      "Precipitation (mm)": 988.7704545454545,
+      "Percolation (mm)": 51.092045454545456,
+      "Surface Runoff (mm)": 27.80814077727273,
+      "Lateral Flow (mm)": 93.98181818181818,
+      "Transpiration + Evaporation (mm)": 820.2429545454547
+    },
+    {
+      "TopazID": 121,
+      "Precipitation (mm)": 989.1613636363637,
+      "Percolation (mm)": 5.0465909090909085,
+      "Surface Runoff (mm)": 54.17148138734091,
+      "Lateral Flow (mm)": 134.02545454545455,
+      "Transpiration + Evaporation (mm)": 798.5511363636367
+    },
+    {
+      "TopazID": 131,
+      "Precipitation (mm)": 975.8727272727275,
+      "Percolation (mm)": 38.16386363636363,
+      "Surface Runoff (mm)": 4.674581840909091,
+      "Lateral Flow (mm)": 295.49045454545455,
+      "Transpiration + Evaporation (mm)": 644.1111363636362
+    },
+    {
+      "TopazID": 141,
+      "Precipitation (mm)": 1017.6068181818181,
+      "Percolation (mm)": 51.30431818181818,
+      "Surface Runoff (mm)": 28.51642516818181,
+      "Lateral Flow (mm)": 119.63772727272726,
+      "Transpiration + Evaporation (mm)": 822.7102272727271
+    },
+    {
+      "TopazID": 151,
+      "Precipitation (mm)": 1047.7295454545456,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.6008990652272725,
+      "Lateral Flow (mm)": 648.1806818181817,
+      "Transpiration + Evaporation (mm)": 397.0640909090909
+    },
+    {
+      "TopazID": 161,
+      "Precipitation (mm)": 1017.0045454545456,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.1923150454545453,
+      "Lateral Flow (mm)": 600.1656818181818,
+      "Transpiration + Evaporation (mm)": 414.5934090909091
+    },
+    {
+      "TopazID": 171,
+      "Precipitation (mm)": 1012.6840909090909,
+      "Percolation (mm)": 45.499318181818175,
+      "Surface Runoff (mm)": 13.255460727272727,
+      "Lateral Flow (mm)": 211.81318181818185,
+      "Transpiration + Evaporation (mm)": 748.3729545454546
+    },
+    {
+      "TopazID": 181,
+      "Precipitation (mm)": 1010.3136363636363,
+      "Percolation (mm)": 4.9736363636363645,
+      "Surface Runoff (mm)": 44.38017732295454,
+      "Lateral Flow (mm)": 180.0679545454545,
+      "Transpiration + Evaporation (mm)": 783.4215909090909
+    },
+    {
+      "TopazID": 191,
+      "Precipitation (mm)": 993.2590909090908,
+      "Percolation (mm)": 4.497727272727272,
+      "Surface Runoff (mm)": 14.467640840909091,
+      "Lateral Flow (mm)": 263.4915909090909,
+      "Transpiration + Evaporation (mm)": 713.4300000000001
+    },
+    {
+      "TopazID": 201,
+      "Precipitation (mm)": 1030.7204545454545,
+      "Percolation (mm)": 4.697500000000001,
+      "Surface Runoff (mm)": 25.10955942136364,
+      "Lateral Flow (mm)": 257.3406818181819,
+      "Transpiration + Evaporation (mm)": 746.0061363636364
+    },
+    {
+      "TopazID": 211,
+      "Precipitation (mm)": 1051.3977272727273,
+      "Percolation (mm)": 4.177954545454546,
+      "Surface Runoff (mm)": 3.365945829545454,
+      "Lateral Flow (mm)": 411.82727272727266,
+      "Transpiration + Evaporation (mm)": 634.5500000000001
+    },
+    {
+      "TopazID": 221,
+      "Precipitation (mm)": 1012.1363636363635,
+      "Percolation (mm)": 3.622045454545454,
+      "Surface Runoff (mm)": 1.9362109136363634,
+      "Lateral Flow (mm)": 475.8438636363635,
+      "Transpiration + Evaporation (mm)": 533.7252272727272
+    },
+    {
+      "TopazID": 231,
+      "Precipitation (mm)": 1013.7590909090909,
+      "Percolation (mm)": 38.24590909090909,
+      "Surface Runoff (mm)": 59.69058747954546,
+      "Lateral Flow (mm)": 311.15454545454537,
+      "Transpiration + Evaporation (mm)": 606.8047727272727
+    },
+    {
+      "TopazID": 241,
+      "Precipitation (mm)": 1058.2863636363636,
+      "Percolation (mm)": 54.58409090909092,
+      "Surface Runoff (mm)": 46.353535965,
+      "Lateral Flow (mm)": 105.00363636363637,
+      "Transpiration + Evaporation (mm)": 855.9029545454542
+    },
+    {
+      "TopazID": 251,
+      "Precipitation (mm)": 1037.1136363636363,
+      "Percolation (mm)": 49.950681818181806,
+      "Surface Runoff (mm)": 24.90060210909091,
+      "Lateral Flow (mm)": 160.0765909090909,
+      "Transpiration + Evaporation (mm)": 807.5127272727273
+    },
+    {
+      "TopazID": 261,
+      "Precipitation (mm)": 1044.9386363636365,
+      "Percolation (mm)": 52.438636363636355,
+      "Surface Runoff (mm)": 34.235479515909084,
+      "Lateral Flow (mm)": 140.6268181818182,
+      "Transpiration + Evaporation (mm)": 822.305
+    },
+    {
+      "TopazID": 271,
+      "Precipitation (mm)": 1035.1772727272728,
+      "Percolation (mm)": 79.57113636363636,
+      "Surface Runoff (mm)": 92.15746871127274,
+      "Lateral Flow (mm)": 415.75522727272727,
+      "Transpiration + Evaporation (mm)": 447.40136363636356
+    },
+    {
+      "TopazID": 281,
+      "Precipitation (mm)": 1057.6454545454544,
+      "Percolation (mm)": 5.129999999999999,
+      "Surface Runoff (mm)": 67.10557562272726,
+      "Lateral Flow (mm)": 167.72477272727272,
+      "Transpiration + Evaporation (mm)": 819.8720454545455
+    },
+    {
+      "TopazID": 291,
+      "Precipitation (mm)": 1104.831818181818,
+      "Percolation (mm)": 5.39477272727273,
+      "Surface Runoff (mm)": 99.52535445909089,
+      "Lateral Flow (mm)": 152.65522727272725,
+      "Transpiration + Evaporation (mm)": 848.7047727272726
+    },
+    {
+      "TopazID": 301,
+      "Precipitation (mm)": 1073.7613636363635,
+      "Percolation (mm)": 59.42386363636362,
+      "Surface Runoff (mm)": 72.1006705909091,
+      "Lateral Flow (mm)": 65.46159090909092,
+      "Transpiration + Evaporation (mm)": 879.0581818181819
+    },
+    {
+      "TopazID": 311,
+      "Precipitation (mm)": 1092.4772727272725,
+      "Percolation (mm)": 5.177272727272729,
+      "Surface Runoff (mm)": 61.51513001772727,
+      "Lateral Flow (mm)": 218.4415909090909,
+      "Transpiration + Evaporation (mm)": 809.5056818181819
+    },
+    {
+      "TopazID": 321,
+      "Precipitation (mm)": 1087.384090909091,
+      "Percolation (mm)": 4.863181818181818,
+      "Surface Runoff (mm)": 32.59588872727273,
+      "Lateral Flow (mm)": 291.77340909090907,
+      "Transpiration + Evaporation (mm)": 760.3834090909091
+    },
+    {
+      "TopazID": 331,
+      "Precipitation (mm)": 1091.1772727272726,
+      "Percolation (mm)": 5.212272727272728,
+      "Surface Runoff (mm)": 76.22185121786364,
+      "Lateral Flow (mm)": 180.17181818181817,
+      "Transpiration + Evaporation (mm)": 831.5097727272728
+    },
+    {
+      "TopazID": 341,
+      "Precipitation (mm)": 1101.7386363636363,
+      "Percolation (mm)": 5.1670454545454545,
+      "Surface Runoff (mm)": 73.26217290227272,
+      "Lateral Flow (mm)": 197.4704545454546,
+      "Transpiration + Evaporation (mm)": 827.8761363636366
+    },
+    {
+      "TopazID": 351,
+      "Precipitation (mm)": 1079.5886363636362,
+      "Percolation (mm)": 4.654545454545455,
+      "Surface Runoff (mm)": 23.426136181818183,
+      "Lateral Flow (mm)": 313.0440909090908,
+      "Transpiration + Evaporation (mm)": 740.7475
+    },
+    {
+      "TopazID": 361,
+      "Precipitation (mm)": 1149.677272727273,
+      "Percolation (mm)": 4.919545454545455,
+      "Surface Runoff (mm)": 32.434348649840906,
+      "Lateral Flow (mm)": 351.1736363636363,
+      "Transpiration + Evaporation (mm)": 763.1381818181818
+    },
+    {
+      "TopazID": 371,
+      "Precipitation (mm)": 1133.3886363636361,
+      "Percolation (mm)": 4.257727272727272,
+      "Surface Runoff (mm)": 4.347359090909091,
+      "Lateral Flow (mm)": 471.5793181818181,
+      "Transpiration + Evaporation (mm)": 655.4654545454546
+    },
+    {
+      "TopazID": 381,
+      "Precipitation (mm)": 1111.1818181818182,
+      "Percolation (mm)": 4.020681818181817,
+      "Surface Runoff (mm)": 3.5631643084090907,
+      "Lateral Flow (mm)": 504.21863636363634,
+      "Transpiration + Evaporation (mm)": 601.88
+    },
+    {
+      "TopazID": 391,
+      "Precipitation (mm)": 1106.9636363636362,
+      "Percolation (mm)": 83.25386363636365,
+      "Surface Runoff (mm)": 137.11434260465907,
+      "Lateral Flow (mm)": 424.02272727272737,
+      "Transpiration + Evaporation (mm)": 461.725
+    },
+    {
+      "TopazID": 401,
+      "Precipitation (mm)": 1103.0477272727273,
+      "Percolation (mm)": 49.907500000000006,
+      "Surface Runoff (mm)": 34.06853384909091,
+      "Lateral Flow (mm)": 576.2986363636364,
+      "Transpiration + Evaporation (mm)": 443.8740909090909
+    },
+    {
+      "TopazID": 411,
+      "Precipitation (mm)": 1142.7522727272726,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.856290603181817,
+      "Lateral Flow (mm)": 689.5190909090909,
+      "Transpiration + Evaporation (mm)": 443.1138636363636
+    },
+    {
+      "TopazID": 421,
+      "Precipitation (mm)": 1125.940909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.6435724636363642,
+      "Lateral Flow (mm)": 724.3586363636364,
+      "Transpiration + Evaporation (mm)": 399.0813636363637
+    },
+    {
+      "TopazID": 431,
+      "Precipitation (mm)": 1126.3568181818182,
+      "Percolation (mm)": 40.05909090909091,
+      "Surface Runoff (mm)": 87.91362433759092,
+      "Lateral Flow (mm)": 364.46727272727276,
+      "Transpiration + Evaporation (mm)": 635.5920454545455
+    },
+    {
+      "TopazID": 441,
+      "Precipitation (mm)": 1118.5886363636364,
+      "Percolation (mm)": 57.72409090909091,
+      "Surface Runoff (mm)": 55.016050970909085,
+      "Lateral Flow (mm)": 559.536590909091,
+      "Transpiration + Evaporation (mm)": 446.9495454545455
+    },
+    {
+      "TopazID": 451,
+      "Precipitation (mm)": 1153.8886363636364,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 4.091806327272727,
+      "Lateral Flow (mm)": 742.9254545454546,
+      "Transpiration + Evaporation (mm)": 407.95409090909084
+    },
+    {
+      "TopazID": 461,
+      "Precipitation (mm)": 1121.7818181818182,
+      "Percolation (mm)": 80.92068181818182,
+      "Surface Runoff (mm)": 124.43947130918181,
+      "Lateral Flow (mm)": 455.1331818181818,
+      "Transpiration + Evaporation (mm)": 460.6638636363637
+    },
+    {
+      "TopazID": 471,
+      "Precipitation (mm)": 1169.8000000000002,
+      "Percolation (mm)": 5.346818181818183,
+      "Surface Runoff (mm)": 95.24137446281817,
+      "Lateral Flow (mm)": 221.61045454545456,
+      "Transpiration + Evaporation (mm)": 849.0970454545454
+    },
+    {
+      "TopazID": 481,
+      "Precipitation (mm)": 1167.472727272727,
+      "Percolation (mm)": 4.486818181818182,
+      "Surface Runoff (mm)": 9.069839154545456,
+      "Lateral Flow (mm)": 454.1740909090909,
+      "Transpiration + Evaporation (mm)": 701.8025
+    },
+    {
+      "TopazID": 491,
+      "Precipitation (mm)": 1143.9977272727274,
+      "Percolation (mm)": 4.052500000000001,
+      "Surface Runoff (mm)": 3.914691886363636,
+      "Lateral Flow (mm)": 522.1490909090909,
+      "Transpiration + Evaporation (mm)": 616.2447727272727
+    },
+    {
+      "TopazID": 501,
+      "Precipitation (mm)": 1178.0386363636364,
+      "Percolation (mm)": 4.785681818181819,
+      "Surface Runoff (mm)": 33.47293107727273,
+      "Lateral Flow (mm)": 373.5959090909091,
+      "Transpiration + Evaporation (mm)": 768.0834090909091
+    },
+    {
+      "TopazID": 511,
+      "Precipitation (mm)": 1135.3113636363635,
+      "Percolation (mm)": 45.95659090909091,
+      "Surface Runoff (mm)": 14.971634931818182,
+      "Lateral Flow (mm)": 320.2825,
+      "Transpiration + Evaporation (mm)": 759.760909090909
+    },
+    {
+      "TopazID": 521,
+      "Precipitation (mm)": 1167.2931818181817,
+      "Percolation (mm)": 5.071818181818182,
+      "Surface Runoff (mm)": 65.44692126363636,
+      "Lateral Flow (mm)": 280.2311363636364,
+      "Transpiration + Evaporation (mm)": 818.3711363636362
+    },
+    {
+      "TopazID": 531,
+      "Precipitation (mm)": 1157.6136363636363,
+      "Percolation (mm)": 53.70181818181818,
+      "Surface Runoff (mm)": 49.02774818090909,
+      "Lateral Flow (mm)": 211.47477272727272,
+      "Transpiration + Evaporation (mm)": 847.8811363636363
+    },
+    {
+      "TopazID": 541,
+      "Precipitation (mm)": 1139.6136363636363,
+      "Percolation (mm)": 40.2725,
+      "Surface Runoff (mm)": 91.45693794590909,
+      "Lateral Flow (mm)": 372.04659090909087,
+      "Transpiration + Evaporation (mm)": 637.4145454545455
+    },
+    {
+      "TopazID": 551,
+      "Precipitation (mm)": 1171.2545454545455,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 5.729522352272728,
+      "Lateral Flow (mm)": 733.7061363636365,
+      "Transpiration + Evaporation (mm)": 432.7006818181819
+    },
+    {
+      "TopazID": 561,
+      "Precipitation (mm)": 1181.8227272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 45.41236210227273,
+      "Lateral Flow (mm)": 653.2015909090908,
+      "Transpiration + Evaporation (mm)": 483.44340909090914
+    },
+    {
+      "TopazID": 571,
+      "Precipitation (mm)": 1161.1931818181818,
+      "Percolation (mm)": 84.63181818181818,
+      "Surface Runoff (mm)": 170.48537451288638,
+      "Lateral Flow (mm)": 434.2272727272726,
+      "Transpiration + Evaporation (mm)": 470.6040909090909
+    },
+    {
+      "TopazID": 581,
+      "Precipitation (mm)": 1143.1977272727274,
+      "Percolation (mm)": 56.0731818181818,
+      "Surface Runoff (mm)": 66.06856909818181,
+      "Lateral Flow (mm)": 150.0890909090909,
+      "Transpiration + Evaporation (mm)": 874.2402272727272
+    },
+    {
+      "TopazID": 591,
+      "Precipitation (mm)": 1223.1272727272726,
+      "Percolation (mm)": 5.1706818181818175,
+      "Surface Runoff (mm)": 52.75758199568182,
+      "Lateral Flow (mm)": 378.9629545454546,
+      "Transpiration + Evaporation (mm)": 787.860681818182
+    },
+    {
+      "TopazID": 601,
+      "Precipitation (mm)": 1204.1818181818182,
+      "Percolation (mm)": 3.3847727272727273,
+      "Surface Runoff (mm)": 2.516191340909091,
+      "Lateral Flow (mm)": 711.299090909091,
+      "Transpiration + Evaporation (mm)": 490.6179545454545
+    },
+    {
+      "TopazID": 611,
+      "Precipitation (mm)": 1237.9386363636365,
+      "Percolation (mm)": 4.205909090909091,
+      "Surface Runoff (mm)": 5.764827136363636,
+      "Lateral Flow (mm)": 621.025,
+      "Transpiration + Evaporation (mm)": 609.2056818181818
+    },
+    {
+      "TopazID": 621,
+      "Precipitation (mm)": 1178.0954545454545,
+      "Percolation (mm)": 74.28181818181817,
+      "Surface Runoff (mm)": 110.92964569779544,
+      "Lateral Flow (mm)": 531.2088636363636,
+      "Transpiration + Evaporation (mm)": 461.46727272727276
+    },
+    {
+      "TopazID": 631,
+      "Precipitation (mm)": 1172.0818181818183,
+      "Percolation (mm)": 63.29295454545454,
+      "Surface Runoff (mm)": 122.54554194840908,
+      "Lateral Flow (mm)": 67.36795454545454,
+      "Transpiration + Evaporation (mm)": 919.733409090909
+    },
+    {
+      "TopazID": 641,
+      "Precipitation (mm)": 1289.290909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 42.53684486136363,
+      "Lateral Flow (mm)": 821.6063636363634,
+      "Transpiration + Evaporation (mm)": 425.34772727272724
+    },
+    {
+      "TopazID": 651,
+      "Precipitation (mm)": 1260.0749999999998,
+      "Percolation (mm)": 3.4638636363636364,
+      "Surface Runoff (mm)": 2.673262140909091,
+      "Lateral Flow (mm)": 761.1077272727272,
+      "Transpiration + Evaporation (mm)": 496.43795454545455
+    },
+    {
+      "TopazID": 661,
+      "Precipitation (mm)": 1245.7818181818184,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 0.3920254802272727,
+      "Lateral Flow (mm)": 880.2997727272726,
+      "Transpiration + Evaporation (mm)": 366.3281818181818
+    },
+    {
+      "TopazID": 671,
+      "Precipitation (mm)": 1218.8545454545454,
+      "Percolation (mm)": 49.28022727272726,
+      "Surface Runoff (mm)": 27.104362613636365,
+      "Lateral Flow (mm)": 364.45454545454544,
+      "Transpiration + Evaporation (mm)": 783.3331818181819
+    },
+    {
+      "TopazID": 681,
+      "Precipitation (mm)": 1194.1863636363637,
+      "Percolation (mm)": 54.979545454545466,
+      "Surface Runoff (mm)": 62.78094789263637,
+      "Lateral Flow (mm)": 213.32886363636362,
+      "Transpiration + Evaporation (mm)": 866.9215909090909
+    },
+    {
+      "TopazID": 691,
+      "Precipitation (mm)": 1274.052272727273,
+      "Percolation (mm)": 5.265227272727272,
+      "Surface Runoff (mm)": 70.039263935,
+      "Lateral Flow (mm)": 386.77681818181827,
+      "Transpiration + Evaporation (mm)": 813.4456818181818
+    },
+    {
+      "TopazID": 701,
+      "Precipitation (mm)": 1230.1295454545452,
+      "Percolation (mm)": 4.202272727272726,
+      "Surface Runoff (mm)": 6.236857797727273,
+      "Lateral Flow (mm)": 600.6490909090909,
+      "Transpiration + Evaporation (mm)": 621.241590909091
+    },
+    {
+      "TopazID": 711,
+      "Precipitation (mm)": 1209.6499999999999,
+      "Percolation (mm)": 42.001136363636355,
+      "Surface Runoff (mm)": 13.933992681818182,
+      "Lateral Flow (mm)": 489.4872727272728,
+      "Transpiration + Evaporation (mm)": 669.6506818181819
+    },
+    {
+      "TopazID": 721,
+      "Precipitation (mm)": 1223.6840909090909,
+      "Percolation (mm)": 49.02295454545455,
+      "Surface Runoff (mm)": 27.74920678636363,
+      "Lateral Flow (mm)": 363.35295454545457,
+      "Transpiration + Evaporation (mm)": 788.8213636363636
+    },
+    {
+      "TopazID": 731,
+      "Precipitation (mm)": 1210.543181818182,
+      "Percolation (mm)": 54.11386363636363,
+      "Surface Runoff (mm)": 57.45618903509091,
+      "Lateral Flow (mm)": 245.88068181818187,
+      "Transpiration + Evaporation (mm)": 857.1815909090909
+    },
+    {
+      "TopazID": 741,
+      "Precipitation (mm)": 1289.2863636363636,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 7.600701705681818,
+      "Lateral Flow (mm)": 843.073409090909,
+      "Transpiration + Evaporation (mm)": 439.56000000000006
+    },
+    {
+      "TopazID": 751,
+      "Precipitation (mm)": 1243.7295454545458,
+      "Percolation (mm)": 4.235681818181819,
+      "Surface Runoff (mm)": 6.069735318181818,
+      "Lateral Flow (mm)": 599.9227272727272,
+      "Transpiration + Evaporation (mm)": 635.646818181818
+    },
+    {
+      "TopazID": 761,
+      "Precipitation (mm)": 1282.8022727272728,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 5.014786045454546,
+      "Lateral Flow (mm)": 875.9845454545455,
+      "Transpiration + Evaporation (mm)": 403.0488636363636
+    },
+    {
+      "TopazID": 771,
+      "Precipitation (mm)": 1230.6090909090908,
+      "Percolation (mm)": 40.385909090909095,
+      "Surface Runoff (mm)": 90.19515718409092,
+      "Lateral Flow (mm)": 480.8218181818181,
+      "Transpiration + Evaporation (mm)": 620.5352272727273
+    },
+    {
+      "TopazID": 781,
+      "Precipitation (mm)": 1330.9840909090908,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 7.356062615909092,
+      "Lateral Flow (mm)": 889.6768181818184,
+      "Transpiration + Evaporation (mm)": 434.9209090909091
+    },
+    {
+      "TopazID": 791,
+      "Precipitation (mm)": 1292.6886363636365,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.8706054999999995,
+      "Lateral Flow (mm)": 895.1063636363637,
+      "Transpiration + Evaporation (mm)": 394.94409090909085
+    },
+    {
+      "TopazID": 801,
+      "Precipitation (mm)": 1234.1227272727274,
+      "Percolation (mm)": 22.230454545454545,
+      "Surface Runoff (mm)": 25.122206611363637,
+      "Lateral Flow (mm)": 621.9127272727275,
+      "Transpiration + Evaporation (mm)": 567.4629545454545
+    },
+    {
+      "TopazID": 811,
+      "Precipitation (mm)": 1269.5749999999998,
+      "Percolation (mm)": 82.83090909090909,
+      "Surface Runoff (mm)": 190.30205990652274,
+      "Lateral Flow (mm)": 513.8502272727274,
+      "Transpiration + Evaporation (mm)": 481.47818181818184
+    },
+    {
+      "TopazID": 821,
+      "Precipitation (mm)": 1204.0454545454545,
+      "Percolation (mm)": 55.32022727272727,
+      "Surface Runoff (mm)": 68.59622895227272,
+      "Lateral Flow (mm)": 211.13545454545465,
+      "Transpiration + Evaporation (mm)": 872.5402272727272
+    },
+    {
+      "TopazID": 831,
+      "Precipitation (mm)": 1283.5,
+      "Percolation (mm)": 53.17568181818182,
+      "Surface Runoff (mm)": 49.06085853568182,
+      "Lateral Flow (mm)": 356.8277272727273,
+      "Transpiration + Evaporation (mm)": 829.1188636363636
+    },
+    {
+      "TopazID": 841,
+      "Precipitation (mm)": 1273.7931818181821,
+      "Percolation (mm)": 43.29931818181818,
+      "Surface Runoff (mm)": 14.8784681,
+      "Lateral Flow (mm)": 521.2322727272726,
+      "Transpiration + Evaporation (mm)": 699.5361363636362
+    },
+    {
+      "TopazID": 851,
+      "Precipitation (mm)": 1221.4363636363637,
+      "Percolation (mm)": 3.781590909090909,
+      "Surface Runoff (mm)": 3.483866438636363,
+      "Lateral Flow (mm)": 672.5915909090909,
+      "Transpiration + Evaporation (mm)": 544.4152272727273
+    },
+    {
+      "TopazID": 861,
+      "Precipitation (mm)": 1187.4772727272727,
+      "Percolation (mm)": 4.59409090909091,
+      "Surface Runoff (mm)": 17.885752679545455,
+      "Lateral Flow (mm)": 435.73681818181825,
+      "Transpiration + Evaporation (mm)": 731.2022727272727
+    },
+    {
+      "TopazID": 871,
+      "Precipitation (mm)": 1228.6886363636365,
+      "Percolation (mm)": 75.34022727272726,
+      "Surface Runoff (mm)": 130.69432056357275,
+      "Lateral Flow (mm)": 552.2152272727274,
+      "Transpiration + Evaporation (mm)": 470.08568181818174
+    },
+    {
+      "TopazID": 881,
+      "Precipitation (mm)": 1197.8,
+      "Percolation (mm)": 57.158636363636376,
+      "Surface Runoff (mm)": 81.32072289863636,
+      "Lateral Flow (mm)": 173.4275,
+      "Transpiration + Evaporation (mm)": 888.7806818181816
+    },
+    {
+      "TopazID": 891,
+      "Precipitation (mm)": 1445.3000000000002,
+      "Percolation (mm)": 12.948863636363633,
+      "Surface Runoff (mm)": 354.1169480363636,
+      "Lateral Flow (mm)": 182.0497727272727,
+      "Transpiration + Evaporation (mm)": 890.755
+    },
+    {
+      "TopazID": 901,
+      "Precipitation (mm)": 1339.4977272727274,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.9110030909090914,
+      "Lateral Flow (mm)": 938.5845454545455,
+      "Transpiration + Evaporation (mm)": 398.28318181818173
+    },
+    {
+      "TopazID": 911,
+      "Precipitation (mm)": 1328.0250000000003,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.137313840909091,
+      "Lateral Flow (mm)": 928.6413636363636,
+      "Transpiration + Evaporation (mm)": 397.50272727272744
+    },
+    {
+      "TopazID": 921,
+      "Precipitation (mm)": 1322.3113636363635,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 0.0013532086363636363,
+      "Lateral Flow (mm)": 933.0854545454548,
+      "Transpiration + Evaporation (mm)": 390.4974999999999
+    },
+    {
+      "TopazID": 931,
+      "Precipitation (mm)": 1221.6272727272726,
+      "Percolation (mm)": 5.403863636363637,
+      "Surface Runoff (mm)": 118.5729198159091,
+      "Lateral Flow (mm)": 222.295,
+      "Transpiration + Evaporation (mm)": 876.8836363636361
+    },
+    {
+      "TopazID": 941,
+      "Precipitation (mm)": 1240.8704545454545,
+      "Percolation (mm)": 5.2225,
+      "Surface Runoff (mm)": 79.68943442846592,
+      "Lateral Flow (mm)": 321.0422727272728,
+      "Transpiration + Evaporation (mm)": 836.6118181818182
+    },
+    {
+      "TopazID": 951,
+      "Precipitation (mm)": 1227.4386363636365,
+      "Percolation (mm)": 4.152954545454545,
+      "Surface Runoff (mm)": 5.471274377272727,
+      "Lateral Flow (mm)": 586.8713636363636,
+      "Transpiration + Evaporation (mm)": 633.1563636363636
+    },
+    {
+      "TopazID": 961,
+      "Precipitation (mm)": 1228.565909090909,
+      "Percolation (mm)": 4.075454545454546,
+      "Surface Runoff (mm)": 6.2068935170454544,
+      "Lateral Flow (mm)": 602.0825,
+      "Transpiration + Evaporation (mm)": 618.5061363636364
+    },
+    {
+      "TopazID": 971,
+      "Precipitation (mm)": 1236.4409090909091,
+      "Percolation (mm)": 66.88250000000001,
+      "Surface Runoff (mm)": 103.12911999568182,
+      "Lateral Flow (mm)": 600.4725,
+      "Transpiration + Evaporation (mm)": 466.0068181818182
+    },
+    {
+      "TopazID": 981,
+      "Precipitation (mm)": 1226.331818181818,
+      "Percolation (mm)": 68.58909090909091,
+      "Surface Runoff (mm)": 107.01401332138636,
+      "Lateral Flow (mm)": 584.6768181818182,
+      "Transpiration + Evaporation (mm)": 465.97727272727263
+    },
+    {
+      "TopazID": 991,
+      "Precipitation (mm)": 1242.9454545454546,
+      "Percolation (mm)": 80.27136363636363,
+      "Surface Runoff (mm)": 160.96232370852272,
+      "Lateral Flow (mm)": 524.9531818181817,
+      "Transpiration + Evaporation (mm)": 475.9743181818183
+    },
+    {
+      "TopazID": 1001,
+      "Precipitation (mm)": 1379.243181818182,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 7.250496208931819,
+      "Lateral Flow (mm)": 950.3952272727271,
+      "Transpiration + Evaporation (mm)": 422.6818181818182
+    },
+    {
+      "TopazID": 1011,
+      "Precipitation (mm)": 1347.5681818181818,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.1593497227272724,
+      "Lateral Flow (mm)": 951.8279545454545,
+      "Transpiration + Evaporation (mm)": 393.85340909090905
+    },
+    {
+      "TopazID": 1021,
+      "Precipitation (mm)": 1347.534090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.832057381363636,
+      "Lateral Flow (mm)": 965.8913636363635,
+      "Transpiration + Evaporation (mm)": 379.10340909090905
+    },
+    {
+      "TopazID": 1031,
+      "Precipitation (mm)": 1477.365909090909,
+      "Percolation (mm)": 14.028409090909092,
+      "Surface Runoff (mm)": 475.6752789863636,
+      "Lateral Flow (mm)": 72.05340909090908,
+      "Transpiration + Evaporation (mm)": 907.1847727272728
+    },
+    {
+      "TopazID": 1041,
+      "Precipitation (mm)": 1389.4409090909091,
+      "Percolation (mm)": 9.644772727272725,
+      "Surface Runoff (mm)": 52.773521134090906,
+      "Lateral Flow (mm)": 689.1963636363636,
+      "Transpiration + Evaporation (mm)": 637.3820454545454
+    },
+    {
+      "TopazID": 1051,
+      "Precipitation (mm)": 1463.375,
+      "Percolation (mm)": 10.762500000000001,
+      "Surface Runoff (mm)": 147.68577191818184,
+      "Lateral Flow (mm)": 596.7813636363637,
+      "Transpiration + Evaporation (mm)": 706.6925
+    },
+    {
+      "TopazID": 1061,
+      "Precipitation (mm)": 1212.5772727272727,
+      "Percolation (mm)": 5.255454545454545,
+      "Surface Runoff (mm)": 66.90369416863638,
+      "Lateral Flow (mm)": 333.06454545454545,
+      "Transpiration + Evaporation (mm)": 808.9861363636363
+    },
+    {
+      "TopazID": 1071,
+      "Precipitation (mm)": 1200.0818181818183,
+      "Percolation (mm)": 3.296590909090908,
+      "Surface Runoff (mm)": 2.2120676818181817,
+      "Lateral Flow (mm)": 698.9240909090909,
+      "Transpiration + Evaporation (mm)": 499.23409090909087
+    },
+    {
+      "TopazID": 1081,
+      "Precipitation (mm)": 1219.7636363636364,
+      "Percolation (mm)": 5.468409090909092,
+      "Surface Runoff (mm)": 128.43012050909093,
+      "Lateral Flow (mm)": 201.9684090909091,
+      "Transpiration + Evaporation (mm)": 885.1204545454547
+    },
+    {
+      "TopazID": 1091,
+      "Precipitation (mm)": 1283.090909090909,
+      "Percolation (mm)": 38.47795454545454,
+      "Surface Runoff (mm)": 63.18928529090909,
+      "Lateral Flow (mm)": 589.0054545454545,
+      "Transpiration + Evaporation (mm)": 593.8861363636365
+    },
+    {
+      "TopazID": 1101,
+      "Precipitation (mm)": 1247.375,
+      "Percolation (mm)": 5.249999999999999,
+      "Surface Runoff (mm)": 97.71327259090909,
+      "Lateral Flow (mm)": 293.4638636363636,
+      "Transpiration + Evaporation (mm)": 852.5165909090906
+    },
+    {
+      "TopazID": 1111,
+      "Precipitation (mm)": 1534.8340909090912,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 8.818585651363636,
+      "Lateral Flow (mm)": 1128.649090909091,
+      "Transpiration + Evaporation (mm)": 398.60454545454553
+    },
+    {
+      "TopazID": 1121,
+      "Precipitation (mm)": 1316.5045454545455,
+      "Percolation (mm)": 44.081590909090906,
+      "Surface Runoff (mm)": 17.066690288636366,
+      "Lateral Flow (mm)": 561.5420454545455,
+      "Transpiration + Evaporation (mm)": 698.8193181818183
+    },
+    {
+      "TopazID": 1131,
+      "Precipitation (mm)": 1352.9363636363637,
+      "Percolation (mm)": 43.64999999999999,
+      "Surface Runoff (mm)": 19.065547420454546,
+      "Lateral Flow (mm)": 617.8215909090909,
+      "Transpiration + Evaporation (mm)": 677.3397727272727
+    },
+    {
+      "TopazID": 1141,
+      "Precipitation (mm)": 1307.102272727273,
+      "Percolation (mm)": 37.09954545454545,
+      "Surface Runoff (mm)": 54.418558584318184,
+      "Lateral Flow (mm)": 629.4036363636365,
+      "Transpiration + Evaporation (mm)": 587.7593181818181
+    },
+    {
+      "TopazID": 1151,
+      "Precipitation (mm)": 1290.4772727272725,
+      "Percolation (mm)": 44.557272727272725,
+      "Surface Runoff (mm)": 16.662533420454547,
+      "Lateral Flow (mm)": 511.8625,
+      "Transpiration + Evaporation (mm)": 722.4552272727274
+    },
+    {
+      "TopazID": 1161,
+      "Precipitation (mm)": 1375.1068181818182,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 4.582071549659091,
+      "Lateral Flow (mm)": 968.8645454545457,
+      "Transpiration + Evaporation (mm)": 402.8922727272727
+    },
+    {
+      "TopazID": 1171,
+      "Precipitation (mm)": 1240.654545454545,
+      "Percolation (mm)": 4.520681818181817,
+      "Surface Runoff (mm)": 7.284124181818182,
+      "Lateral Flow (mm)": 544.9031818181819,
+      "Transpiration + Evaporation (mm)": 685.9645454545455
+    },
+    {
+      "TopazID": 1181,
+      "Precipitation (mm)": 1236.6272727272726,
+      "Percolation (mm)": 8.798636363636362,
+      "Surface Runoff (mm)": 8.993858204545454,
+      "Lateral Flow (mm)": 636.3406818181818,
+      "Transpiration + Evaporation (mm)": 582.940909090909
+    },
+    {
+      "TopazID": 1191,
+      "Precipitation (mm)": 1528.8090909090906,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 2.6889249772727273,
+      "Lateral Flow (mm)": 1152.4552272727271,
+      "Transpiration + Evaporation (mm)": 375.01840909090913
+    },
+    {
+      "TopazID": 1201,
+      "Precipitation (mm)": 1528.4295454545456,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 5.587131318181818,
+      "Lateral Flow (mm)": 1126.9827272727273,
+      "Transpiration + Evaporation (mm)": 397.11999999999995
+    },
+    {
+      "TopazID": 1211,
+      "Precipitation (mm)": 1455.540909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 9.23768372375,
+      "Lateral Flow (mm)": 1048.5452272727273,
+      "Transpiration + Evaporation (mm)": 399.0349999999999
+    },
+    {
+      "TopazID": 1221,
+      "Precipitation (mm)": 1362.7363636363636,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 4.731406206818182,
+      "Lateral Flow (mm)": 954.7490909090909,
+      "Transpiration + Evaporation (mm)": 404.5179545454546
+    },
+    {
+      "TopazID": 1231,
+      "Precipitation (mm)": 1381.2318181818182,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 0.009675247954545454,
+      "Lateral Flow (mm)": 985.7309090909089,
+      "Transpiration + Evaporation (mm)": 396.74954545454545
+    },
+    {
+      "TopazID": 1241,
+      "Precipitation (mm)": 1563.3159090909094,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 37.81112437073636,
+      "Lateral Flow (mm)": 1109.4452272727276,
+      "Transpiration + Evaporation (mm)": 416.36022727272723
+    },
+    {
+      "TopazID": 1251,
+      "Precipitation (mm)": 1414.859090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 6.584685396159091,
+      "Lateral Flow (mm)": 1024.1738636363634,
+      "Transpiration + Evaporation (mm)": 385.4568181818182
+    },
+    {
+      "TopazID": 1261,
+      "Precipitation (mm)": 1466.2954545454543,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 4.60198523934091,
+      "Lateral Flow (mm)": 1082.671590909091,
+      "Transpiration + Evaporation (mm)": 380.37454545454545
+    },
+    {
+      "TopazID": 1271,
+      "Precipitation (mm)": 1427.6840909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 8.366438423113637,
+      "Lateral Flow (mm)": 1033.5477272727273,
+      "Transpiration + Evaporation (mm)": 387.0668181818182
+    },
+    {
+      "TopazID": 1281,
+      "Precipitation (mm)": 1514.425,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 29.685619593075,
+      "Lateral Flow (mm)": 1108.4613636363638,
+      "Transpiration + Evaporation (mm)": 376.76068181818187
+    },
+    {
+      "TopazID": 1291,
+      "Precipitation (mm)": 1465.8954545454542,
+      "Percolation (mm)": 13.162954545454545,
+      "Surface Runoff (mm)": 375.0193254525,
+      "Lateral Flow (mm)": 183.21931818181818,
+      "Transpiration + Evaporation (mm)": 888.3909090909092
+    },
+    {
+      "TopazID": 1301,
+      "Precipitation (mm)": 1267.2704545454546,
+      "Percolation (mm)": 12.166363636363638,
+      "Surface Runoff (mm)": 222.47168216636362,
+      "Lateral Flow (mm)": 186.23977272727276,
+      "Transpiration + Evaporation (mm)": 843.0793181818183
+    },
+    {
+      "TopazID": 1311,
+      "Precipitation (mm)": 1278.4477272727272,
+      "Percolation (mm)": 12.02090909090909,
+      "Surface Runoff (mm)": 214.30577496818185,
+      "Lateral Flow (mm)": 220.71636363636364,
+      "Transpiration + Evaporation (mm)": 828.2877272727272
+    },
+    {
+      "TopazID": 1321,
+      "Precipitation (mm)": 1369.2727272727273,
+      "Percolation (mm)": 12.577045454545452,
+      "Surface Runoff (mm)": 277.51077819593183,
+      "Lateral Flow (mm)": 265.28681818181826,
+      "Transpiration + Evaporation (mm)": 809.1161363636364
+    },
+    {
+      "TopazID": 1331,
+      "Precipitation (mm)": 1344.7022727272727,
+      "Percolation (mm)": 10.488409090909093,
+      "Surface Runoff (mm)": 118.12560499909091,
+      "Lateral Flow (mm)": 532.5711363636364,
+      "Transpiration + Evaporation (mm)": 682.4847727272727
+    },
+    {
+      "TopazID": 1341,
+      "Precipitation (mm)": 1309.0181818181818,
+      "Percolation (mm)": 11.300681818181816,
+      "Surface Runoff (mm)": 155.97799485386366,
+      "Lateral Flow (mm)": 384.655,
+      "Transpiration + Evaporation (mm)": 755.3106818181818
+    },
+    {
+      "TopazID": 1351,
+      "Precipitation (mm)": 1277.9613636363638,
+      "Percolation (mm)": 12.232045454545455,
+      "Surface Runoff (mm)": 259.7010625306818,
+      "Lateral Flow (mm)": 121.85704545454547,
+      "Transpiration + Evaporation (mm)": 880.4411363636361
+    },
+    {
+      "TopazID": 1361,
+      "Precipitation (mm)": 1239.5477272727273,
+      "Percolation (mm)": 5.4363636363636365,
+      "Surface Runoff (mm)": 105.82255718409091,
+      "Lateral Flow (mm)": 278.5047727272727,
+      "Transpiration + Evaporation (mm)": 850.8415909090909
+    },
+    {
+      "TopazID": 1371,
+      "Precipitation (mm)": 1245.2363636363636,
+      "Percolation (mm)": 4.255000000000001,
+      "Surface Runoff (mm)": 6.498389045454545,
+      "Lateral Flow (mm)": 603.2459090909092,
+      "Transpiration + Evaporation (mm)": 633.4634090909091
+    },
+    {
+      "TopazID": 1381,
+      "Precipitation (mm)": 1294.6545454545455,
+      "Percolation (mm)": 75.06568181818182,
+      "Surface Runoff (mm)": 140.64407373182047,
+      "Lateral Flow (mm)": 598.6750000000001,
+      "Transpiration + Evaporation (mm)": 479.82454545454533
+    },
+    {
+      "TopazID": 1391,
+      "Precipitation (mm)": 1374.6045454545454,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 12.042851720454546,
+      "Lateral Flow (mm)": 899.7727272727271,
+      "Transpiration + Evaporation (mm)": 463.66295454545457
+    },
+    {
+      "TopazID": 1401,
+      "Precipitation (mm)": 1320.9886363636363,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 5.706354318181818,
+      "Lateral Flow (mm)": 897.4961363636361,
+      "Transpiration + Evaporation (mm)": 419.03022727272725
+    },
+    {
+      "TopazID": 1411,
+      "Precipitation (mm)": 1406.7499999999998,
+      "Percolation (mm)": 5.383636363636364,
+      "Surface Runoff (mm)": 112.61885138409092,
+      "Lateral Flow (mm)": 441.20568181818186,
+      "Transpiration + Evaporation (mm)": 848.4595454545453
+    },
+    {
+      "TopazID": 1421,
+      "Precipitation (mm)": 1654.725,
+      "Percolation (mm)": 12.950000000000001,
+      "Surface Runoff (mm)": 431.2107489159091,
+      "Lateral Flow (mm)": 374.1336363636363,
+      "Transpiration + Evaporation (mm)": 830.2906818181817
+    },
+    {
+      "TopazID": 1431,
+      "Precipitation (mm)": 1634.9977272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 27.32669544781818,
+      "Lateral Flow (mm)": 1221.2320454545454,
+      "Transpiration + Evaporation (mm)": 386.7161363636364
+    },
+    {
+      "TopazID": 1441,
+      "Precipitation (mm)": 1654.6931818181818,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 19.80978138590909,
+      "Lateral Flow (mm)": 1250.3279545454545,
+      "Transpiration + Evaporation (mm)": 384.84909090909093
+    },
+    {
+      "TopazID": 1451,
+      "Precipitation (mm)": 1525.9954545454543,
+      "Percolation (mm)": 12.132954545454545,
+      "Surface Runoff (mm)": 277.74247309318184,
+      "Lateral Flow (mm)": 413.6852272727272,
+      "Transpiration + Evaporation (mm)": 818.8386363636365
+    },
+    {
+      "TopazID": 1461,
+      "Precipitation (mm)": 1483.9,
+      "Percolation (mm)": 12.480227272727273,
+      "Surface Runoff (mm)": 303.6194384636363,
+      "Lateral Flow (mm)": 319.33318181818186,
+      "Transpiration + Evaporation (mm)": 844.2252272727275
+    },
+    {
+      "TopazID": 1471,
+      "Precipitation (mm)": 1320.881818181818,
+      "Percolation (mm)": 5.618636363636363,
+      "Surface Runoff (mm)": 184.74445570477272,
+      "Lateral Flow (mm)": 206.76613636363638,
+      "Transpiration + Evaporation (mm)": 924.3338636363635
+    },
+    {
+      "TopazID": 1481,
+      "Precipitation (mm)": 1257.847727272727,
+      "Percolation (mm)": 5.722272727272728,
+      "Surface Runoff (mm)": 178.1778345068182,
+      "Lateral Flow (mm)": 153.28204545454548,
+      "Transpiration + Evaporation (mm)": 920.8011363636365
+    },
+    {
+      "TopazID": 1491,
+      "Precipitation (mm)": 1473.8727272727272,
+      "Percolation (mm)": 5.8761363636363635,
+      "Surface Runoff (mm)": 221.74662710090908,
+      "Lateral Flow (mm)": 337.3725,
+      "Transpiration + Evaporation (mm)": 907.7761363636364
+    },
+    {
+      "TopazID": 1501,
+      "Precipitation (mm)": 1384.4045454545455,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 4.6962441886363635,
+      "Lateral Flow (mm)": 971.5852272727275,
+      "Transpiration + Evaporation (mm)": 409.4095454545455
+    },
+    {
+      "TopazID": 1511,
+      "Precipitation (mm)": 1352.5500000000002,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.9490867045454547,
+      "Lateral Flow (mm)": 941.8559090909092,
+      "Transpiration + Evaporation (mm)": 408.06522727272744
+    },
+    {
+      "TopazID": 1521,
+      "Precipitation (mm)": 1632.8500000000001,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 135.65040933922728,
+      "Lateral Flow (mm)": 1082.2181818181816,
+      "Transpiration + Evaporation (mm)": 415.044090909091
+    },
+    {
+      "TopazID": 1531,
+      "Precipitation (mm)": 1607.0636363636365,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 22.332923127045458,
+      "Lateral Flow (mm)": 1215.3488636363638,
+      "Transpiration + Evaporation (mm)": 369.87886363636363
+    },
+    {
+      "TopazID": 1541,
+      "Precipitation (mm)": 1610.3840909090911,
+      "Percolation (mm)": 13.449545454545454,
+      "Surface Runoff (mm)": 465.4438987977273,
+      "Lateral Flow (mm)": 257.3881818181818,
+      "Transpiration + Evaporation (mm)": 866.8536363636363
+    },
+    {
+      "TopazID": 1551,
+      "Precipitation (mm)": 1580.529545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 16.67114433709091,
+      "Lateral Flow (mm)": 1166.9588636363637,
+      "Transpiration + Evaporation (mm)": 397.263409090909
+    },
+    {
+      "TopazID": 1561,
+      "Precipitation (mm)": 1600.5045454545457,
+      "Percolation (mm)": 9.411136363636365,
+      "Surface Runoff (mm)": 39.367804809090906,
+      "Lateral Flow (mm)": 954.2624999999999,
+      "Transpiration + Evaporation (mm)": 597.096590909091
+    },
+    {
+      "TopazID": 1571,
+      "Precipitation (mm)": 1582.5363636363631,
+      "Percolation (mm)": 13.812727272727273,
+      "Surface Runoff (mm)": 492.73450762113646,
+      "Lateral Flow (mm)": 181.1675,
+      "Transpiration + Evaporation (mm)": 886.8043181818183
+    },
+    {
+      "TopazID": 1581,
+      "Precipitation (mm)": 1565.4590909090905,
+      "Percolation (mm)": 13.210000000000003,
+      "Surface Runoff (mm)": 415.10228300681814,
+      "Lateral Flow (mm)": 264.72,
+      "Transpiration + Evaporation (mm)": 866.0047727272727
+    },
+    {
+      "TopazID": 1591,
+      "Precipitation (mm)": 1570.2886363636367,
+      "Percolation (mm)": 13.953409090909092,
+      "Surface Runoff (mm)": 506.2073947068183,
+      "Lateral Flow (mm)": 157.38227272727272,
+      "Transpiration + Evaporation (mm)": 884.3088636363635
+    },
+    {
+      "TopazID": 1601,
+      "Precipitation (mm)": 1516.215909090909,
+      "Percolation (mm)": 10.137500000000003,
+      "Surface Runoff (mm)": 107.69320204772727,
+      "Lateral Flow (mm)": 746.2409090909092,
+      "Transpiration + Evaporation (mm)": 651.1045454545455
+    },
+    {
+      "TopazID": 1611,
+      "Precipitation (mm)": 1578.8409090909095,
+      "Percolation (mm)": 12.640454545454547,
+      "Surface Runoff (mm)": 358.781090159091,
+      "Lateral Flow (mm)": 381.47500000000014,
+      "Transpiration + Evaporation (mm)": 821.0222727272726
+    },
+    {
+      "TopazID": 1621,
+      "Precipitation (mm)": 1342.3954545454544,
+      "Percolation (mm)": 69.44,
+      "Surface Runoff (mm)": 223.3845481559091,
+      "Lateral Flow (mm)": 64.47863636363637,
+      "Transpiration + Evaporation (mm)": 984.9402272727274
+    },
+    {
+      "TopazID": 1631,
+      "Precipitation (mm)": 1534.0522727272726,
+      "Percolation (mm)": 4.409545454545455,
+      "Surface Runoff (mm)": 11.162209545454546,
+      "Lateral Flow (mm)": 889.7668181818185,
+      "Transpiration + Evaporation (mm)": 630.5095454545454
+    },
+    {
+      "TopazID": 1641,
+      "Precipitation (mm)": 1497.0113636363637,
+      "Percolation (mm)": 4.684318181818182,
+      "Surface Runoff (mm)": 13.961736045454545,
+      "Lateral Flow (mm)": 782.2349999999999,
+      "Transpiration + Evaporation (mm)": 697.4529545454544
+    },
+    {
+      "TopazID": 1651,
+      "Precipitation (mm)": 1275.1272727272728,
+      "Percolation (mm)": 5.11659090909091,
+      "Surface Runoff (mm)": 53.88257545249999,
+      "Lateral Flow (mm)": 426.45863636363634,
+      "Transpiration + Evaporation (mm)": 791.2372727272726
+    },
+    {
+      "TopazID": 1661,
+      "Precipitation (mm)": 1280.6750000000002,
+      "Percolation (mm)": 4.530227272727273,
+      "Surface Runoff (mm)": 8.160246931818183,
+      "Lateral Flow (mm)": 584.1861363636364,
+      "Transpiration + Evaporation (mm)": 685.6243181818182
+    },
+    {
+      "TopazID": 1671,
+      "Precipitation (mm)": 1274.990909090909,
+      "Percolation (mm)": 3.725909090909091,
+      "Surface Runoff (mm)": 4.085939577045455,
+      "Lateral Flow (mm)": 730.7970454545454,
+      "Transpiration + Evaporation (mm)": 539.4293181818181
+    },
+    {
+      "TopazID": 1681,
+      "Precipitation (mm)": 1340.0181818181818,
+      "Percolation (mm)": 67.83636363636361,
+      "Surface Runoff (mm)": 200.46890600431817,
+      "Lateral Flow (mm)": 96.27318181818181,
+      "Transpiration + Evaporation (mm)": 975.9811363636364
+    },
+    {
+      "TopazID": 1691,
+      "Precipitation (mm)": 1277.8545454545454,
+      "Percolation (mm)": 5.591363636363636,
+      "Surface Runoff (mm)": 158.43867937363638,
+      "Lateral Flow (mm)": 206.36636363636364,
+      "Transpiration + Evaporation (mm)": 908.0847727272728
+    },
+    {
+      "TopazID": 1701,
+      "Precipitation (mm)": 1670.3272727272729,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 40.803596433340914,
+      "Lateral Flow (mm)": 1223.9336363636364,
+      "Transpiration + Evaporation (mm)": 405.8329545454546
+    },
+    {
+      "TopazID": 1711,
+      "Precipitation (mm)": 1593.6318181818183,
+      "Percolation (mm)": 3.5625000000000004,
+      "Surface Runoff (mm)": 2.8588449259090907,
+      "Lateral Flow (mm)": 1081.9113636363636,
+      "Transpiration + Evaporation (mm)": 509.2040909090909
+    },
+    {
+      "TopazID": 1721,
+      "Precipitation (mm)": 1593.6409090909087,
+      "Percolation (mm)": 4.241590909090909,
+      "Surface Runoff (mm)": 10.348244037613636,
+      "Lateral Flow (mm)": 990.9131818181818,
+      "Transpiration + Evaporation (mm)": 590.3181818181819
+    },
+    {
+      "TopazID": 1731,
+      "Precipitation (mm)": 1677.909090909091,
+      "Percolation (mm)": 13.047727272727274,
+      "Surface Runoff (mm)": 452.0251792068182,
+      "Lateral Flow (mm)": 369.01272727272726,
+      "Transpiration + Evaporation (mm)": 837.3320454545457
+    },
+    {
+      "TopazID": 1741,
+      "Precipitation (mm)": 1608.4840909090906,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 24.87127473127273,
+      "Lateral Flow (mm)": 1186.7815909090907,
+      "Transpiration + Evaporation (mm)": 397.17272727272734
+    },
+    {
+      "TopazID": 1751,
+      "Precipitation (mm)": 1644.2477272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 32.877640321293185,
+      "Lateral Flow (mm)": 1237.925909090909,
+      "Transpiration + Evaporation (mm)": 373.8652272727273
+    },
+    {
+      "TopazID": 1761,
+      "Precipitation (mm)": 1323.165909090909,
+      "Percolation (mm)": 69.12181818181817,
+      "Surface Runoff (mm)": 125.62493025380226,
+      "Lateral Flow (mm)": 648.4279545454546,
+      "Transpiration + Evaporation (mm)": 479.78113636363645
+    },
+    {
+      "TopazID": 1771,
+      "Precipitation (mm)": 1293.918181818182,
+      "Percolation (mm)": 5.523409090909092,
+      "Surface Runoff (mm)": 146.24349640886362,
+      "Lateral Flow (mm)": 243.2493181818182,
+      "Transpiration + Evaporation (mm)": 899.9463636363636
+    },
+    {
+      "TopazID": 1781,
+      "Precipitation (mm)": 1384.3522727272727,
+      "Percolation (mm)": 66.75704545454545,
+      "Surface Runoff (mm)": 188.24172103545453,
+      "Lateral Flow (mm)": 162.66636363636363,
+      "Transpiration + Evaporation (mm)": 967.4031818181819
+    },
+    {
+      "TopazID": 1791,
+      "Precipitation (mm)": 1354.1772727272728,
+      "Percolation (mm)": 64.26136363636364,
+      "Surface Runoff (mm)": 158.3377487022727,
+      "Lateral Flow (mm)": 178.72454545454542,
+      "Transpiration + Evaporation (mm)": 954.5606818181819
+    },
+    {
+      "TopazID": 1801,
+      "Precipitation (mm)": 1288.5590909090909,
+      "Percolation (mm)": 5.637045454545454,
+      "Surface Runoff (mm)": 158.9643537681818,
+      "Lateral Flow (mm)": 226.13727272727274,
+      "Transpiration + Evaporation (mm)": 897.8895454545458
+    },
+    {
+      "TopazID": 1811,
+      "Precipitation (mm)": 1288.6272727272726,
+      "Percolation (mm)": 5.3361363636363635,
+      "Surface Runoff (mm)": 101.84622654545456,
+      "Lateral Flow (mm)": 324.18340909090915,
+      "Transpiration + Evaporation (mm)": 858.6902272727272
+    },
+    {
+      "TopazID": 1821,
+      "Precipitation (mm)": 1289.9204545454545,
+      "Percolation (mm)": 5.2511363636363635,
+      "Surface Runoff (mm)": 88.31002024772727,
+      "Lateral Flow (mm)": 351.25454545454545,
+      "Transpiration + Evaporation (mm)": 846.6136363636364
+    },
+    {
+      "TopazID": 1831,
+      "Precipitation (mm)": 1344.0545454545454,
+      "Percolation (mm)": 63.92772727272727,
+      "Surface Runoff (mm)": 155.58837896136365,
+      "Lateral Flow (mm)": 172.78227272727275,
+      "Transpiration + Evaporation (mm)": 953.6202272727273
+    },
+    {
+      "TopazID": 1841,
+      "Precipitation (mm)": 1330.1249999999998,
+      "Percolation (mm)": 45.473409090909094,
+      "Surface Runoff (mm)": 154.26573998795456,
+      "Lateral Flow (mm)": 448.2224999999999,
+      "Transpiration + Evaporation (mm)": 683.1722727272727
+    },
+    {
+      "TopazID": 1851,
+      "Precipitation (mm)": 1301.3477272727273,
+      "Percolation (mm)": 5.827045454545455,
+      "Surface Runoff (mm)": 189.58967334954548,
+      "Lateral Flow (mm)": 189.93681818181813,
+      "Transpiration + Evaporation (mm)": 915.1531818181819
+    },
+    {
+      "TopazID": 1861,
+      "Precipitation (mm)": 1298.9136363636362,
+      "Percolation (mm)": 5.7263636363636365,
+      "Surface Runoff (mm)": 180.70705198863638,
+      "Lateral Flow (mm)": 197.75727272727272,
+      "Transpiration + Evaporation (mm)": 914.5290909090908
+    },
+    {
+      "TopazID": 1871,
+      "Precipitation (mm)": 1288.8318181818183,
+      "Percolation (mm)": 5.294318181818182,
+      "Surface Runoff (mm)": 93.81544550454545,
+      "Lateral Flow (mm)": 340.21022727272725,
+      "Transpiration + Evaporation (mm)": 850.9765909090912
+    },
+    {
+      "TopazID": 1881,
+      "Precipitation (mm)": 1352.806818181818,
+      "Percolation (mm)": 68.2740909090909,
+      "Surface Runoff (mm)": 204.41640960227275,
+      "Lateral Flow (mm)": 102.4965909090909,
+      "Transpiration + Evaporation (mm)": 978.0161363636365
+    },
+    {
+      "TopazID": 1891,
+      "Precipitation (mm)": 1407.975,
+      "Percolation (mm)": 5.6925,
+      "Surface Runoff (mm)": 201.09307235909094,
+      "Lateral Flow (mm)": 274.8711363636364,
+      "Transpiration + Evaporation (mm)": 926.2486363636364
+    },
+    {
+      "TopazID": 1901,
+      "Precipitation (mm)": 1347.95,
+      "Percolation (mm)": 4.913181818181818,
+      "Surface Runoff (mm)": 49.14434619090909,
+      "Lateral Flow (mm)": 501.1922727272727,
+      "Transpiration + Evaporation (mm)": 794.1236363636364
+    },
+    {
+      "TopazID": 1911,
+      "Precipitation (mm)": 1363.9613636363638,
+      "Percolation (mm)": 5.666818181818183,
+      "Surface Runoff (mm)": 197.90060564090908,
+      "Lateral Flow (mm)": 231.42795454545455,
+      "Transpiration + Evaporation (mm)": 929.1340909090908
+    },
+    {
+      "TopazID": 1921,
+      "Precipitation (mm)": 1308.0818181818183,
+      "Percolation (mm)": 5.824090909090909,
+      "Surface Runoff (mm)": 197.20857420454547,
+      "Lateral Flow (mm)": 183.32750000000001,
+      "Transpiration + Evaporation (mm)": 920.9579545454548
+    },
+    {
+      "TopazID": 1931,
+      "Precipitation (mm)": 1519.4522727272727,
+      "Percolation (mm)": 6.247045454545455,
+      "Surface Runoff (mm)": 299.3393694013637,
+      "Lateral Flow (mm)": 266.9088636363636,
+      "Transpiration + Evaporation (mm)": 944.2793181818182
+    },
+    {
+      "TopazID": 1941,
+      "Precipitation (mm)": 1449.1272727272728,
+      "Percolation (mm)": 5.453181818181818,
+      "Surface Runoff (mm)": 134.05935473545458,
+      "Lateral Flow (mm)": 442.72909090909104,
+      "Transpiration + Evaporation (mm)": 867.66
+    },
+    {
+      "TopazID": 1951,
+      "Precipitation (mm)": 1428.0590909090906,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 8.580447261363636,
+      "Lateral Flow (mm)": 983.1477272727273,
+      "Transpiration + Evaporation (mm)": 437.4611363636364
+    },
+    {
+      "TopazID": 1961,
+      "Precipitation (mm)": 1537.8977272727273,
+      "Percolation (mm)": 5.217499999999999,
+      "Surface Runoff (mm)": 58.75084945227272,
+      "Lateral Flow (mm)": 695.5386363636363,
+      "Transpiration + Evaporation (mm)": 779.1620454545456
+    },
+    {
+      "TopazID": 1971,
+      "Precipitation (mm)": 1546.434090909091,
+      "Percolation (mm)": 4.3352272727272725,
+      "Surface Runoff (mm)": 11.1678,
+      "Lateral Flow (mm)": 913.3125,
+      "Transpiration + Evaporation (mm)": 619.6129545454546
+    },
+    {
+      "TopazID": 1981,
+      "Precipitation (mm)": 1431.065909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 13.165353590909092,
+      "Lateral Flow (mm)": 960.799772727273,
+      "Transpiration + Evaporation (mm)": 458.0902272727272
+    },
+    {
+      "TopazID": 1991,
+      "Precipitation (mm)": 1316.7659090909092,
+      "Percolation (mm)": 5.550227272727272,
+      "Surface Runoff (mm)": 156.56380831522725,
+      "Lateral Flow (mm)": 257.7963636363636,
+      "Transpiration + Evaporation (mm)": 897.3681818181819
+    },
+    {
+      "TopazID": 2001,
+      "Precipitation (mm)": 1310.6363636363637,
+      "Percolation (mm)": 5.372727272727274,
+      "Surface Runoff (mm)": 112.15131311363638,
+      "Lateral Flow (mm)": 337.6652272727273,
+      "Transpiration + Evaporation (mm)": 856.6565909090909
+    },
+    {
+      "TopazID": 2011,
+      "Precipitation (mm)": 1633.4613636363633,
+      "Percolation (mm)": 11.6225,
+      "Surface Runoff (mm)": 261.5557076772727,
+      "Lateral Flow (mm)": 588.4613636363636,
+      "Transpiration + Evaporation (mm)": 769.0036363636365
+    },
+    {
+      "TopazID": 2021,
+      "Precipitation (mm)": 1728.8409090909088,
+      "Percolation (mm)": 13.621363636363638,
+      "Surface Runoff (mm)": 531.1970260340909,
+      "Lateral Flow (mm)": 313.65340909090907,
+      "Transpiration + Evaporation (mm)": 862.5949999999998
+    },
+    {
+      "TopazID": 2031,
+      "Precipitation (mm)": 1705.6249999999998,
+      "Percolation (mm)": 12.26022727272727,
+      "Surface Runoff (mm)": 390.09581287954546,
+      "Lateral Flow (mm)": 502.3545454545454,
+      "Transpiration + Evaporation (mm)": 796.2481818181818
+    },
+    {
+      "TopazID": 2041,
+      "Precipitation (mm)": 1711.2386363636363,
+      "Percolation (mm)": 10.170681818181817,
+      "Surface Runoff (mm)": 153.37897831590908,
+      "Lateral Flow (mm)": 897.711818181818,
+      "Transpiration + Evaporation (mm)": 648.5656818181818
+    },
+    {
+      "TopazID": 2051,
+      "Precipitation (mm)": 1471.3431818181818,
+      "Percolation (mm)": 4.002045454545455,
+      "Surface Runoff (mm)": 10.102222581818182,
+      "Lateral Flow (mm)": 881.6336363636366,
+      "Transpiration + Evaporation (mm)": 578.2329545454545
+    },
+    {
+      "TopazID": 2061,
+      "Precipitation (mm)": 1508.5863636363638,
+      "Percolation (mm)": 6.099545454545455,
+      "Surface Runoff (mm)": 274.34006545113635,
+      "Lateral Flow (mm)": 288.61,
+      "Transpiration + Evaporation (mm)": 937.6636363636367
+    },
+    {
+      "TopazID": 2071,
+      "Precipitation (mm)": 1389.375,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 0.1327288409090909,
+      "Lateral Flow (mm)": 987.1045454545455,
+      "Transpiration + Evaporation (mm)": 403.45863636363634
+    },
+    {
+      "TopazID": 2081,
+      "Precipitation (mm)": 1428.7477272727274,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 1.39010725,
+      "Lateral Flow (mm)": 1021.964318181818,
+      "Transpiration + Evaporation (mm)": 406.655909090909
+    },
+    {
+      "TopazID": 2091,
+      "Precipitation (mm)": 1340.1522727272727,
+      "Percolation (mm)": 12.329318181818179,
+      "Surface Runoff (mm)": 261.33223896818185,
+      "Lateral Flow (mm)": 205.94863636363635,
+      "Transpiration + Evaporation (mm)": 856.7063636363637
+    },
+    {
+      "TopazID": 2101,
+      "Precipitation (mm)": 1343.0386363636367,
+      "Percolation (mm)": 3.9356818181818185,
+      "Surface Runoff (mm)": 4.343797722113636,
+      "Lateral Flow (mm)": 766.2104545454546,
+      "Transpiration + Evaporation (mm)": 571.0643181818182
+    },
+    {
+      "TopazID": 2111,
+      "Precipitation (mm)": 1324.0568181818182,
+      "Percolation (mm)": 3.694090909090909,
+      "Surface Runoff (mm)": 5.585877636363636,
+      "Lateral Flow (mm)": 770.0711363636364,
+      "Transpiration + Evaporation (mm)": 547.7031818181817
+    },
+    {
+      "TopazID": 2121,
+      "Precipitation (mm)": 1367.7295454545454,
+      "Percolation (mm)": 5.747727272727273,
+      "Surface Runoff (mm)": 215.62462424545456,
+      "Lateral Flow (mm)": 207.36613636363643,
+      "Transpiration + Evaporation (mm)": 938.7999999999997
+    },
+    {
+      "TopazID": 2131,
+      "Precipitation (mm)": 1349.9886363636363,
+      "Percolation (mm)": 5.646363636363637,
+      "Surface Runoff (mm)": 193.29814629363636,
+      "Lateral Flow (mm)": 224.34227272727273,
+      "Transpiration + Evaporation (mm)": 926.8249999999999
+    },
+    {
+      "TopazID": 2141,
+      "Precipitation (mm)": 1764.4636363636362,
+      "Percolation (mm)": 14.039545454545454,
+      "Surface Runoff (mm)": 626.9291855227273,
+      "Lateral Flow (mm)": 249.52204545454543,
+      "Transpiration + Evaporation (mm)": 864.4675000000002
+    },
+    {
+      "TopazID": 2151,
+      "Precipitation (mm)": 1762.6090909090906,
+      "Percolation (mm)": 10.428181818181818,
+      "Surface Runoff (mm)": 217.94846754045454,
+      "Lateral Flow (mm)": 867.2906818181818,
+      "Transpiration + Evaporation (mm)": 664.9375
+    },
+    {
+      "TopazID": 2161,
+      "Precipitation (mm)": 1694.2590909090907,
+      "Percolation (mm)": 12.482045454545455,
+      "Surface Runoff (mm)": 392.9160501681818,
+      "Lateral Flow (mm)": 479.60840909090916,
+      "Transpiration + Evaporation (mm)": 804.3847727272728
+    },
+    {
+      "TopazID": 2171,
+      "Precipitation (mm)": 1751.761363636364,
+      "Percolation (mm)": 14.011363636363633,
+      "Surface Runoff (mm)": 611.8675450704545,
+      "Lateral Flow (mm)": 236.13590909090908,
+      "Transpiration + Evaporation (mm)": 880.3740909090909
+    },
+    {
+      "TopazID": 2181,
+      "Precipitation (mm)": 1716.890909090909,
+      "Percolation (mm)": 12.332499999999998,
+      "Surface Runoff (mm)": 392.57294952954544,
+      "Lateral Flow (mm)": 511.3456818181819,
+      "Transpiration + Evaporation (mm)": 795.9175000000002
+    },
+    {
+      "TopazID": 2191,
+      "Precipitation (mm)": 1743.6931818181822,
+      "Percolation (mm)": 13.55318181818182,
+      "Surface Runoff (mm)": 521.1717947838636,
+      "Lateral Flow (mm)": 347.0336363636364,
+      "Transpiration + Evaporation (mm)": 854.3706818181819
+    },
+    {
+      "TopazID": 2201,
+      "Precipitation (mm)": 1582.5499999999995,
+      "Percolation (mm)": 4.372954545454546,
+      "Surface Runoff (mm)": 11.208869549500001,
+      "Lateral Flow (mm)": 948.2715909090908,
+      "Transpiration + Evaporation (mm)": 620.5022727272726
+    },
+    {
+      "TopazID": 2211,
+      "Precipitation (mm)": 1597.6136363636363,
+      "Percolation (mm)": 5.162727272727273,
+      "Surface Runoff (mm)": 34.236792283250004,
+      "Lateral Flow (mm)": 824.3745454545453,
+      "Transpiration + Evaporation (mm)": 734.5725000000001
+    },
+    {
+      "TopazID": 2221,
+      "Precipitation (mm)": 1708.0886363636366,
+      "Percolation (mm)": 12.825681818181819,
+      "Surface Runoff (mm)": 461.92023546818183,
+      "Lateral Flow (mm)": 398.48636363636365,
+      "Transpiration + Evaporation (mm)": 828.5609090909091
+    },
+    {
+      "TopazID": 2231,
+      "Precipitation (mm)": 1640.9931818181817,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 8.979876988863635,
+      "Lateral Flow (mm)": 1239.7759090909092,
+      "Transpiration + Evaporation (mm)": 392.5743181818183
+    },
+    {
+      "TopazID": 2241,
+      "Precipitation (mm)": 1675.7863636363638,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 30.74086165590909,
+      "Lateral Flow (mm)": 1253.0890909090908,
+      "Transpiration + Evaporation (mm)": 392.24750000000006
+    },
+    {
+      "TopazID": 2251,
+      "Precipitation (mm)": 1343.6045454545454,
+      "Percolation (mm)": 47.43636363636363,
+      "Surface Runoff (mm)": 27.389603665909092,
+      "Lateral Flow (mm)": 507.6770454545456,
+      "Transpiration + Evaporation (mm)": 766.0052272727273
+    },
+    {
+      "TopazID": 2261,
+      "Precipitation (mm)": 1334.418181818182,
+      "Percolation (mm)": 56.3375,
+      "Surface Runoff (mm)": 86.10560381136362,
+      "Lateral Flow (mm)": 316.99340909090915,
+      "Transpiration + Evaporation (mm)": 879.0006818181816
+    },
+    {
+      "TopazID": 2271,
+      "Precipitation (mm)": 1397.040909090909,
+      "Percolation (mm)": 60.36681818181818,
+      "Surface Runoff (mm)": 127.70680919772725,
+      "Lateral Flow (mm)": 294.4152272727273,
+      "Transpiration + Evaporation (mm)": 917.4956818181819
+    },
+    {
+      "TopazID": 2281,
+      "Precipitation (mm)": 1360.640909090909,
+      "Percolation (mm)": 56.55590909090908,
+      "Surface Runoff (mm)": 83.14781714772728,
+      "Lateral Flow (mm)": 346.8611363636364,
+      "Transpiration + Evaporation (mm)": 878.3356818181816
+    },
+    {
+      "TopazID": 2291,
+      "Precipitation (mm)": 1683.7477272727272,
+      "Percolation (mm)": 13.054318181818179,
+      "Surface Runoff (mm)": 449.37245101136364,
+      "Lateral Flow (mm)": 366.5368181818182,
+      "Transpiration + Evaporation (mm)": 848.4600000000002
+    },
+    {
+      "TopazID": 2301,
+      "Precipitation (mm)": 1712.9068181818184,
+      "Percolation (mm)": 13.089999999999998,
+      "Surface Runoff (mm)": 483.4490190454546,
+      "Lateral Flow (mm)": 364.73454545454547,
+      "Transpiration + Evaporation (mm)": 844.8761363636363
+    },
+    {
+      "TopazID": 2311,
+      "Precipitation (mm)": 1657.4500000000005,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 20.55812543795454,
+      "Lateral Flow (mm)": 1248.2704545454544,
+      "Transpiration + Evaporation (mm)": 388.9418181818182
+    },
+    {
+      "TopazID": 2321,
+      "Precipitation (mm)": 1346.6954545454546,
+      "Percolation (mm)": 5.737954545454546,
+      "Surface Runoff (mm)": 179.7432128698841,
+      "Lateral Flow (mm)": 284.7631818181818,
+      "Transpiration + Evaporation (mm)": 875.5638636363637
+    },
+    {
+      "TopazID": 2331,
+      "Precipitation (mm)": 1357.943181818182,
+      "Percolation (mm)": 3.6502272727272724,
+      "Surface Runoff (mm)": 847.318934537068,
+      "Lateral Flow (mm)": 16.819545454545455,
+      "Transpiration + Evaporation (mm)": 488.27318181818185
+    },
+    {
+      "TopazID": 2341,
+      "Precipitation (mm)": 1562.6295454545455,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.6755116409090913,
+      "Lateral Flow (mm)": 1163.3425,
+      "Transpiration + Evaporation (mm)": 396.9104545454545
+    },
+    {
+      "TopazID": 2351,
+      "Precipitation (mm)": 1472.563636363636,
+      "Percolation (mm)": 4.3986363636363635,
+      "Surface Runoff (mm)": 11.999200495454545,
+      "Lateral Flow (mm)": 803.0495454545453,
+      "Transpiration + Evaporation (mm)": 654.820909090909
+    },
+    {
+      "TopazID": 2361,
+      "Precipitation (mm)": 1481.7136363636364,
+      "Percolation (mm)": 4.218863636363636,
+      "Surface Runoff (mm)": 10.446875568181817,
+      "Lateral Flow (mm)": 857.0288636363636,
+      "Transpiration + Evaporation (mm)": 612.118409090909
+    },
+    {
+      "TopazID": 2371,
+      "Precipitation (mm)": 1531.7545454545457,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 3.3634153636363635,
+      "Lateral Flow (mm)": 1127.5020454545456,
+      "Transpiration + Evaporation (mm)": 402.1747727272728
+    },
+    {
+      "TopazID": 2381,
+      "Precipitation (mm)": 1348.7681818181818,
+      "Percolation (mm)": 39.702045454545456,
+      "Surface Runoff (mm)": 19.402564863636368,
+      "Lateral Flow (mm)": 660.7888636363637,
+      "Transpiration + Evaporation (mm)": 634.0438636363638
+    },
+    {
+      "TopazID": 2391,
+      "Precipitation (mm)": 1367.8727272727272,
+      "Percolation (mm)": 68.10295454545454,
+      "Surface Runoff (mm)": 199.51998258613636,
+      "Lateral Flow (mm)": 125.8784090909091,
+      "Transpiration + Evaporation (mm)": 974.7581818181817
+    },
+    {
+      "TopazID": 2401,
+      "Precipitation (mm)": 1354.4295454545454,
+      "Percolation (mm)": 5.845454545454545,
+      "Surface Runoff (mm)": 226.12700767431815,
+      "Lateral Flow (mm)": 177.90272727272725,
+      "Transpiration + Evaporation (mm)": 943.715
+    },
+    {
+      "TopazID": 2411,
+      "Precipitation (mm)": 1384.384090909091,
+      "Percolation (mm)": 65.74454545454545,
+      "Surface Runoff (mm)": 180.88576627272727,
+      "Lateral Flow (mm)": 175.60409090909093,
+      "Transpiration + Evaporation (mm)": 963.1254545454544
+    },
+    {
+      "TopazID": 2421,
+      "Precipitation (mm)": 1435.0863636363636,
+      "Percolation (mm)": 3.500681818181818,
+      "Surface Runoff (mm)": 5.433085272727272,
+      "Lateral Flow (mm)": 900.144090909091,
+      "Transpiration + Evaporation (mm)": 529.6447727272725
+    },
+    {
+      "TopazID": 2431,
+      "Precipitation (mm)": 1446.9045454545453,
+      "Percolation (mm)": 4.77409090909091,
+      "Surface Runoff (mm)": 25.71218255,
+      "Lateral Flow (mm)": 668.5575,
+      "Transpiration + Evaporation (mm)": 749.1556818181816
+    },
+    {
+      "TopazID": 2441,
+      "Precipitation (mm)": 1688.3454545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 284.54440483425003,
+      "Lateral Flow (mm)": 964.1004545454547,
+      "Transpiration + Evaporation (mm)": 439.51613636363635
+    },
+    {
+      "TopazID": 2451,
+      "Precipitation (mm)": 1623.9704545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 7.809352604468182,
+      "Lateral Flow (mm)": 1221.4331818181818,
+      "Transpiration + Evaporation (mm)": 395.8752272727272
+    },
+    {
+      "TopazID": 2461,
+      "Precipitation (mm)": 1641.5772727272729,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 23.473023220795458,
+      "Lateral Flow (mm)": 1244.2486363636365,
+      "Transpiration + Evaporation (mm)": 374.3281818181818
+    },
+    {
+      "TopazID": 2471,
+      "Precipitation (mm)": 1684.222727272727,
+      "Percolation (mm)": 12.796818181818184,
+      "Surface Runoff (mm)": 415.3324148252273,
+      "Lateral Flow (mm)": 422.5195454545454,
+      "Transpiration + Evaporation (mm)": 827.9838636363637
+    },
+    {
+      "TopazID": 2481,
+      "Precipitation (mm)": 1637.2431818181822,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.528934974363635,
+      "Lateral Flow (mm)": 1253.4681818181818,
+      "Transpiration + Evaporation (mm)": 373.71772727272725
+    },
+    {
+      "TopazID": 2491,
+      "Precipitation (mm)": 1680.8704545454543,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 12.549995159772728,
+      "Lateral Flow (mm)": 1279.9724999999999,
+      "Transpiration + Evaporation (mm)": 388.64931818181816
+    },
+    {
+      "TopazID": 2501,
+      "Precipitation (mm)": 1614.715909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.123421401852271,
+      "Lateral Flow (mm)": 1216.4179545454544,
+      "Transpiration + Evaporation (mm)": 389.4736363636364
+    },
+    {
+      "TopazID": 2511,
+      "Precipitation (mm)": 1562.15,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 2.3861886818181817,
+      "Lateral Flow (mm)": 1166.2815909090912,
+      "Transpiration + Evaporation (mm)": 394.7663636363637
+    },
+    {
+      "TopazID": 2521,
+      "Precipitation (mm)": 1571.7,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 11.115881702954546,
+      "Lateral Flow (mm)": 1168.83,
+      "Transpiration + Evaporation (mm)": 393.10045454545457
+    },
+    {
+      "TopazID": 2531,
+      "Precipitation (mm)": 1510.7977272727271,
+      "Percolation (mm)": 4.864090909090909,
+      "Surface Runoff (mm)": 19.251792363636365,
+      "Lateral Flow (mm)": 763.4027272727272,
+      "Transpiration + Evaporation (mm)": 724.4154545454546
+    },
+    {
+      "TopazID": 2541,
+      "Precipitation (mm)": 1531.3999999999999,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 5.861497431818182,
+      "Lateral Flow (mm)": 1120.7743181818184,
+      "Transpiration + Evaporation (mm)": 406.03477272727264
+    },
+    {
+      "TopazID": 2551,
+      "Precipitation (mm)": 1375.0295454545453,
+      "Percolation (mm)": 12.047954545454546,
+      "Surface Runoff (mm)": 244.44636334712274,
+      "Lateral Flow (mm)": 307.60454545454553,
+      "Transpiration + Evaporation (mm)": 807.313181818182
+    },
+    {
+      "TopazID": 2561,
+      "Precipitation (mm)": 1361.9068181818182,
+      "Percolation (mm)": 3.5518181818181827,
+      "Surface Runoff (mm)": 3.4527030445454545,
+      "Lateral Flow (mm)": 836.7579545454547,
+      "Transpiration + Evaporation (mm)": 521.4109090909091
+    },
+    {
+      "TopazID": 2571,
+      "Precipitation (mm)": 1351.8954545454544,
+      "Percolation (mm)": 3.920681818181819,
+      "Surface Runoff (mm)": 5.357222886363636,
+      "Lateral Flow (mm)": 774.0168181818182,
+      "Transpiration + Evaporation (mm)": 571.1772727272727
+    },
+    {
+      "TopazID": 2581,
+      "Precipitation (mm)": 1428.0636363636365,
+      "Percolation (mm)": 12.525454545454545,
+      "Surface Runoff (mm)": 305.3814333568182,
+      "Lateral Flow (mm)": 240.30204545454538,
+      "Transpiration + Evaporation (mm)": 865.3211363636365
+    },
+    {
+      "TopazID": 2591,
+      "Precipitation (mm)": 1362.7727272727273,
+      "Percolation (mm)": 4.747045454545455,
+      "Surface Runoff (mm)": 16.71937971318182,
+      "Lateral Flow (mm)": 619.8534090909092,
+      "Transpiration + Evaporation (mm)": 722.9238636363636
+    },
+    {
+      "TopazID": 2601,
+      "Precipitation (mm)": 1385.4886363636363,
+      "Percolation (mm)": 5.568409090909092,
+      "Surface Runoff (mm)": 131.2967955275,
+      "Lateral Flow (mm)": 428.1011363636364,
+      "Transpiration + Evaporation (mm)": 820.4331818181817
+    },
+    {
+      "TopazID": 2611,
+      "Precipitation (mm)": 1360.618181818182,
+      "Percolation (mm)": 5.630909090909092,
+      "Surface Runoff (mm)": 182.39081816227272,
+      "Lateral Flow (mm)": 260.8011363636363,
+      "Transpiration + Evaporation (mm)": 911.9156818181817
+    },
+    {
+      "TopazID": 2621,
+      "Precipitation (mm)": 1361.0954545454547,
+      "Percolation (mm)": 48.9015909090909,
+      "Surface Runoff (mm)": 33.593766822727275,
+      "Lateral Flow (mm)": 496.5743181818181,
+      "Transpiration + Evaporation (mm)": 786.8327272727271
+    },
+    {
+      "TopazID": 2631,
+      "Precipitation (mm)": 1406.4954545454545,
+      "Percolation (mm)": 56.84295454545456,
+      "Surface Runoff (mm)": 87.21971036090909,
+      "Lateral Flow (mm)": 387.1050000000001,
+      "Transpiration + Evaporation (mm)": 879.4611363636363
+    },
+    {
+      "TopazID": 2641,
+      "Precipitation (mm)": 1369.2727272727275,
+      "Percolation (mm)": 5.540454545454545,
+      "Surface Runoff (mm)": 153.8153168613636,
+      "Lateral Flow (mm)": 313.34636363636366,
+      "Transpiration + Evaporation (mm)": 897.2554545454545
+    },
+    {
+      "TopazID": 2651,
+      "Precipitation (mm)": 1443.927272727273,
+      "Percolation (mm)": 61.45295454545454,
+      "Surface Runoff (mm)": 140.68716727045455,
+      "Lateral Flow (mm)": 325.8913636363636,
+      "Transpiration + Evaporation (mm)": 918.4036363636365
+    },
+    {
+      "TopazID": 2661,
+      "Precipitation (mm)": 1630.209090909091,
+      "Percolation (mm)": 6.137727272727272,
+      "Surface Runoff (mm)": 250.11332315822048,
+      "Lateral Flow (mm)": 507.1461363636363,
+      "Transpiration + Evaporation (mm)": 864.575909090909
+    },
+    {
+      "TopazID": 2671,
+      "Precipitation (mm)": 1450.9477272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 5.765422359090909,
+      "Lateral Flow (mm)": 1030.8393181818183,
+      "Transpiration + Evaporation (mm)": 415.6638636363637
+    },
+    {
+      "TopazID": 2681,
+      "Precipitation (mm)": 1523.1840909090906,
+      "Percolation (mm)": 5.110454545454545,
+      "Surface Runoff (mm)": 49.53915622727273,
+      "Lateral Flow (mm)": 695.1281818181817,
+      "Transpiration + Evaporation (mm)": 774.2974999999999
+    },
+    {
+      "TopazID": 2691,
+      "Precipitation (mm)": 1482.8522727272727,
+      "Percolation (mm)": 5.297272727272728,
+      "Surface Runoff (mm)": 96.46516401318182,
+      "Lateral Flow (mm)": 546.5584090909091,
+      "Transpiration + Evaporation (mm)": 835.3334090909091
+    },
+    {
+      "TopazID": 2701,
+      "Precipitation (mm)": 1403.5795454545457,
+      "Percolation (mm)": 65.59909090909092,
+      "Surface Runoff (mm)": 179.33531109204543,
+      "Lateral Flow (mm)": 189.71068181818183,
+      "Transpiration + Evaporation (mm)": 970.3261363636365
+    },
+    {
+      "TopazID": 2711,
+      "Precipitation (mm)": 1394.7454545454545,
+      "Percolation (mm)": 60.73363636363635,
+      "Surface Runoff (mm)": 130.79617444318183,
+      "Lateral Flow (mm)": 275.25295454545454,
+      "Transpiration + Evaporation (mm)": 930.862272727273
+    },
+    {
+      "TopazID": 2721,
+      "Precipitation (mm)": 1431.534090909091,
+      "Percolation (mm)": 5.520681818181819,
+      "Surface Runoff (mm)": 150.30678268181816,
+      "Lateral Flow (mm)": 381.67363636363626,
+      "Transpiration + Evaporation (mm)": 894.8790909090909
+    },
+    {
+      "TopazID": 2731,
+      "Precipitation (mm)": 1478.8795454545452,
+      "Percolation (mm)": 4.22840909090909,
+      "Surface Runoff (mm)": 12.4659685,
+      "Lateral Flow (mm)": 840.7570454545456,
+      "Transpiration + Evaporation (mm)": 623.5254545454546
+    },
+    {
+      "TopazID": 2741,
+      "Precipitation (mm)": 1504.6522727272727,
+      "Percolation (mm)": 4.580227272727273,
+      "Surface Runoff (mm)": 13.180726636363636,
+      "Lateral Flow (mm)": 800.7093181818183,
+      "Transpiration + Evaporation (mm)": 687.7013636363636
+    },
+    {
+      "TopazID": 2751,
+      "Precipitation (mm)": 1521.4909090909093,
+      "Percolation (mm)": 6.031818181818181,
+      "Surface Runoff (mm)": 261.1638280534091,
+      "Lateral Flow (mm)": 325.73886363636353,
+      "Transpiration + Evaporation (mm)": 926.7013636363637
+    },
+    {
+      "TopazID": 2761,
+      "Precipitation (mm)": 1566.1522727272727,
+      "Percolation (mm)": 5.877045454545454,
+      "Surface Runoff (mm)": 219.54490828826138,
+      "Lateral Flow (mm)": 461.5363636363636,
+      "Transpiration + Evaporation (mm)": 877.6902272727274
+    },
+    {
+      "TopazID": 2771,
+      "Precipitation (mm)": 1446.9750000000001,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 11.04772409090909,
+      "Lateral Flow (mm)": 993.0772727272724,
+      "Transpiration + Evaporation (mm)": 444.03272727272724
+    },
+    {
+      "TopazID": 2781,
+      "Precipitation (mm)": 1462.8659090909093,
+      "Percolation (mm)": 5.790227272727273,
+      "Surface Runoff (mm)": 221.91797147620454,
+      "Lateral Flow (mm)": 310.7763636363636,
+      "Transpiration + Evaporation (mm)": 923.6647727272727
+    },
+    {
+      "TopazID": 2791,
+      "Precipitation (mm)": 1618.8386363636366,
+      "Percolation (mm)": 6.1293181818181806,
+      "Surface Runoff (mm)": 284.6184491409091,
+      "Lateral Flow (mm)": 412.83477272727265,
+      "Transpiration + Evaporation (mm)": 912.8122727272727
+    },
+    {
+      "TopazID": 2801,
+      "Precipitation (mm)": 1491.540909090909,
+      "Percolation (mm)": 4.2825,
+      "Surface Runoff (mm)": 13.367510177954546,
+      "Lateral Flow (mm)": 843.6797727272728,
+      "Transpiration + Evaporation (mm)": 632.125
+    },
+    {
+      "TopazID": 2811,
+      "Precipitation (mm)": 1620.3431818181818,
+      "Percolation (mm)": 6.397045454545454,
+      "Surface Runoff (mm)": 346.70715707747723,
+      "Lateral Flow (mm)": 322.9468181818182,
+      "Transpiration + Evaporation (mm)": 940.4627272727274
+    },
+    {
+      "TopazID": 2821,
+      "Precipitation (mm)": 1591.5363636363638,
+      "Percolation (mm)": 4.816590909090909,
+      "Surface Runoff (mm)": 15.799903472727273,
+      "Lateral Flow (mm)": 864.6945454545454,
+      "Transpiration + Evaporation (mm)": 707.3424999999999
+    },
+    {
+      "TopazID": 2831,
+      "Precipitation (mm)": 1656.4750000000001,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 64.16439413001365,
+      "Lateral Flow (mm)": 1198.1470454545454,
+      "Transpiration + Evaporation (mm)": 394.5806818181818
+    },
+    {
+      "TopazID": 2841,
+      "Precipitation (mm)": 1591.3818181818183,
+      "Percolation (mm)": 3.4084090909090916,
+      "Surface Runoff (mm)": 0.6318965454545455,
+      "Lateral Flow (mm)": 1074.6686363636366,
+      "Transpiration + Evaporation (mm)": 516.7795454545454
+    },
+    {
+      "TopazID": 2851,
+      "Precipitation (mm)": 1730.8840909090904,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 118.84216864378864,
+      "Lateral Flow (mm)": 1225.4979545454544,
+      "Transpiration + Evaporation (mm)": 386.87477272727284
+    },
+    {
+      "TopazID": 2861,
+      "Precipitation (mm)": 1693.3840909090907,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 16.17175223359091,
+      "Lateral Flow (mm)": 1305.322727272727,
+      "Transpiration + Evaporation (mm)": 372.3679545454545
+    },
+    {
+      "TopazID": 2871,
+      "Precipitation (mm)": 1615.7113636363633,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 4.0761306818181815,
+      "Lateral Flow (mm)": 1212.2245454545455,
+      "Transpiration + Evaporation (mm)": 400.65113636363634
+    },
+    {
+      "TopazID": 2881,
+      "Precipitation (mm)": 1367.8000000000002,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 22.378168495454545,
+      "Lateral Flow (mm)": 869.1272727272728,
+      "Transpiration + Evaporation (mm)": 476.98522727272723
+    },
+    {
+      "TopazID": 2891,
+      "Precipitation (mm)": 1367.5045454545455,
+      "Percolation (mm)": 5.523181818181818,
+      "Surface Runoff (mm)": 146.0584282272727,
+      "Lateral Flow (mm)": 327.9622727272727,
+      "Transpiration + Evaporation (mm)": 888.8052272727273
+    },
+    {
+      "TopazID": 2901,
+      "Precipitation (mm)": 1420.134090909091,
+      "Percolation (mm)": 61.63704545454546,
+      "Surface Runoff (mm)": 136.68850485431815,
+      "Lateral Flow (mm)": 291.4568181818182,
+      "Transpiration + Evaporation (mm)": 933.1215909090911
+    },
+    {
+      "TopazID": 2911,
+      "Precipitation (mm)": 1383.2909090909093,
+      "Percolation (mm)": 51.66272727272727,
+      "Surface Runoff (mm)": 49.835630054545454,
+      "Lateral Flow (mm)": 466.70613636363635,
+      "Transpiration + Evaporation (mm)": 819.7968181818183
+    },
+    {
+      "TopazID": 2921,
+      "Precipitation (mm)": 1455.7636363636366,
+      "Percolation (mm)": 5.759545454545455,
+      "Surface Runoff (mm)": 219.68260598000003,
+      "Lateral Flow (mm)": 295.8075,
+      "Transpiration + Evaporation (mm)": 934.2652272727271
+    },
+    {
+      "TopazID": 2931,
+      "Precipitation (mm)": 1452.1,
+      "Percolation (mm)": 5.849318181818182,
+      "Surface Runoff (mm)": 244.38186088545456,
+      "Lateral Flow (mm)": 252.98977272727276,
+      "Transpiration + Evaporation (mm)": 948.3127272727274
+    },
+    {
+      "TopazID": 2941,
+      "Precipitation (mm)": 1624.7068181818183,
+      "Percolation (mm)": 5.912272727272727,
+      "Surface Runoff (mm)": 244.74919667727275,
+      "Lateral Flow (mm)": 477.4859090909092,
+      "Transpiration + Evaporation (mm)": 894.9899999999999
+    },
+    {
+      "TopazID": 2951,
+      "Precipitation (mm)": 1581.9,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.282050569318182,
+      "Lateral Flow (mm)": 1140.6009090909092,
+      "Transpiration + Evaporation (mm)": 432.1456818181818
+    },
+    {
+      "TopazID": 2961,
+      "Precipitation (mm)": 1582.275,
+      "Percolation (mm)": 4.447272727272726,
+      "Surface Runoff (mm)": 12.716933120454543,
+      "Lateral Flow (mm)": 923.3645454545454,
+      "Transpiration + Evaporation (mm)": 643.5313636363637
+    },
+    {
+      "TopazID": 2971,
+      "Precipitation (mm)": 1688.9795454545454,
+      "Percolation (mm)": 4.615227272727273,
+      "Surface Runoff (mm)": 13.655055925000001,
+      "Lateral Flow (mm)": 1016.0620454545453,
+      "Transpiration + Evaporation (mm)": 656.0627272727271
+    },
+    {
+      "TopazID": 2981,
+      "Precipitation (mm)": 1510.3272727272729,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 16.52960154665909,
+      "Lateral Flow (mm)": 1067.924090909091,
+      "Transpiration + Evaporation (mm)": 426.8843181818181
+    },
+    {
+      "TopazID": 2991,
+      "Precipitation (mm)": 1444.8772727272726,
+      "Percolation (mm)": 4.739318181818182,
+      "Surface Runoff (mm)": 20.65618145454545,
+      "Lateral Flow (mm)": 681.3534090909089,
+      "Transpiration + Evaporation (mm)": 739.4302272727273
+    },
+    {
+      "TopazID": 3001,
+      "Precipitation (mm)": 1411.1477272727273,
+      "Percolation (mm)": 45.066818181818185,
+      "Surface Runoff (mm)": 29.913621113636363,
+      "Lateral Flow (mm)": 645.2877272727272,
+      "Transpiration + Evaporation (mm)": 695.6815909090909
+    },
+    {
+      "TopazID": 3011,
+      "Precipitation (mm)": 1601.9522727272727,
+      "Percolation (mm)": 6.67840909090909,
+      "Surface Runoff (mm)": 423.8290303340909,
+      "Lateral Flow (mm)": 180.4493181818182,
+      "Transpiration + Evaporation (mm)": 986.3661363636362
+    },
+    {
+      "TopazID": 3021,
+      "Precipitation (mm)": 1427.0545454545454,
+      "Percolation (mm)": 4.180681818181818,
+      "Surface Runoff (mm)": 12.844449865204545,
+      "Lateral Flow (mm)": 787.2406818181818,
+      "Transpiration + Evaporation (mm)": 624.9034090909091
+    },
+    {
+      "TopazID": 3031,
+      "Precipitation (mm)": 1537.1090909090906,
+      "Percolation (mm)": 4.384318181818182,
+      "Surface Runoff (mm)": 12.66698090909091,
+      "Lateral Flow (mm)": 884.2586363636361,
+      "Transpiration + Evaporation (mm)": 637.6947727272727
+    },
+    {
+      "TopazID": 3041,
+      "Precipitation (mm)": 1597.9818181818182,
+      "Percolation (mm)": 4.340227272727273,
+      "Surface Runoff (mm)": 12.32933752272727,
+      "Lateral Flow (mm)": 958.0138636363635,
+      "Transpiration + Evaporation (mm)": 625.2788636363638
+    },
+    {
+      "TopazID": 3051,
+      "Precipitation (mm)": 1711.529545454545,
+      "Percolation (mm)": 6.437272727272727,
+      "Surface Runoff (mm)": 360.8264378343273,
+      "Lateral Flow (mm)": 430.93954545454545,
+      "Transpiration + Evaporation (mm)": 909.6513636363638
+    },
+    {
+      "TopazID": 3061,
+      "Precipitation (mm)": 1635.6590909090905,
+      "Percolation (mm)": 6.278636363636365,
+      "Surface Runoff (mm)": 309.47049153220456,
+      "Lateral Flow (mm)": 414.94818181818187,
+      "Transpiration + Evaporation (mm)": 902.0361363636363
+    },
+    {
+      "TopazID": 3071,
+      "Precipitation (mm)": 1649.9886363636367,
+      "Percolation (mm)": 6.251818181818181,
+      "Surface Runoff (mm)": 314.6615055159091,
+      "Lateral Flow (mm)": 405.7122727272727,
+      "Transpiration + Evaporation (mm)": 920.3343181818183
+    },
+    {
+      "TopazID": 3081,
+      "Precipitation (mm)": 1665.5590909090906,
+      "Percolation (mm)": 5.69,
+      "Surface Runoff (mm)": 157.31471645454548,
+      "Lateral Flow (mm)": 669.7154545454546,
+      "Transpiration + Evaporation (mm)": 832.4884090909089
+    },
+    {
+      "TopazID": 3091,
+      "Precipitation (mm)": 1819.3636363636363,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 302.7740096261319,
+      "Lateral Flow (mm)": 1121.2056818181818,
+      "Transpiration + Evaporation (mm)": 395.0386363636362
+    },
+    {
+      "TopazID": 3101,
+      "Precipitation (mm)": 1804.1977272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 41.41192335840909,
+      "Lateral Flow (mm)": 1352.3375,
+      "Transpiration + Evaporation (mm)": 410.5127272727274
+    },
+    {
+      "TopazID": 3111,
+      "Precipitation (mm)": 1804.2863636363634,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 222.00715158353407,
+      "Lateral Flow (mm)": 1192.6475,
+      "Transpiration + Evaporation (mm)": 388.8863636363636
+    },
+    {
+      "TopazID": 3121,
+      "Precipitation (mm)": 1780.0795454545457,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 25.24097501852273,
+      "Lateral Flow (mm)": 1385.8363636363636,
+      "Transpiration + Evaporation (mm)": 369.34431818181815
+    },
+    {
+      "TopazID": 3131,
+      "Precipitation (mm)": 1478.0454545454547,
+      "Percolation (mm)": 12.707954545454543,
+      "Surface Runoff (mm)": 321.1650754537045,
+      "Lateral Flow (mm)": 283.71068181818185,
+      "Transpiration + Evaporation (mm)": 855.6831818181818
+    },
+    {
+      "TopazID": 3141,
+      "Precipitation (mm)": 1443.8363636363638,
+      "Percolation (mm)": 4.1040909090909095,
+      "Surface Runoff (mm)": 6.658198238636363,
+      "Lateral Flow (mm)": 829.6393181818181,
+      "Transpiration + Evaporation (mm)": 605.5434090909091
+    },
+    {
+      "TopazID": 3151,
+      "Precipitation (mm)": 1414.7045454545453,
+      "Percolation (mm)": 5.239772727272727,
+      "Surface Runoff (mm)": 77.63044234022726,
+      "Lateral Flow (mm)": 541.9897727272727,
+      "Transpiration + Evaporation (mm)": 790.8197727272727
+    },
+    {
+      "TopazID": 3161,
+      "Precipitation (mm)": 1408.8636363636363,
+      "Percolation (mm)": 5.760909090909092,
+      "Surface Runoff (mm)": 204.26820895454546,
+      "Lateral Flow (mm)": 271.56295454545455,
+      "Transpiration + Evaporation (mm)": 926.8768181818178
+    },
+    {
+      "TopazID": 3171,
+      "Precipitation (mm)": 1390.1272727272726,
+      "Percolation (mm)": 46.96818181818182,
+      "Surface Runoff (mm)": 31.28868821363636,
+      "Lateral Flow (mm)": 572.2902272727273,
+      "Transpiration + Evaporation (mm)": 744.3727272727273
+    },
+    {
+      "TopazID": 3181,
+      "Precipitation (mm)": 1408.168181818182,
+      "Percolation (mm)": 5.580681818181818,
+      "Surface Runoff (mm)": 153.07080812886363,
+      "Lateral Flow (mm)": 370.10181818181815,
+      "Transpiration + Evaporation (mm)": 879.8311363636362
+    },
+    {
+      "TopazID": 3191,
+      "Precipitation (mm)": 1761.7295454545456,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 156.47395053409093,
+      "Lateral Flow (mm)": 1179.470681818182,
+      "Transpiration + Evaporation (mm)": 425.69795454545454
+    },
+    {
+      "TopazID": 3201,
+      "Precipitation (mm)": 1762.9886363636367,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 273.81495768870906,
+      "Lateral Flow (mm)": 1093.3275,
+      "Transpiration + Evaporation (mm)": 395.9413636363637
+    },
+    {
+      "TopazID": 3211,
+      "Precipitation (mm)": 1709.9840909090913,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 29.436154316136363,
+      "Lateral Flow (mm)": 1280.5772727272727,
+      "Transpiration + Evaporation (mm)": 400.3068181818182
+    },
+    {
+      "TopazID": 3221,
+      "Precipitation (mm)": 1724.8818181818185,
+      "Percolation (mm)": 9.735000000000001,
+      "Surface Runoff (mm)": 67.9403877909091,
+      "Lateral Flow (mm)": 1021.3177272727272,
+      "Transpiration + Evaporation (mm)": 625.1909090909091
+    },
+    {
+      "TopazID": 3231,
+      "Precipitation (mm)": 1772.0454545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 292.33278013326134,
+      "Lateral Flow (mm)": 1022.386818181818,
+      "Transpiration + Evaporation (mm)": 457.1961363636364
+    },
+    {
+      "TopazID": 3241,
+      "Precipitation (mm)": 1663.5613636363635,
+      "Percolation (mm)": 6.842727272727271,
+      "Surface Runoff (mm)": 431.74671316590906,
+      "Lateral Flow (mm)": 282.7993181818182,
+      "Transpiration + Evaporation (mm)": 936.9431818181819
+    },
+    {
+      "TopazID": 3251,
+      "Precipitation (mm)": 1772.4272727272728,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 520.9146132800387,
+      "Lateral Flow (mm)": 758.0131818181818,
+      "Transpiration + Evaporation (mm)": 492.63204545454556
+    },
+    {
+      "TopazID": 3261,
+      "Precipitation (mm)": 1660.027272727273,
+      "Percolation (mm)": 3.7720454545454554,
+      "Surface Runoff (mm)": 6.18396491590909,
+      "Lateral Flow (mm)": 1113.8752272727272,
+      "Transpiration + Evaporation (mm)": 539.6304545454545
+    },
+    {
+      "TopazID": 3271,
+      "Precipitation (mm)": 1709.2181818181818,
+      "Percolation (mm)": 6.580454545454547,
+      "Surface Runoff (mm)": 393.9750610741659,
+      "Lateral Flow (mm)": 377.46090909090907,
+      "Transpiration + Evaporation (mm)": 926.7922727272727
+    },
+    {
+      "TopazID": 3281,
+      "Precipitation (mm)": 1685.7568181818185,
+      "Percolation (mm)": 6.452727272727273,
+      "Surface Runoff (mm)": 359.25878939363633,
+      "Lateral Flow (mm)": 390.62545454545455,
+      "Transpiration + Evaporation (mm)": 925.6570454545455
+    },
+    {
+      "TopazID": 3291,
+      "Precipitation (mm)": 1816.8499999999995,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 233.6366252929546,
+      "Lateral Flow (mm)": 1152.5059090909092,
+      "Transpiration + Evaporation (mm)": 430.71522727272736
+    },
+    {
+      "TopazID": 3301,
+      "Precipitation (mm)": 1825.1431818181818,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 36.44070103863636,
+      "Lateral Flow (mm)": 1385.7922727272728,
+      "Transpiration + Evaporation (mm)": 403.17954545454546
+    },
+    {
+      "TopazID": 3311,
+      "Precipitation (mm)": 1808.1477272727273,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 26.562135390454554,
+      "Lateral Flow (mm)": 1386.5802272727271,
+      "Transpiration + Evaporation (mm)": 395.3054545454545
+    },
+    {
+      "TopazID": 3321,
+      "Precipitation (mm)": 1830.2363636363634,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 327.3193780090908,
+      "Lateral Flow (mm)": 1061.9820454545459,
+      "Transpiration + Evaporation (mm)": 440.52954545454537
+    },
+    {
+      "TopazID": 3331,
+      "Precipitation (mm)": 1825.8477272727273,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 44.696934661363635,
+      "Lateral Flow (mm)": 1372.9772727272727,
+      "Transpiration + Evaporation (mm)": 408.2568181818182
+    },
+    {
+      "TopazID": 3341,
+      "Precipitation (mm)": 1838.6818181818185,
+      "Percolation (mm)": 68.67909090909092,
+      "Surface Runoff (mm)": 929.6273027096362,
+      "Lateral Flow (mm)": 603.823409090909,
+      "Transpiration + Evaporation (mm)": 234.59750000000005
+    },
+    {
+      "TopazID": 3351,
+      "Precipitation (mm)": 1837.4727272727273,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 59.64712257788637,
+      "Lateral Flow (mm)": 1396.7225,
+      "Transpiration + Evaporation (mm)": 380.4127272727273
+    },
+    {
+      "TopazID": 3361,
+      "Precipitation (mm)": 1837.5204545454546,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 29.797789638636367,
+      "Lateral Flow (mm)": 1413.5859090909091,
+      "Transpiration + Evaporation (mm)": 392.9525000000001
+    },
+    {
+      "TopazID": 3371,
+      "Precipitation (mm)": 1429.311363636364,
+      "Percolation (mm)": 57.71409090909091,
+      "Surface Runoff (mm)": 93.5336258765909,
+      "Lateral Flow (mm)": 397.61409090909086,
+      "Transpiration + Evaporation (mm)": 884.518409090909
+    },
+    {
+      "TopazID": 3381,
+      "Precipitation (mm)": 1414.7045454545457,
+      "Percolation (mm)": 5.124090909090909,
+      "Surface Runoff (mm)": 68.79350644545455,
+      "Lateral Flow (mm)": 523.8195454545454,
+      "Transpiration + Evaporation (mm)": 818.1224999999998
+    },
+    {
+      "TopazID": 3391,
+      "Precipitation (mm)": 1433.3636363636363,
+      "Percolation (mm)": 55.35886363636364,
+      "Surface Runoff (mm)": 67.788888525,
+      "Lateral Flow (mm)": 470.64863636363646,
+      "Transpiration + Evaporation (mm)": 843.9361363636364
+    },
+    {
+      "TopazID": 3401,
+      "Precipitation (mm)": 1400.493181818182,
+      "Percolation (mm)": 43.288636363636364,
+      "Surface Runoff (mm)": 27.651031363636367,
+      "Lateral Flow (mm)": 664.8709090909092,
+      "Transpiration + Evaporation (mm)": 669.5749999999999
+    },
+    {
+      "TopazID": 3411,
+      "Precipitation (mm)": 1706.2522727272726,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 434.4198694227273,
+      "Lateral Flow (mm)": 368.1606818181818,
+      "Transpiration + Evaporation (mm)": 902.0925000000002
+    },
+    {
+      "TopazID": 3421,
+      "Precipitation (mm)": 1671.8772727272726,
+      "Percolation (mm)": 4.887500000000001,
+      "Surface Runoff (mm)": 15.054697075,
+      "Lateral Flow (mm)": 952.344318181818,
+      "Transpiration + Evaporation (mm)": 700.6827272727273
+    },
+    {
+      "TopazID": 3431,
+      "Precipitation (mm)": 1783.4136363636367,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 388.8282037324659,
+      "Lateral Flow (mm)": 934.4852272727275,
+      "Transpiration + Evaporation (mm)": 459.7856818181818
+    },
+    {
+      "TopazID": 3441,
+      "Precipitation (mm)": 1777.1227272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 292.54720075021356,
+      "Lateral Flow (mm)": 1028.9204545454547,
+      "Transpiration + Evaporation (mm)": 455.5186363636363
+    },
+    {
+      "TopazID": 3451,
+      "Precipitation (mm)": 1777.1045454545454,
+      "Percolation (mm)": 13.046590909090908,
+      "Surface Runoff (mm)": 473.27547190272725,
+      "Lateral Flow (mm)": 433.5984090909091,
+      "Transpiration + Evaporation (mm)": 851.1840909090909
+    },
+    {
+      "TopazID": 3461,
+      "Precipitation (mm)": 1684.9,
+      "Percolation (mm)": 4.720454545454545,
+      "Surface Runoff (mm)": 13.975846545454546,
+      "Lateral Flow (mm)": 993.4747727272727,
+      "Transpiration + Evaporation (mm)": 674.0354545454546
+    },
+    {
+      "TopazID": 3471,
+      "Precipitation (mm)": 1441.9954545454545,
+      "Percolation (mm)": 50.05090909090909,
+      "Surface Runoff (mm)": 39.347985803409095,
+      "Lateral Flow (mm)": 577.929090909091,
+      "Transpiration + Evaporation (mm)": 779.1961363636365
+    },
+    {
+      "TopazID": 3481,
+      "Precipitation (mm)": 1438.5613636363635,
+      "Percolation (mm)": 5.610681818181819,
+      "Surface Runoff (mm)": 167.6163764659091,
+      "Lateral Flow (mm)": 369.8561363636364,
+      "Transpiration + Evaporation (mm)": 895.780909090909
+    },
+    {
+      "TopazID": 3491,
+      "Precipitation (mm)": 1480.5522727272728,
+      "Percolation (mm)": 5.999090909090909,
+      "Surface Runoff (mm)": 279.15890155909085,
+      "Lateral Flow (mm)": 230.38431818181823,
+      "Transpiration + Evaporation (mm)": 963.8022727272729
+    },
+    {
+      "TopazID": 3501,
+      "Precipitation (mm)": 1446.0909090909092,
+      "Percolation (mm)": 60.3075,
+      "Surface Runoff (mm)": 124.95058683886364,
+      "Lateral Flow (mm)": 345.0797727272727,
+      "Transpiration + Evaporation (mm)": 918.9481818181819
+    },
+    {
+      "TopazID": 3511,
+      "Precipitation (mm)": 1439.4659090909092,
+      "Percolation (mm)": 65.30727272727272,
+      "Surface Runoff (mm)": 176.4506330668182,
+      "Lateral Flow (mm)": 236.27113636363646,
+      "Transpiration + Evaporation (mm)": 962.9063636363636
+    },
+    {
+      "TopazID": 3521,
+      "Precipitation (mm)": 1452.6886363636365,
+      "Percolation (mm)": 66.64477272727271,
+      "Surface Runoff (mm)": 192.40545522954545,
+      "Lateral Flow (mm)": 225.33409090909092,
+      "Transpiration + Evaporation (mm)": 969.2877272727272
+    },
+    {
+      "TopazID": 3531,
+      "Precipitation (mm)": 1533.2477272727274,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 24.934227886363637,
+      "Lateral Flow (mm)": 1036.7156818181818,
+      "Transpiration + Evaporation (mm)": 472.4077272727273
+    },
+    {
+      "TopazID": 3541,
+      "Precipitation (mm)": 1522.5454545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 8.06459575681818,
+      "Lateral Flow (mm)": 1099.0984090909092,
+      "Transpiration + Evaporation (mm)": 416.6150000000001
+    },
+    {
+      "TopazID": 3551,
+      "Precipitation (mm)": 1448.4522727272727,
+      "Percolation (mm)": 5.685227272727272,
+      "Surface Runoff (mm)": 189.13148395359093,
+      "Lateral Flow (mm)": 341.8872727272728,
+      "Transpiration + Evaporation (mm)": 911.7068181818181
+    },
+    {
+      "TopazID": 3561,
+      "Precipitation (mm)": 1773.3749999999993,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 576.7303231568183,
+      "Lateral Flow (mm)": 291.61477272727274,
+      "Transpiration + Evaporation (mm)": 900.9274999999998
+    },
+    {
+      "TopazID": 3571,
+      "Precipitation (mm)": 1724.065909090909,
+      "Percolation (mm)": 6.492954545454546,
+      "Surface Runoff (mm)": 383.12593182750004,
+      "Lateral Flow (mm)": 440.3702272727272,
+      "Transpiration + Evaporation (mm)": 890.0093181818179
+    },
+    {
+      "TopazID": 3581,
+      "Precipitation (mm)": 1787.2590909090907,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 324.90534762809085,
+      "Lateral Flow (mm)": 1011.781590909091,
+      "Transpiration + Evaporation (mm)": 450.4072727272727
+    },
+    {
+      "TopazID": 3591,
+      "Precipitation (mm)": 1713.809090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 18.9712615,
+      "Lateral Flow (mm)": 1024.2322727272729,
+      "Transpiration + Evaporation (mm)": 673.2711363636364
+    },
+    {
+      "TopazID": 3601,
+      "Precipitation (mm)": 1455.2409090909093,
+      "Percolation (mm)": 46.44818181818182,
+      "Surface Runoff (mm)": 31.944274818181817,
+      "Lateral Flow (mm)": 668.9386363636365,
+      "Transpiration + Evaporation (mm)": 712.5161363636364
+    },
+    {
+      "TopazID": 3611,
+      "Precipitation (mm)": 1447.3749999999998,
+      "Percolation (mm)": 6.081818181818181,
+      "Surface Runoff (mm)": 264.2984948136364,
+      "Lateral Flow (mm)": 231.96295454545455,
+      "Transpiration + Evaporation (mm)": 943.1852272727273
+    },
+    {
+      "TopazID": 3621,
+      "Precipitation (mm)": 1457.918181818182,
+      "Percolation (mm)": 58.57886363636363,
+      "Surface Runoff (mm)": 102.76598959022728,
+      "Lateral Flow (mm)": 411.09840909090923,
+      "Transpiration + Evaporation (mm)": 889.4077272727274
+    },
+    {
+      "TopazID": 3631,
+      "Precipitation (mm)": 1476.2886363636364,
+      "Percolation (mm)": 57.332045454545444,
+      "Surface Runoff (mm)": 95.1784125931818,
+      "Lateral Flow (mm)": 456.58977272727276,
+      "Transpiration + Evaporation (mm)": 871.1011363636361
+    },
+    {
+      "TopazID": 3641,
+      "Precipitation (mm)": 1527.4136363636367,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 136.12191349040907,
+      "Lateral Flow (mm)": 880.764318181818,
+      "Transpiration + Evaporation (mm)": 510.7227272727274
+    },
+    {
+      "TopazID": 3651,
+      "Precipitation (mm)": 1496.559090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 9.642818447727272,
+      "Lateral Flow (mm)": 1054.652272727273,
+      "Transpiration + Evaporation (mm)": 433.4431818181819
+    },
+    {
+      "TopazID": 3661,
+      "Precipitation (mm)": 1525.7113636363638,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 96.53423126079544,
+      "Lateral Flow (mm)": 976.8686363636366,
+      "Transpiration + Evaporation (mm)": 452.8761363636364
+    },
+    {
+      "TopazID": 3671,
+      "Precipitation (mm)": 1546.8136363636365,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 29.18698458136364,
+      "Lateral Flow (mm)": 1094.7197727272726,
+      "Transpiration + Evaporation (mm)": 423.93090909090915
+    },
+    {
+      "TopazID": 3681,
+      "Precipitation (mm)": 1785.3590909090913,
+      "Percolation (mm)": 14.208636363636366,
+      "Surface Runoff (mm)": 685.5210226799546,
+      "Lateral Flow (mm)": 179.94931818181817,
+      "Transpiration + Evaporation (mm)": 895.7547727272727
+    },
+    {
+      "TopazID": 3691,
+      "Precipitation (mm)": 1796.8272727272722,
+      "Percolation (mm)": 12.315227272727272,
+      "Surface Runoff (mm)": 396.65583640909097,
+      "Lateral Flow (mm)": 598.5434090909091,
+      "Transpiration + Evaporation (mm)": 785.1150000000001
+    },
+    {
+      "TopazID": 3701,
+      "Precipitation (mm)": 1506.6204545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 4.656676477272727,
+      "Lateral Flow (mm)": 1108.4820454545454,
+      "Transpiration + Evaporation (mm)": 394.6904545454545
+    },
+    {
+      "TopazID": 3711,
+      "Precipitation (mm)": 1481.6863636363637,
+      "Percolation (mm)": 4.789772727272727,
+      "Surface Runoff (mm)": 9.894225029545455,
+      "Lateral Flow (mm)": 778.2504545454544,
+      "Transpiration + Evaporation (mm)": 690.0031818181818
+    },
+    {
+      "TopazID": 3721,
+      "Precipitation (mm)": 1463.6227272727274,
+      "Percolation (mm)": 3.6497727272727274,
+      "Surface Runoff (mm)": 887.6242935796137,
+      "Lateral Flow (mm)": 82.52999999999999,
+      "Transpiration + Evaporation (mm)": 488.21454545454543
+    },
+    {
+      "TopazID": 3731,
+      "Precipitation (mm)": 1482.3159090909091,
+      "Percolation (mm)": 6.574090909090909,
+      "Surface Runoff (mm)": 360.5145409818182,
+      "Lateral Flow (mm)": 133.70113636363635,
+      "Transpiration + Evaporation (mm)": 977.6431818181819
+    },
+    {
+      "TopazID": 3741,
+      "Precipitation (mm)": 1532.875,
+      "Percolation (mm)": 5.701818181818182,
+      "Surface Runoff (mm)": 189.07136917272726,
+      "Lateral Flow (mm)": 449.6540909090908,
+      "Transpiration + Evaporation (mm)": 888.0759090909091
+    },
+    {
+      "TopazID": 3751,
+      "Precipitation (mm)": 1487.443181818182,
+      "Percolation (mm)": 3.9525,
+      "Surface Runoff (mm)": 9.49909625,
+      "Lateral Flow (mm)": 897.5188636363638,
+      "Transpiration + Evaporation (mm)": 579.2197727272726
+    },
+    {
+      "TopazID": 3761,
+      "Precipitation (mm)": 1467.165909090909,
+      "Percolation (mm)": 49.30477272727273,
+      "Surface Runoff (mm)": 37.08858997272727,
+      "Lateral Flow (mm)": 624.7784090909091,
+      "Transpiration + Evaporation (mm)": 760.44
+    },
+    {
+      "TopazID": 3771,
+      "Precipitation (mm)": 1755.3,
+      "Percolation (mm)": 10.547500000000001,
+      "Surface Runoff (mm)": 206.26792588181817,
+      "Lateral Flow (mm)": 847.0502272727273,
+      "Transpiration + Evaporation (mm)": 689.9065909090909
+    },
+    {
+      "TopazID": 3781,
+      "Precipitation (mm)": 1737.440909090909,
+      "Percolation (mm)": 12.017045454545451,
+      "Surface Runoff (mm)": 360.1040866686364,
+      "Lateral Flow (mm)": 563.9563636363637,
+      "Transpiration + Evaporation (mm)": 797.7697727272727
+    },
+    {
+      "TopazID": 3791,
+      "Precipitation (mm)": 1799.102272727273,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 540.5736312154545,
+      "Lateral Flow (mm)": 797.3074999999998,
+      "Transpiration + Evaporation (mm)": 460.5613636363638
+    },
+    {
+      "TopazID": 3801,
+      "Precipitation (mm)": 1805.0318181818186,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 46.80188525417727,
+      "Lateral Flow (mm)": 1377.0054545454548,
+      "Transpiration + Evaporation (mm)": 381.6429545454546
+    },
+    {
+      "TopazID": 3811,
+      "Precipitation (mm)": 1504.8568181818184,
+      "Percolation (mm)": 12.716363636363637,
+      "Surface Runoff (mm)": 327.35356766613637,
+      "Lateral Flow (mm)": 318.8563636363637,
+      "Transpiration + Evaporation (mm)": 841.1254545454547
+    },
+    {
+      "TopazID": 3821,
+      "Precipitation (mm)": 1504.5249999999999,
+      "Percolation (mm)": 9.102272727272728,
+      "Surface Runoff (mm)": 16.621616015909094,
+      "Lateral Flow (mm)": 896.7909090909089,
+      "Transpiration + Evaporation (mm)": 581.9938636363637
+    },
+    {
+      "TopazID": 3831,
+      "Precipitation (mm)": 1539.2318181818182,
+      "Percolation (mm)": 13.002045454545454,
+      "Surface Runoff (mm)": 379.0672049454546,
+      "Lateral Flow (mm)": 288.51590909090913,
+      "Transpiration + Evaporation (mm)": 852.8368181818183
+    },
+    {
+      "TopazID": 3841,
+      "Precipitation (mm)": 1531.75,
+      "Percolation (mm)": 10.85840909090909,
+      "Surface Runoff (mm)": 182.43831044295456,
+      "Lateral Flow (mm)": 619.3750000000001,
+      "Transpiration + Evaporation (mm)": 717.4043181818183
+    },
+    {
+      "TopazID": 3851,
+      "Precipitation (mm)": 1519.654545454545,
+      "Percolation (mm)": 10.603181818181818,
+      "Surface Runoff (mm)": 143.4067501081818,
+      "Lateral Flow (mm)": 675.9897727272728,
+      "Transpiration + Evaporation (mm)": 688.3020454545455
+    },
+    {
+      "TopazID": 3861,
+      "Precipitation (mm)": 1482.3159090909091,
+      "Percolation (mm)": 6.142954545454544,
+      "Surface Runoff (mm)": 271.1146473840909,
+      "Lateral Flow (mm)": 269.2459090909091,
+      "Transpiration + Evaporation (mm)": 933.6365909090906
+    },
+    {
+      "TopazID": 3871,
+      "Precipitation (mm)": 1470.5545454545454,
+      "Percolation (mm)": 49.31954545454544,
+      "Surface Runoff (mm)": 32.74917092954546,
+      "Lateral Flow (mm)": 635.4252272727273,
+      "Transpiration + Evaporation (mm)": 757.4359090909089
+    },
+    {
+      "TopazID": 3881,
+      "Precipitation (mm)": 1477.9113636363636,
+      "Percolation (mm)": 49.2484090909091,
+      "Surface Runoff (mm)": 32.61778536818181,
+      "Lateral Flow (mm)": 649.2638636363636,
+      "Transpiration + Evaporation (mm)": 751.1795454545455
+    },
+    {
+      "TopazID": 3891,
+      "Precipitation (mm)": 1473.6340909090911,
+      "Percolation (mm)": 5.051818181818182,
+      "Surface Runoff (mm)": 50.25991202954546,
+      "Lateral Flow (mm)": 634.5963636363635,
+      "Transpiration + Evaporation (mm)": 784.7759090909091
+    },
+    {
+      "TopazID": 3901,
+      "Precipitation (mm)": 1530.9522727272729,
+      "Percolation (mm)": 5.696136363636364,
+      "Surface Runoff (mm)": 192.00486733636362,
+      "Lateral Flow (mm)": 439.42431818181825,
+      "Transpiration + Evaporation (mm)": 893.6652272727274
+    },
+    {
+      "TopazID": 3911,
+      "Precipitation (mm)": 1481.2022727272729,
+      "Percolation (mm)": 46.781818181818174,
+      "Surface Runoff (mm)": 32.92996305,
+      "Lateral Flow (mm)": 695.1431818181818,
+      "Transpiration + Evaporation (mm)": 710.8768181818182
+    },
+    {
+      "TopazID": 3921,
+      "Precipitation (mm)": 1543.034090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 46.44742321363636,
+      "Lateral Flow (mm)": 1013.0363636363636,
+      "Transpiration + Evaporation (mm)": 484.2320454545455
+    },
+    {
+      "TopazID": 3931,
+      "Precipitation (mm)": 1476.7386363636363,
+      "Percolation (mm)": 61.96295454545453,
+      "Surface Runoff (mm)": 145.124455875,
+      "Lateral Flow (mm)": 342.7286363636363,
+      "Transpiration + Evaporation (mm)": 929.7070454545457
+    },
+    {
+      "TopazID": 3941,
+      "Precipitation (mm)": 1490.3840909090907,
+      "Percolation (mm)": 61.187045454545455,
+      "Surface Runoff (mm)": 137.14764708863638,
+      "Lateral Flow (mm)": 376.80977272727273,
+      "Transpiration + Evaporation (mm)": 918.2454545454547
+    },
+    {
+      "TopazID": 3951,
+      "Precipitation (mm)": 1769.225,
+      "Percolation (mm)": 14.610000000000001,
+      "Surface Runoff (mm)": 549.5157156688182,
+      "Lateral Flow (mm)": 647.4913636363636,
+      "Transpiration + Evaporation (mm)": 551.5447727272729
+    },
+    {
+      "TopazID": 3961,
+      "Precipitation (mm)": 1766.4727272727273,
+      "Percolation (mm)": 11.145681818181819,
+      "Surface Runoff (mm)": 275.01893923409085,
+      "Lateral Flow (mm)": 749.2675,
+      "Transpiration + Evaporation (mm)": 728.8679545454546
+    },
+    {
+      "TopazID": 3971,
+      "Precipitation (mm)": 1745.584090909091,
+      "Percolation (mm)": 13.15227272727273,
+      "Surface Runoff (mm)": 487.01010240681813,
+      "Lateral Flow (mm)": 375.77727272727276,
+      "Transpiration + Evaporation (mm)": 863.3368181818182
+    },
+    {
+      "TopazID": 3981,
+      "Precipitation (mm)": 1774.7022727272729,
+      "Percolation (mm)": 13.494318181818182,
+      "Surface Runoff (mm)": 533.6044008,
+      "Lateral Flow (mm)": 351.17136363636365,
+      "Transpiration + Evaporation (mm)": 869.3845454545454
+    },
+    {
+      "TopazID": 3991,
+      "Precipitation (mm)": 1755.704545454545,
+      "Percolation (mm)": 10.592272727272727,
+      "Surface Runoff (mm)": 193.86957555227272,
+      "Lateral Flow (mm)": 864.9488636363635,
+      "Transpiration + Evaporation (mm)": 684.7697727272728
+    },
+    {
+      "TopazID": 4001,
+      "Precipitation (mm)": 1794.3545454545456,
+      "Percolation (mm)": 14.243181818181819,
+      "Surface Runoff (mm)": 665.0125805247726,
+      "Lateral Flow (mm)": 240.0129545454546,
+      "Transpiration + Evaporation (mm)": 865.3345454545453
+    },
+    {
+      "TopazID": 4011,
+      "Precipitation (mm)": 1793.2181818181816,
+      "Percolation (mm)": 11.86022727272727,
+      "Surface Runoff (mm)": 352.8271441114546,
+      "Lateral Flow (mm)": 663.1490909090908,
+      "Transpiration + Evaporation (mm)": 762.1070454545456
+    },
+    {
+      "TopazID": 4021,
+      "Precipitation (mm)": 1801.2954545454543,
+      "Percolation (mm)": 14.610000000000001,
+      "Surface Runoff (mm)": 687.8236520945001,
+      "Lateral Flow (mm)": 502.555909090909,
+      "Transpiration + Evaporation (mm)": 588.2143181818182
+    },
+    {
+      "TopazID": 4031,
+      "Precipitation (mm)": 1803.284090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 177.60085879022728,
+      "Lateral Flow (mm)": 1240.833409090909,
+      "Transpiration + Evaporation (mm)": 385.1529545454545
+    },
+    {
+      "TopazID": 4041,
+      "Precipitation (mm)": 1801.1954545454544,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 18.72991819381818,
+      "Lateral Flow (mm)": 1413.6404545454548,
+      "Transpiration + Evaporation (mm)": 369.32727272727277
+    },
+    {
+      "TopazID": 4051,
+      "Precipitation (mm)": 1552.1000000000001,
+      "Percolation (mm)": 5.203863636363637,
+      "Surface Runoff (mm)": 55.09078297632047,
+      "Lateral Flow (mm)": 721.7029545454546,
+      "Transpiration + Evaporation (mm)": 770.9186363636363
+    },
+    {
+      "TopazID": 4061,
+      "Precipitation (mm)": 1509.4431818181822,
+      "Percolation (mm)": 5.425,
+      "Surface Runoff (mm)": 100.43431117045454,
+      "Lateral Flow (mm)": 593.3127272727274,
+      "Transpiration + Evaporation (mm)": 810.806590909091
+    },
+    {
+      "TopazID": 4071,
+      "Precipitation (mm)": 1518.690909090909,
+      "Percolation (mm)": 5.369090909090909,
+      "Surface Runoff (mm)": 104.26042974779544,
+      "Lateral Flow (mm)": 580.7345454545456,
+      "Transpiration + Evaporation (mm)": 829.1034090909089
+    },
+    {
+      "TopazID": 4081,
+      "Precipitation (mm)": 1528.7045454545455,
+      "Percolation (mm)": 5.241363636363637,
+      "Surface Runoff (mm)": 66.29756536818182,
+      "Lateral Flow (mm)": 668.4934090909092,
+      "Transpiration + Evaporation (mm)": 789.5070454545454
+    },
+    {
+      "TopazID": 4091,
+      "Precipitation (mm)": 1513.8636363636363,
+      "Percolation (mm)": 5.59318181818182,
+      "Surface Runoff (mm)": 165.90745373181818,
+      "Lateral Flow (mm)": 452.77613636363634,
+      "Transpiration + Evaporation (mm)": 890.0186363636366
+    },
+    {
+      "TopazID": 4101,
+      "Precipitation (mm)": 1494.9954545454545,
+      "Percolation (mm)": 4.424545454545455,
+      "Surface Runoff (mm)": 15.113025318181819,
+      "Lateral Flow (mm)": 810.6168181818183,
+      "Transpiration + Evaporation (mm)": 666.5618181818182
+    },
+    {
+      "TopazID": 4111,
+      "Precipitation (mm)": 1499.1704545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 4.825488522727273,
+      "Lateral Flow (mm)": 1078.2695454545456,
+      "Transpiration + Evaporation (mm)": 417.39659090909095
+    },
+    {
+      "TopazID": 4121,
+      "Precipitation (mm)": 1523.7454545454545,
+      "Percolation (mm)": 5.47090909090909,
+      "Surface Runoff (mm)": 133.18623392954544,
+      "Lateral Flow (mm)": 525.3981818181818,
+      "Transpiration + Evaporation (mm)": 860.3877272727274
+    },
+    {
+      "TopazID": 4131,
+      "Precipitation (mm)": 1787.459090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 31.070096148227268,
+      "Lateral Flow (mm)": 1381.2813636363635,
+      "Transpiration + Evaporation (mm)": 375.58295454545447
+    },
+    {
+      "TopazID": 4141,
+      "Precipitation (mm)": 1774.7386363636363,
+      "Percolation (mm)": 12.827954545454547,
+      "Surface Runoff (mm)": 460.66301885568174,
+      "Lateral Flow (mm)": 456.00295454545454,
+      "Transpiration + Evaporation (mm)": 839.8461363636362
+    },
+    {
+      "TopazID": 4151,
+      "Precipitation (mm)": 1794.4931818181824,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 317.28363849202276,
+      "Lateral Flow (mm)": 1080.0936363636363,
+      "Transpiration + Evaporation (mm)": 397.27818181818185
+    },
+    {
+      "TopazID": 4161,
+      "Precipitation (mm)": 1789.9886363636363,
+      "Percolation (mm)": 14.608863636363639,
+      "Surface Runoff (mm)": 13.868292845681816,
+      "Lateral Flow (mm)": 1383.5954545454545,
+      "Transpiration + Evaporation (mm)": 378.18772727272733
+    },
+    {
+      "TopazID": 4171,
+      "Precipitation (mm)": 1791.0295454545455,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 24.88595087318182,
+      "Lateral Flow (mm)": 1392.9086363636363,
+      "Transpiration + Evaporation (mm)": 373.72590909090917
+    },
+    {
+      "TopazID": 4181,
+      "Precipitation (mm)": 1561.3886363636361,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 76.19981025182045,
+      "Lateral Flow (mm)": 1066.7475000000002,
+      "Transpiration + Evaporation (mm)": 418.60977272727285
+    },
+    {
+      "TopazID": 4191,
+      "Precipitation (mm)": 1574.8681818181817,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 5.268514886363636,
+      "Lateral Flow (mm)": 1186.6038636363637,
+      "Transpiration + Evaporation (mm)": 384.1311363636365
+    },
+    {
+      "TopazID": 4201,
+      "Precipitation (mm)": 1543.6954545454544,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 5.148436113636364,
+      "Lateral Flow (mm)": 1146.7720454545454,
+      "Transpiration + Evaporation (mm)": 392.9586363636363
+    },
+    {
+      "TopazID": 4211,
+      "Precipitation (mm)": 1580.0545454545456,
+      "Percolation (mm)": 11.59659090909091,
+      "Surface Runoff (mm)": 245.27110727272728,
+      "Lateral Flow (mm)": 527.1086363636364,
+      "Transpiration + Evaporation (mm)": 793.545909090909
+    },
+    {
+      "TopazID": 4221,
+      "Precipitation (mm)": 1577.2840909090905,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 25.16555144772727,
+      "Lateral Flow (mm)": 1151.7270454545455,
+      "Transpiration + Evaporation (mm)": 400.6547727272727
+    },
+    {
+      "TopazID": 4231,
+      "Precipitation (mm)": 1584.5318181818184,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.367567340909092,
+      "Lateral Flow (mm)": 1143.3956818181816,
+      "Transpiration + Evaporation (mm)": 432.00636363636363
+    },
+    {
+      "TopazID": 4241,
+      "Precipitation (mm)": 1560.552272727273,
+      "Percolation (mm)": 5.718636363636364,
+      "Surface Runoff (mm)": 181.33573139318185,
+      "Lateral Flow (mm)": 510.7168181818182,
+      "Transpiration + Evaporation (mm)": 862.0863636363639
+    },
+    {
+      "TopazID": 4251,
+      "Precipitation (mm)": 1578.2295454545456,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 102.70484638863635,
+      "Lateral Flow (mm)": 982.1184090909093,
+      "Transpiration + Evaporation (mm)": 493.93840909090903
+    },
+    {
+      "TopazID": 4261,
+      "Precipitation (mm)": 1540.9568181818183,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 9.297249288636364,
+      "Lateral Flow (mm)": 1105.7036363636362,
+      "Transpiration + Evaporation (mm)": 427.14659090909095
+    },
+    {
+      "TopazID": 4271,
+      "Precipitation (mm)": 1629.190909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 106.97362751181817,
+      "Lateral Flow (mm)": 1073.9459090909093,
+      "Transpiration + Evaporation (mm)": 448.4536363636365
+    },
+    {
+      "TopazID": 4281,
+      "Precipitation (mm)": 1602.2659090909094,
+      "Percolation (mm)": 5.742954545454545,
+      "Surface Runoff (mm)": 193.39132164090913,
+      "Lateral Flow (mm)": 537.8129545454545,
+      "Transpiration + Evaporation (mm)": 864.4202272727272
+    },
+    {
+      "TopazID": 4291,
+      "Precipitation (mm)": 1588.2409090909096,
+      "Percolation (mm)": 5.362272727272728,
+      "Surface Runoff (mm)": 92.95478943863637,
+      "Lateral Flow (mm)": 687.8022727272727,
+      "Transpiration + Evaporation (mm)": 802.5713636363636
+    },
+    {
+      "TopazID": 4301,
+      "Precipitation (mm)": 1554.2295454545456,
+      "Percolation (mm)": 5.623181818181818,
+      "Surface Runoff (mm)": 170.24127987499998,
+      "Lateral Flow (mm)": 503.5370454545454,
+      "Transpiration + Evaporation (mm)": 874.9970454545455
+    },
+    {
+      "TopazID": 4311,
+      "Precipitation (mm)": 1549.9136363636367,
+      "Percolation (mm)": 4.5640909090909085,
+      "Surface Runoff (mm)": 15.28699185227273,
+      "Lateral Flow (mm)": 849.2631818181817,
+      "Transpiration + Evaporation (mm)": 682.3056818181818
+    },
+    {
+      "TopazID": 4321,
+      "Precipitation (mm)": 1642.1090909090906,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.293738323409091,
+      "Lateral Flow (mm)": 1215.7504545454544,
+      "Transpiration + Evaporation (mm)": 417.27840909090907
+    },
+    {
+      "TopazID": 4331,
+      "Precipitation (mm)": 1662.5704545454544,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 9.368317431818182,
+      "Lateral Flow (mm)": 1235.1638636363634,
+      "Transpiration + Evaporation (mm)": 419.24500000000006
+    },
+    {
+      "TopazID": 4341,
+      "Precipitation (mm)": 1524.5022727272728,
+      "Percolation (mm)": 5.278863636363635,
+      "Surface Runoff (mm)": 87.06851935681819,
+      "Lateral Flow (mm)": 617.1052272727272,
+      "Transpiration + Evaporation (mm)": 815.8731818181818
+    },
+    {
+      "TopazID": 4351,
+      "Precipitation (mm)": 1535.1818181818182,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 8.545056136363636,
+      "Lateral Flow (mm)": 1105.9734090909092,
+      "Transpiration + Evaporation (mm)": 421.91750000000013
+    },
+    {
+      "TopazID": 4361,
+      "Precipitation (mm)": 1790.9045454545458,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 32.59701091363636,
+      "Lateral Flow (mm)": 1362.2143181818178,
+      "Transpiration + Evaporation (mm)": 396.4684090909091
+    },
+    {
+      "TopazID": 4371,
+      "Precipitation (mm)": 1782.859090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 31.15345435909091,
+      "Lateral Flow (mm)": 1354.6031818181818,
+      "Transpiration + Evaporation (mm)": 397.4361363636364
+    },
+    {
+      "TopazID": 4381,
+      "Precipitation (mm)": 1791.775,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 138.34027731013632,
+      "Lateral Flow (mm)": 1264.7829545454545,
+      "Transpiration + Evaporation (mm)": 388.99727272727273
+    },
+    {
+      "TopazID": 4391,
+      "Precipitation (mm)": 1650.3318181818183,
+      "Percolation (mm)": 12.783863636363634,
+      "Surface Runoff (mm)": 411.0260701656818,
+      "Lateral Flow (mm)": 390.85181818181815,
+      "Transpiration + Evaporation (mm)": 830.2231818181818
+    },
+    {
+      "TopazID": 4401,
+      "Precipitation (mm)": 1600.5568181818182,
+      "Percolation (mm)": 10.584545454545456,
+      "Surface Runoff (mm)": 176.3357613,
+      "Lateral Flow (mm)": 715.0222727272728,
+      "Transpiration + Evaporation (mm)": 697.085909090909
+    },
+    {
+      "TopazID": 4411,
+      "Precipitation (mm)": 1614.1727272727267,
+      "Percolation (mm)": 12.00409090909091,
+      "Surface Runoff (mm)": 319.26925695613636,
+      "Lateral Flow (mm)": 496.0222727272727,
+      "Transpiration + Evaporation (mm)": 783.1829545454547
+    },
+    {
+      "TopazID": 4421,
+      "Precipitation (mm)": 1611.2522727272728,
+      "Percolation (mm)": 12.937954545454547,
+      "Surface Runoff (mm)": 399.33826095159094,
+      "Lateral Flow (mm)": 326.42545454545456,
+      "Transpiration + Evaporation (mm)": 866.930909090909
+    },
+    {
+      "TopazID": 4431,
+      "Precipitation (mm)": 1602.9954545454545,
+      "Percolation (mm)": 12.780000000000001,
+      "Surface Runoff (mm)": 378.7987069554545,
+      "Lateral Flow (mm)": 325.61704545454546,
+      "Transpiration + Evaporation (mm)": 880.6225000000002
+    },
+    {
+      "TopazID": 4441,
+      "Precipitation (mm)": 1600.8227272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 204.21398957249997,
+      "Lateral Flow (mm)": 876.8693181818184,
+      "Transpiration + Evaporation (mm)": 519.7052272727271
+    },
+    {
+      "TopazID": 4451,
+      "Precipitation (mm)": 1597.2477272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 281.5092529136364,
+      "Lateral Flow (mm)": 767.3188636363637,
+      "Transpiration + Evaporation (mm)": 547.8386363636364
+    },
+    {
+      "TopazID": 4461,
+      "Precipitation (mm)": 1639.6704545454543,
+      "Percolation (mm)": 11.939772727272725,
+      "Surface Runoff (mm)": 301.20596649204543,
+      "Lateral Flow (mm)": 484.45750000000004,
+      "Transpiration + Evaporation (mm)": 838.8988636363637
+    },
+    {
+      "TopazID": 4471,
+      "Precipitation (mm)": 1628.6431818181816,
+      "Percolation (mm)": 11.957272727272727,
+      "Surface Runoff (mm)": 303.48842680227267,
+      "Lateral Flow (mm)": 465.406590909091,
+      "Transpiration + Evaporation (mm)": 844.6106818181819
+    },
+    {
+      "TopazID": 4481,
+      "Precipitation (mm)": 1672.8795454545457,
+      "Percolation (mm)": 13.462499999999999,
+      "Surface Runoff (mm)": 488.7574932809091,
+      "Lateral Flow (mm)": 249.89613636363637,
+      "Transpiration + Evaporation (mm)": 913.9177272727272
+    },
+    {
+      "TopazID": 4491,
+      "Precipitation (mm)": 1615.8318181818179,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.477804068181818,
+      "Lateral Flow (mm)": 1183.4447727272727,
+      "Transpiration + Evaporation (mm)": 423.1579545454546
+    },
+    {
+      "TopazID": 4501,
+      "Precipitation (mm)": 1642.8136363636365,
+      "Percolation (mm)": 12.207272727272725,
+      "Surface Runoff (mm)": 337.0063776590909,
+      "Lateral Flow (mm)": 429.0997727272728,
+      "Transpiration + Evaporation (mm)": 860.737727272727
+    },
+    {
+      "TopazID": 4511,
+      "Precipitation (mm)": 1722.6454545454542,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 254.03441694818184,
+      "Lateral Flow (mm)": 1064.7322727272729,
+      "Transpiration + Evaporation (mm)": 404.0229545454545
+    },
+    {
+      "TopazID": 4521,
+      "Precipitation (mm)": 1728.2477272727274,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 178.72693488477273,
+      "Lateral Flow (mm)": 1148.6484090909091,
+      "Transpiration + Evaporation (mm)": 401.10090909090917
+    },
+    {
+      "TopazID": 4531,
+      "Precipitation (mm)": 1707.3068181818178,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 9.664947783340908,
+      "Lateral Flow (mm)": 1313.3577272727273,
+      "Transpiration + Evaporation (mm)": 385.6147727272726
+    },
+    {
+      "TopazID": 4541,
+      "Precipitation (mm)": 1630.9568181818179,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 102.37816690567728,
+      "Lateral Flow (mm)": 1122.1372727272726,
+      "Transpiration + Evaporation (mm)": 406.79272727272723
+    },
+    {
+      "TopazID": 4551,
+      "Precipitation (mm)": 1584.9499999999998,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.537722220454546,
+      "Lateral Flow (mm)": 1147.0254545454545,
+      "Transpiration + Evaporation (mm)": 428.5720454545454
+    },
+    {
+      "TopazID": 4561,
+      "Precipitation (mm)": 1638.1181818181824,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 88.89038466662501,
+      "Lateral Flow (mm)": 1146.9545454545455,
+      "Transpiration + Evaporation (mm)": 402.64045454545465
+    },
+    {
+      "TopazID": 4571,
+      "Precipitation (mm)": 1579.2250000000001,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 9.845059917090909,
+      "Lateral Flow (mm)": 1178.6040909090907,
+      "Transpiration + Evaporation (mm)": 392.1524999999999
+    },
+    {
+      "TopazID": 4581,
+      "Precipitation (mm)": 1600.4363636363635,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 6.02512650365909,
+      "Lateral Flow (mm)": 1208.6654545454546,
+      "Transpiration + Evaporation (mm)": 387.11431818181813
+    },
+    {
+      "TopazID": 4591,
+      "Precipitation (mm)": 1798.095454545455,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 211.43131858704544,
+      "Lateral Flow (mm)": 1165.5440909090905,
+      "Transpiration + Evaporation (mm)": 421.2502272727272
+    },
+    {
+      "TopazID": 4601,
+      "Precipitation (mm)": 1793.0068181818178,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 31.180703139000002,
+      "Lateral Flow (mm)": 1395.230909090909,
+      "Transpiration + Evaporation (mm)": 367.10795454545456
+    },
+    {
+      "TopazID": 4611,
+      "Precipitation (mm)": 1789.4954545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 498.3136896890228,
+      "Lateral Flow (mm)": 833.7865909090907,
+      "Transpiration + Evaporation (mm)": 456.87863636363636
+    },
+    {
+      "TopazID": 4621,
+      "Precipitation (mm)": 1797.1159090909093,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 139.68515434254545,
+      "Lateral Flow (mm)": 1273.5365909090908,
+      "Transpiration + Evaporation (mm)": 384.27704545454543
+    },
+    {
+      "TopazID": 4631,
+      "Precipitation (mm)": 1794.5931818181816,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 42.34884981590909,
+      "Lateral Flow (mm)": 1350.7299999999998,
+      "Transpiration + Evaporation (mm)": 401.85227272727263
+    },
+    {
+      "TopazID": 4641,
+      "Precipitation (mm)": 1616.909090909091,
+      "Percolation (mm)": 13.157045454545456,
+      "Surface Runoff (mm)": 427.97987830113635,
+      "Lateral Flow (mm)": 261.88022727272727,
+      "Transpiration + Evaporation (mm)": 907.9149999999998
+    },
+    {
+      "TopazID": 4651,
+      "Precipitation (mm)": 1628.1954545454546,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 216.02496618931366,
+      "Lateral Flow (mm)": 993.8952272727274,
+      "Transpiration + Evaporation (mm)": 418.39431818181816
+    },
+    {
+      "TopazID": 4661,
+      "Precipitation (mm)": 1683.454545454545,
+      "Percolation (mm)": 11.890227272727271,
+      "Surface Runoff (mm)": 295.0247454261364,
+      "Lateral Flow (mm)": 575.7438636363636,
+      "Transpiration + Evaporation (mm)": 797.8068181818184
+    },
+    {
+      "TopazID": 4671,
+      "Precipitation (mm)": 1651.1454545454546,
+      "Percolation (mm)": 11.733863636363635,
+      "Surface Runoff (mm)": 274.5447549159091,
+      "Lateral Flow (mm)": 556.4463636363637,
+      "Transpiration + Evaporation (mm)": 805.7081818181821
+    },
+    {
+      "TopazID": 4681,
+      "Precipitation (mm)": 1686.290909090909,
+      "Percolation (mm)": 13.954090909090912,
+      "Surface Runoff (mm)": 575.5367235038408,
+      "Lateral Flow (mm)": 159.57454545454544,
+      "Transpiration + Evaporation (mm)": 928.773409090909
+    },
+    {
+      "TopazID": 4691,
+      "Precipitation (mm)": 1733.7159090909095,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 131.20972554772726,
+      "Lateral Flow (mm)": 1207.9213636363636,
+      "Transpiration + Evaporation (mm)": 394.92386363636365
+    },
+    {
+      "TopazID": 4701,
+      "Precipitation (mm)": 1725.175,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 53.04496219840908,
+      "Lateral Flow (mm)": 1284.7129545454545,
+      "Transpiration + Evaporation (mm)": 387.8279545454545
+    },
+    {
+      "TopazID": 4711,
+      "Precipitation (mm)": 1715.9681818181814,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 43.55512349272727,
+      "Lateral Flow (mm)": 1282.6595454545454,
+      "Transpiration + Evaporation (mm)": 390.1663636363637
+    },
+    {
+      "TopazID": 4721,
+      "Precipitation (mm)": 1730.340909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 26.037353104545456,
+      "Lateral Flow (mm)": 1303.8218181818183,
+      "Transpiration + Evaporation (mm)": 400.81068181818176
+    },
+    {
+      "TopazID": 4731,
+      "Precipitation (mm)": 1637.6,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.538663363636363,
+      "Lateral Flow (mm)": 1205.9111363636364,
+      "Transpiration + Evaporation (mm)": 422.3722727272727
+    },
+    {
+      "TopazID": 4741,
+      "Precipitation (mm)": 1703.972727272727,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 411.1743597868181,
+      "Lateral Flow (mm)": 818.9609090909092,
+      "Transpiration + Evaporation (mm)": 473.2845454545455
+    },
+    {
+      "TopazID": 4751,
+      "Precipitation (mm)": 1668.9886363636363,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 418.5483407708182,
+      "Lateral Flow (mm)": 759.1795454545455,
+      "Transpiration + Evaporation (mm)": 490.52636363636356
+    },
+    {
+      "TopazID": 4761,
+      "Precipitation (mm)": 1649.0704545454544,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 14.048467,
+      "Lateral Flow (mm)": 1225.3288636363636,
+      "Transpiration + Evaporation (mm)": 410.12590909090903
+    },
+    {
+      "TopazID": 4771,
+      "Precipitation (mm)": 1637.9477272727272,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 10.113383683354545,
+      "Lateral Flow (mm)": 1194.8186363636362,
+      "Transpiration + Evaporation (mm)": 434.106590909091
+    },
+    {
+      "TopazID": 4781,
+      "Precipitation (mm)": 1658.9886363636363,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 159.19241072249545,
+      "Lateral Flow (mm)": 1091.904318181818,
+      "Transpiration + Evaporation (mm)": 408.1754545454545
+    },
+    {
+      "TopazID": 4791,
+      "Precipitation (mm)": 1639.2068181818183,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 9.720772204545455,
+      "Lateral Flow (mm)": 1210.6297727272724,
+      "Transpiration + Evaporation (mm)": 420.0445454545454
+    },
+    {
+      "TopazID": 4801,
+      "Precipitation (mm)": 1673.4068181818186,
+      "Percolation (mm)": 13.492045454545455,
+      "Surface Runoff (mm)": 483.9051526022727,
+      "Lateral Flow (mm)": 270.7302272727273,
+      "Transpiration + Evaporation (mm)": 898.3431818181817
+    },
+    {
+      "TopazID": 4811,
+      "Precipitation (mm)": 1687.1113636363639,
+      "Percolation (mm)": 11.682727272727272,
+      "Surface Runoff (mm)": 281.6749764829546,
+      "Lateral Flow (mm)": 614.9674999999999,
+      "Transpiration + Evaporation (mm)": 776.0275
+    },
+    {
+      "TopazID": 4821,
+      "Precipitation (mm)": 1657.7113636363638,
+      "Percolation (mm)": 11.615227272727275,
+      "Surface Runoff (mm)": 257.8635430882273,
+      "Lateral Flow (mm)": 599.4599999999999,
+      "Transpiration + Evaporation (mm)": 786.2397727272728
+    },
+    {
+      "TopazID": 4831,
+      "Precipitation (mm)": 1723.4931818181817,
+      "Percolation (mm)": 12.840000000000002,
+      "Surface Runoff (mm)": 422.0682549227273,
+      "Lateral Flow (mm)": 438.17568181818183,
+      "Transpiration + Evaporation (mm)": 845.168409090909
+    },
+    {
+      "TopazID": 4841,
+      "Precipitation (mm)": 1708.2318181818182,
+      "Percolation (mm)": 12.898863636363638,
+      "Surface Runoff (mm)": 423.44357082772734,
+      "Lateral Flow (mm)": 416.0625,
+      "Transpiration + Evaporation (mm)": 850.38
+    },
+    {
+      "TopazID": 4851,
+      "Precipitation (mm)": 1710.6795454545454,
+      "Percolation (mm)": 13.492500000000001,
+      "Surface Runoff (mm)": 504.97108844772725,
+      "Lateral Flow (mm)": 295.87,
+      "Transpiration + Evaporation (mm)": 889.3074999999998
+    },
+    {
+      "TopazID": 4861,
+      "Precipitation (mm)": 1676.0295454545458,
+      "Percolation (mm)": 11.484318181818184,
+      "Surface Runoff (mm)": 252.37045947977273,
+      "Lateral Flow (mm)": 637.2550000000001,
+      "Transpiration + Evaporation (mm)": 772.5545454545453
+    },
+    {
+      "TopazID": 4871,
+      "Precipitation (mm)": 1690.7568181818178,
+      "Percolation (mm)": 12.907499999999999,
+      "Surface Runoff (mm)": 418.52933772272723,
+      "Lateral Flow (mm)": 387.4827272727273,
+      "Transpiration + Evaporation (mm)": 866.4356818181819
+    },
+    {
+      "TopazID": 4881,
+      "Precipitation (mm)": 1746.8272727272729,
+      "Percolation (mm)": 13.35977272727273,
+      "Surface Runoff (mm)": 510.2181945681819,
+      "Lateral Flow (mm)": 347.2122727272727,
+      "Transpiration + Evaporation (mm)": 869.2122727272728
+    },
+    {
+      "TopazID": 4891,
+      "Precipitation (mm)": 1738.6545454545455,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 40.995949615681816,
+      "Lateral Flow (mm)": 1316.2963636363636,
+      "Transpiration + Evaporation (mm)": 381.79886363636365
+    },
+    {
+      "TopazID": 4901,
+      "Precipitation (mm)": 1729.7522727272726,
+      "Percolation (mm)": 14.610000000000001,
+      "Surface Runoff (mm)": 587.0479103807955,
+      "Lateral Flow (mm)": 525.613409090909,
+      "Transpiration + Evaporation (mm)": 595.4327272727272
+    },
+    {
+      "TopazID": 4911,
+      "Precipitation (mm)": 1736.8318181818183,
+      "Percolation (mm)": 11.42659090909091,
+      "Surface Runoff (mm)": 288.1416536059091,
+      "Lateral Flow (mm)": 689.3081818181818,
+      "Transpiration + Evaporation (mm)": 745.4006818181817
+    },
+    {
+      "TopazID": 4921,
+      "Precipitation (mm)": 1683.9863636363634,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 122.72191816777271,
+      "Lateral Flow (mm)": 1122.480681818182,
+      "Transpiration + Evaporation (mm)": 438.9402272727273
+    },
+    {
+      "TopazID": 4931,
+      "Precipitation (mm)": 1647.8704545454545,
+      "Percolation (mm)": 5.372272727272727,
+      "Surface Runoff (mm)": 69.94031806136364,
+      "Lateral Flow (mm)": 799.7179545454546,
+      "Transpiration + Evaporation (mm)": 773.3495454545454
+    },
+    {
+      "TopazID": 4941,
+      "Precipitation (mm)": 1722.934090909091,
+      "Percolation (mm)": 13.787272727272727,
+      "Surface Runoff (mm)": 540.9371264409091,
+      "Lateral Flow (mm)": 270.9922727272728,
+      "Transpiration + Evaporation (mm)": 889.6036363636363
+    },
+    {
+      "TopazID": 4951,
+      "Precipitation (mm)": 1711.8363636363638,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 89.74967737818183,
+      "Lateral Flow (mm)": 1223.7693181818183,
+      "Transpiration + Evaporation (mm)": 398.67999999999995
+    },
+    {
+      "TopazID": 4961,
+      "Precipitation (mm)": 1711.0068181818178,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 18.780786922045458,
+      "Lateral Flow (mm)": 1292.0586363636362,
+      "Transpiration + Evaporation (mm)": 400.51727272727277
+    },
+    {
+      "TopazID": 4971,
+      "Precipitation (mm)": 1658.2840909090912,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 39.77740091854545,
+      "Lateral Flow (mm)": 1224.8386363636364,
+      "Transpiration + Evaporation (mm)": 394.12318181818176
+    },
+    {
+      "TopazID": 4981,
+      "Precipitation (mm)": 1673.9909090909093,
+      "Percolation (mm)": 63.82250000000001,
+      "Surface Runoff (mm)": 296.71940408522727,
+      "Lateral Flow (mm)": 522.9631818181819,
+      "Transpiration + Evaporation (mm)": 790.2475
+    },
+    {
+      "TopazID": 4991,
+      "Precipitation (mm)": 1719.6363636363637,
+      "Percolation (mm)": 14.150227272727273,
+      "Surface Runoff (mm)": 631.4243273402273,
+      "Lateral Flow (mm)": 156.50840909090905,
+      "Transpiration + Evaporation (mm)": 908.0829545454545
+    },
+    {
+      "TopazID": 5001,
+      "Precipitation (mm)": 1745.102272727273,
+      "Percolation (mm)": 12.513636363636362,
+      "Surface Runoff (mm)": 396.46219289999993,
+      "Lateral Flow (mm)": 516.0181818181819,
+      "Transpiration + Evaporation (mm)": 815.5327272727274
+    },
+    {
+      "TopazID": 5011,
+      "Precipitation (mm)": 1718.2068181818179,
+      "Percolation (mm)": 11.822499999999998,
+      "Surface Runoff (mm)": 307.65942904999997,
+      "Lateral Flow (mm)": 615.9293181818182,
+      "Transpiration + Evaporation (mm)": 779.7929545454546
+    },
+    {
+      "TopazID": 5021,
+      "Precipitation (mm)": 1708.7522727272726,
+      "Percolation (mm)": 11.677954545454543,
+      "Surface Runoff (mm)": 290.86025845909086,
+      "Lateral Flow (mm)": 629.9643181818182,
+      "Transpiration + Evaporation (mm)": 773.5
+    },
+    {
+      "TopazID": 5031,
+      "Precipitation (mm)": 1717.0090909090907,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 182.0676250225,
+      "Lateral Flow (mm)": 1095.6725,
+      "Transpiration + Evaporation (mm)": 439.3536363636363
+    },
+    {
+      "TopazID": 5041,
+      "Precipitation (mm)": 1704.9795454545454,
+      "Percolation (mm)": 14.610000000000001,
+      "Surface Runoff (mm)": 494.9599974485704,
+      "Lateral Flow (mm)": 627.641590909091,
+      "Transpiration + Evaporation (mm)": 561.8056818181819
+    },
+    {
+      "TopazID": 5051,
+      "Precipitation (mm)": 1763.4181818181821,
+      "Percolation (mm)": 13.077045454545454,
+      "Surface Runoff (mm)": 480.4840398659091,
+      "Lateral Flow (mm)": 419.2225,
+      "Transpiration + Evaporation (mm)": 844.633181818182
+    },
+    {
+      "TopazID": 5061,
+      "Precipitation (mm)": 1758.45,
+      "Percolation (mm)": 13.481363636363636,
+      "Surface Runoff (mm)": 526.0143446409091,
+      "Lateral Flow (mm)": 344.5672727272727,
+      "Transpiration + Evaporation (mm)": 867.324772727273
+    },
+    {
+      "TopazID": 5071,
+      "Precipitation (mm)": 1744.7409090909089,
+      "Percolation (mm)": 13.856818181818182,
+      "Surface Runoff (mm)": 567.2174218490909,
+      "Lateral Flow (mm)": 266.0422727272727,
+      "Transpiration + Evaporation (mm)": 889.6802272727273
+    },
+    {
+      "TopazID": 5081,
+      "Precipitation (mm)": 1737.6590909090912,
+      "Percolation (mm)": 14.610000000000001,
+      "Surface Runoff (mm)": 247.3048259672728,
+      "Lateral Flow (mm)": 1042.4538636363636,
+      "Transpiration + Evaporation (mm)": 431.09772727272735
+    },
+    {
+      "TopazID": 5091,
+      "Precipitation (mm)": 1757.4681818181818,
+      "Percolation (mm)": 14.610000000000001,
+      "Surface Runoff (mm)": 685.6967048982364,
+      "Lateral Flow (mm)": 419.9368181818181,
+      "Transpiration + Evaporation (mm)": 629.2697727272727
+    },
+    {
+      "TopazID": 5101,
+      "Precipitation (mm)": 1658.529545454545,
+      "Percolation (mm)": 13.269772727272727,
+      "Surface Runoff (mm)": 456.1262877136365,
+      "Lateral Flow (mm)": 313.55636363636364,
+      "Transpiration + Evaporation (mm)": 869.0288636363636
+    },
+    {
+      "TopazID": 5111,
+      "Precipitation (mm)": 1651.688636363636,
+      "Percolation (mm)": 8.146136363636362,
+      "Surface Runoff (mm)": 8.48828525,
+      "Lateral Flow (mm)": 1114.4870454545455,
+      "Transpiration + Evaporation (mm)": 521.7540909090908
+    },
+    {
+      "TopazID": 5121,
+      "Precipitation (mm)": 1688.915909090909,
+      "Percolation (mm)": 13.682272727272727,
+      "Surface Runoff (mm)": 520.4788695522726,
+      "Lateral Flow (mm)": 277.4609090909091,
+      "Transpiration + Evaporation (mm)": 869.4102272727275
+    },
+    {
+      "TopazID": 5131,
+      "Precipitation (mm)": 1676.4613636363633,
+      "Percolation (mm)": 9.048863636363636,
+      "Surface Runoff (mm)": 16.722870922727274,
+      "Lateral Flow (mm)": 1066.1745454545453,
+      "Transpiration + Evaporation (mm)": 584.5961363636364
+    },
+    {
+      "TopazID": 5141,
+      "Precipitation (mm)": 1663.0545454545454,
+      "Percolation (mm)": 11.12659090909091,
+      "Surface Runoff (mm)": 227.40251338863635,
+      "Lateral Flow (mm)": 691.2570454545454,
+      "Transpiration + Evaporation (mm)": 731.2413636363636
+    },
+    {
+      "TopazID": 5151,
+      "Precipitation (mm)": 1698.1886363636365,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 50.10817673398637,
+      "Lateral Flow (mm)": 1224.9647727272727,
+      "Transpiration + Evaporation (mm)": 423.38090909090903
+    },
+    {
+      "TopazID": 5161,
+      "Precipitation (mm)": 1676.565909090909,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 38.44461396551364,
+      "Lateral Flow (mm)": 1248.073409090909,
+      "Transpiration + Evaporation (mm)": 390.5236363636363
+    },
+    {
+      "TopazID": 5171,
+      "Precipitation (mm)": 1704.1181818181817,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 45.1976066605,
+      "Lateral Flow (mm)": 1232.1420454545455,
+      "Transpiration + Evaporation (mm)": 427.1077272727273
+    },
+    {
+      "TopazID": 5181,
+      "Precipitation (mm)": 1744.272727272727,
+      "Percolation (mm)": 13.956136363636364,
+      "Surface Runoff (mm)": 598.8378953206819,
+      "Lateral Flow (mm)": 228.73522727272723,
+      "Transpiration + Evaporation (mm)": 893.8656818181818
+    },
+    {
+      "TopazID": 5191,
+      "Precipitation (mm)": 1750.2454545454545,
+      "Percolation (mm)": 12.707500000000003,
+      "Surface Runoff (mm)": 437.03755552045465,
+      "Lateral Flow (mm)": 466.6422727272727,
+      "Transpiration + Evaporation (mm)": 828.4990909090909
+    },
+    {
+      "TopazID": 5201,
+      "Precipitation (mm)": 1750.4454545454546,
+      "Percolation (mm)": 13.739772727272726,
+      "Surface Runoff (mm)": 559.5184516931818,
+      "Lateral Flow (mm)": 281.79954545454547,
+      "Transpiration + Evaporation (mm)": 887.4322727272727
+    },
+    {
+      "TopazID": 5211,
+      "Precipitation (mm)": 1749.5727272727272,
+      "Percolation (mm)": 13.994545454545458,
+      "Surface Runoff (mm)": 609.4714820454545,
+      "Lateral Flow (mm)": 219.45363636363635,
+      "Transpiration + Evaporation (mm)": 897.6422727272728
+    },
+    {
+      "TopazID": 5221,
+      "Precipitation (mm)": 1769.184090909091,
+      "Percolation (mm)": 13.82181818181818,
+      "Surface Runoff (mm)": 582.9263608145455,
+      "Lateral Flow (mm)": 275.53636363636366,
+      "Transpiration + Evaporation (mm)": 888.6095454545456
+    },
+    {
+      "TopazID": 5231,
+      "Precipitation (mm)": 1742.8727272727278,
+      "Percolation (mm)": 13.464318181818184,
+      "Surface Runoff (mm)": 524.4078265186364,
+      "Lateral Flow (mm)": 319.5809090909091,
+      "Transpiration + Evaporation (mm)": 878.1893181818182
+    },
+    {
+      "TopazID": 5241,
+      "Precipitation (mm)": 1760.9727272727273,
+      "Percolation (mm)": 13.192954545454548,
+      "Surface Runoff (mm)": 501.4438880513181,
+      "Lateral Flow (mm)": 379.3559090909091,
+      "Transpiration + Evaporation (mm)": 860.3186363636363
+    },
+    {
+      "TopazID": 5251,
+      "Precipitation (mm)": 1743.7,
+      "Percolation (mm)": 13.455681818181818,
+      "Surface Runoff (mm)": 524.0581051863636,
+      "Lateral Flow (mm)": 323.0854545454545,
+      "Transpiration + Evaporation (mm)": 875.8988636363637
+    },
+    {
+      "TopazID": 5261,
+      "Precipitation (mm)": 1759.4999999999998,
+      "Percolation (mm)": 13.596136363636363,
+      "Surface Runoff (mm)": 549.7922339084091,
+      "Lateral Flow (mm)": 309.3520454545455,
+      "Transpiration + Evaporation (mm)": 879.1436363636363
+    },
+    {
+      "TopazID": 5271,
+      "Precipitation (mm)": 1797.0204545454546,
+      "Percolation (mm)": 63.96522727272727,
+      "Surface Runoff (mm)": 569.7892992977272,
+      "Lateral Flow (mm)": 476.8015909090909,
+      "Transpiration + Evaporation (mm)": 683.8954545454545
+    },
+    {
+      "TopazID": 5281,
+      "Precipitation (mm)": 1774.7659090909094,
+      "Percolation (mm)": 9.591363636363637,
+      "Surface Runoff (mm)": 50.24740604318181,
+      "Lateral Flow (mm)": 1120.7052272727271,
+      "Transpiration + Evaporation (mm)": 593.8718181818183
+    },
+    {
+      "TopazID": 5291,
+      "Precipitation (mm)": 1783.4409090909094,
+      "Percolation (mm)": 12.707954545454545,
+      "Surface Runoff (mm)": 388.921034625,
+      "Lateral Flow (mm)": 597.0806818181818,
+      "Transpiration + Evaporation (mm)": 780.388409090909
+    },
+    {
+      "TopazID": 5301,
+      "Precipitation (mm)": 1698.7704545454544,
+      "Percolation (mm)": 12.924318181818183,
+      "Surface Runoff (mm)": 444.39964312499995,
+      "Lateral Flow (mm)": 398.30249999999995,
+      "Transpiration + Evaporation (mm)": 837.2402272727272
+    },
+    {
+      "TopazID": 5311,
+      "Precipitation (mm)": 1700.8704545454545,
+      "Percolation (mm)": 30.776136363636365,
+      "Surface Runoff (mm)": 29.788259627272733,
+      "Lateral Flow (mm)": 1104.3531818181818,
+      "Transpiration + Evaporation (mm)": 539.8575
+    },
+    {
+      "TopazID": 5321,
+      "Precipitation (mm)": 1695.8477272727273,
+      "Percolation (mm)": 8.40840909090909,
+      "Surface Runoff (mm)": 9.460555590909092,
+      "Lateral Flow (mm)": 1137.4561363636365,
+      "Transpiration + Evaporation (mm)": 541.1443181818181
+    },
+    {
+      "TopazID": 5331,
+      "Precipitation (mm)": 1700.659090909091,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 35.43808565231818,
+      "Lateral Flow (mm)": 1243.3620454545455,
+      "Transpiration + Evaporation (mm)": 422.22159090909093
+    },
+    {
+      "TopazID": 5341,
+      "Precipitation (mm)": 1778.2931818181817,
+      "Percolation (mm)": 44.78068181818182,
+      "Surface Runoff (mm)": 661.7635783936363,
+      "Lateral Flow (mm)": 548.7772727272727,
+      "Transpiration + Evaporation (mm)": 520.6481818181819
+    },
+    {
+      "TopazID": 5351,
+      "Precipitation (mm)": 1782.8318181818179,
+      "Percolation (mm)": 72.12295454545455,
+      "Surface Runoff (mm)": 1028.993186147677,
+      "Lateral Flow (mm)": 447.1668181818182,
+      "Transpiration + Evaporation (mm)": 233.6511363636363
+    },
+    {
+      "TopazID": 5361,
+      "Precipitation (mm)": 1769.8931818181823,
+      "Percolation (mm)": 12.785227272727274,
+      "Surface Runoff (mm)": 465.0524080415909,
+      "Lateral Flow (mm)": 453.95931818181816,
+      "Transpiration + Evaporation (mm)": 832.3527272727272
+    },
+    {
+      "TopazID": 5371,
+      "Precipitation (mm)": 1759.2477272727267,
+      "Percolation (mm)": 13.241363636363639,
+      "Surface Runoff (mm)": 505.30064972165906,
+      "Lateral Flow (mm)": 370.54227272727275,
+      "Transpiration + Evaporation (mm)": 863.4929545454546
+    },
+    {
+      "TopazID": 5381,
+      "Precipitation (mm)": 1774.2113636363638,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 188.06172621113635,
+      "Lateral Flow (mm)": 1160.221818181818,
+      "Transpiration + Evaporation (mm)": 426.05954545454546
+    },
+    {
+      "TopazID": 5391,
+      "Precipitation (mm)": 1779.109090909091,
+      "Percolation (mm)": 13.990454545454547,
+      "Surface Runoff (mm)": 569.5519381386365,
+      "Lateral Flow (mm)": 333.0022727272727,
+      "Transpiration + Evaporation (mm)": 854.3388636363637
+    },
+    {
+      "TopazID": 5401,
+      "Precipitation (mm)": 1775.4613636363638,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 22.637311739999998,
+      "Lateral Flow (mm)": 1361.0145454545452,
+      "Transpiration + Evaporation (mm)": 392.1752272727272
+    },
+    {
+      "TopazID": 5411,
+      "Precipitation (mm)": 1779.4113636363638,
+      "Percolation (mm)": 87.65999999999998,
+      "Surface Runoff (mm)": 665.8689574993864,
+      "Lateral Flow (mm)": 470.8418181818181,
+      "Transpiration + Evaporation (mm)": 542.9913636363636
+    },
+    {
+      "TopazID": 5421,
+      "Precipitation (mm)": 1725.9954545454545,
+      "Percolation (mm)": 13.84068181818182,
+      "Surface Runoff (mm)": 539.2891919318182,
+      "Lateral Flow (mm)": 299.0436363636364,
+      "Transpiration + Evaporation (mm)": 865.7134090909091
+    },
+    {
+      "TopazID": 5431,
+      "Precipitation (mm)": 1726.125,
+      "Percolation (mm)": 11.065454545454545,
+      "Surface Runoff (mm)": 254.16304104045457,
+      "Lateral Flow (mm)": 728.7259090909091,
+      "Transpiration + Evaporation (mm)": 729.9111363636364
+    },
+    {
+      "TopazID": 5441,
+      "Precipitation (mm)": 1710.7295454545454,
+      "Percolation (mm)": 11.15227272727273,
+      "Surface Runoff (mm)": 263.4171035754546,
+      "Lateral Flow (mm)": 701.8011363636364,
+      "Transpiration + Evaporation (mm)": 731.9418181818181
+    },
+    {
+      "TopazID": 5451,
+      "Precipitation (mm)": 1715.8022727272728,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 32.78560473696591,
+      "Lateral Flow (mm)": 1295.0554545454545,
+      "Transpiration + Evaporation (mm)": 388.4347727272727
+    },
+    {
+      "TopazID": 5461,
+      "Precipitation (mm)": 1716.2590909090914,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 19.37892415272727,
+      "Lateral Flow (mm)": 1291.0827272727272,
+      "Transpiration + Evaporation (mm)": 406.1672727272728
+    },
+    {
+      "TopazID": 5471,
+      "Precipitation (mm)": 1783.8068181818182,
+      "Percolation (mm)": 65.04590909090909,
+      "Surface Runoff (mm)": 967.3350181445568,
+      "Lateral Flow (mm)": 524.4559090909091,
+      "Transpiration + Evaporation (mm)": 225.96454545454546
+    },
+    {
+      "TopazID": 5481,
+      "Precipitation (mm)": 1783.4522727272727,
+      "Percolation (mm)": 44.189090909090915,
+      "Surface Runoff (mm)": 571.2017317355682,
+      "Lateral Flow (mm)": 659.2177272727272,
+      "Transpiration + Evaporation (mm)": 507.0972727272727
+    },
+    {
+      "TopazID": 5491,
+      "Precipitation (mm)": 1766.279545454545,
+      "Percolation (mm)": 12.732272727272727,
+      "Surface Runoff (mm)": 448.70551822681824,
+      "Lateral Flow (mm)": 468.12272727272733,
+      "Transpiration + Evaporation (mm)": 831.3022727272727
+    },
+    {
+      "TopazID": 5501,
+      "Precipitation (mm)": 1787.9431818181815,
+      "Percolation (mm)": 58.29954545454545,
+      "Surface Runoff (mm)": 785.9303740794317,
+      "Lateral Flow (mm)": 720.8220454545454,
+      "Transpiration + Evaporation (mm)": 222.395
+    },
+    {
+      "TopazID": 5511,
+      "Precipitation (mm)": 1797.4250000000002,
+      "Percolation (mm)": 87.65999999999998,
+      "Surface Runoff (mm)": 651.7572317668136,
+      "Lateral Flow (mm)": 493.8450000000001,
+      "Transpiration + Evaporation (mm)": 560.7879545454546
+    },
+    {
+      "TopazID": 5521,
+      "Precipitation (mm)": 1795.3431818181818,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 32.792210896204544,
+      "Lateral Flow (mm)": 1393.3484090909092,
+      "Transpiration + Evaporation (mm)": 369.6997727272728
+    },
+    {
+      "TopazID": 5531,
+      "Precipitation (mm)": 1799.4022727272734,
+      "Percolation (mm)": 86.34818181818183,
+      "Surface Runoff (mm)": 413.67489791227274,
+      "Lateral Flow (mm)": 794.8490909090909,
+      "Transpiration + Evaporation (mm)": 502.551590909091
+    },
+    {
+      "TopazID": 5541,
+      "Precipitation (mm)": 1790.886363636364,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 159.41456944729546,
+      "Lateral Flow (mm)": 1242.815681818182,
+      "Transpiration + Evaporation (mm)": 389.00295454545454
+    },
+    {
+      "TopazID": 5551,
+      "Precipitation (mm)": 1783.4477272727272,
+      "Percolation (mm)": 13.605909090909092,
+      "Surface Runoff (mm)": 495.79910457954554,
+      "Lateral Flow (mm)": 441.50113636363636,
+      "Transpiration + Evaporation (mm)": 825.7997727272726
+    },
+    {
+      "TopazID": 5561,
+      "Precipitation (mm)": 1749.1704545454545,
+      "Percolation (mm)": 68.03545454545454,
+      "Surface Runoff (mm)": 887.1340908128907,
+      "Lateral Flow (mm)": 563.3595454545455,
+      "Transpiration + Evaporation (mm)": 229.15931818181824
+    },
+    {
+      "TopazID": 5571,
+      "Precipitation (mm)": 1782.1590909090905,
+      "Percolation (mm)": 37.71295454545455,
+      "Surface Runoff (mm)": 201.65334205325,
+      "Lateral Flow (mm)": 1089.8827272727272,
+      "Transpiration + Evaporation (mm)": 451.83113636363635
+    },
+    {
+      "TopazID": 5581,
+      "Precipitation (mm)": 1750.895454545455,
+      "Percolation (mm)": 11.676136363636363,
+      "Surface Runoff (mm)": 334.1073589227272,
+      "Lateral Flow (mm)": 643.7325,
+      "Transpiration + Evaporation (mm)": 758.0829545454545
+    },
+    {
+      "TopazID": 5591,
+      "Precipitation (mm)": 1735.9068181818182,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 11.187285997727274,
+      "Lateral Flow (mm)": 1333.8304545454546,
+      "Transpiration + Evaporation (mm)": 392.25227272727267
+    },
+    {
+      "TopazID": 5601,
+      "Precipitation (mm)": 1754.35,
+      "Percolation (mm)": 10.106590909090908,
+      "Surface Runoff (mm)": 107.45993239068183,
+      "Lateral Flow (mm)": 976.3877272727274,
+      "Transpiration + Evaporation (mm)": 659.3145454545453
+    },
+    {
+      "TopazID": 5611,
+      "Precipitation (mm)": 1786.5659090909094,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 530.3074772554772,
+      "Lateral Flow (mm)": 784.258409090909,
+      "Transpiration + Evaporation (mm)": 471.1702272727274
+    },
+    {
+      "TopazID": 5621,
+      "Precipitation (mm)": 1732.5954545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 639.8964889934977,
+      "Lateral Flow (mm)": 609.3354545454546,
+      "Transpiration + Evaporation (mm)": 481.57818181818186
+    },
+    {
+      "TopazID": 5631,
+      "Precipitation (mm)": 1800.675,
+      "Percolation (mm)": 12.617954545454547,
+      "Surface Runoff (mm)": 432.9390999340909,
+      "Lateral Flow (mm)": 524.3175,
+      "Transpiration + Evaporation (mm)": 825.6552272727272
+    },
+    {
+      "TopazID": 5641,
+      "Precipitation (mm)": 1787.0227272727277,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 20.631008604318183,
+      "Lateral Flow (mm)": 1363.5336363636363,
+      "Transpiration + Evaporation (mm)": 403.22386363636366
+    },
+    {
+      "TopazID": 5651,
+      "Precipitation (mm)": 1796.7272727272727,
+      "Percolation (mm)": 45.12704545454545,
+      "Surface Runoff (mm)": 598.6306016204545,
+      "Lateral Flow (mm)": 623.9622727272728,
+      "Transpiration + Evaporation (mm)": 526.9968181818182
+    },
+    {
+      "TopazID": 5661,
+      "Precipitation (mm)": 1799.3431818181816,
+      "Percolation (mm)": 12.887500000000001,
+      "Surface Runoff (mm)": 472.4276522318182,
+      "Lateral Flow (mm)": 463.62863636363636,
+      "Transpiration + Evaporation (mm)": 844.3747727272729
+    },
+    {
+      "TopazID": 5671,
+      "Precipitation (mm)": 1791.8863636363633,
+      "Percolation (mm)": 46.39045454545454,
+      "Surface Runoff (mm)": 585.6107402956818,
+      "Lateral Flow (mm)": 626.8186363636364,
+      "Transpiration + Evaporation (mm)": 531.0779545454544
+    },
+    {
+      "TopazID": 5681,
+      "Precipitation (mm)": 1793.6068181818182,
+      "Percolation (mm)": 14.060681818181818,
+      "Surface Runoff (mm)": 8.782345318181818,
+      "Lateral Flow (mm)": 1390.3313636363634,
+      "Transpiration + Evaporation (mm)": 382.07704545454544
+    },
+    {
+      "TopazID": 5691,
+      "Precipitation (mm)": 1795.4886363636367,
+      "Percolation (mm)": 11.507272727272728,
+      "Surface Runoff (mm)": 296.6411770659091,
+      "Lateral Flow (mm)": 726.8984090909091,
+      "Transpiration + Evaporation (mm)": 757.6975000000001
+    },
+    {
+      "TopazID": 5701,
+      "Precipitation (mm)": 1792.9022727272722,
+      "Percolation (mm)": 14.101136363636362,
+      "Surface Runoff (mm)": 649.2102697272727,
+      "Lateral Flow (mm)": 195.76454545454547,
+      "Transpiration + Evaporation (mm)": 924.4906818181819
+    },
+    {
+      "TopazID": 5711,
+      "Precipitation (mm)": 1802.404545454545,
+      "Percolation (mm)": 48.156818181818174,
+      "Surface Runoff (mm)": 778.9935915631136,
+      "Lateral Flow (mm)": 442.9854545454545,
+      "Transpiration + Evaporation (mm)": 529.36
+    },
+    {
+      "TopazID": 5721,
+      "Precipitation (mm)": 1807.0522727272728,
+      "Percolation (mm)": 14.298181818181819,
+      "Surface Runoff (mm)": 733.3570060022728,
+      "Lateral Flow (mm)": 195.92795454545455,
+      "Transpiration + Evaporation (mm)": 852.4325000000001
+    },
+    {
+      "TopazID": 5731,
+      "Precipitation (mm)": 1803.9386363636365,
+      "Percolation (mm)": 13.561590909090912,
+      "Surface Runoff (mm)": 538.1759180479547,
+      "Lateral Flow (mm)": 411.29772727272734,
+      "Transpiration + Evaporation (mm)": 833.394772727273
+    },
+    {
+      "TopazID": 5741,
+      "Precipitation (mm)": 1807.1295454545455,
+      "Percolation (mm)": 39.112272727272725,
+      "Surface Runoff (mm)": 323.1461363084091,
+      "Lateral Flow (mm)": 980.9965909090911,
+      "Transpiration + Evaporation (mm)": 462.4406818181819
+    },
+    {
+      "TopazID": 5751,
+      "Precipitation (mm)": 1781.1181818181822,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 22.465334570454544,
+      "Lateral Flow (mm)": 1350.9263636363637,
+      "Transpiration + Evaporation (mm)": 408.09613636363633
+    },
+    {
+      "TopazID": 5761,
+      "Precipitation (mm)": 1787.4500000000005,
+      "Percolation (mm)": 11.780454545454544,
+      "Surface Runoff (mm)": 340.9302173945455,
+      "Lateral Flow (mm)": 656.1190909090909,
+      "Transpiration + Evaporation (mm)": 775.2415909090909
+    },
+    {
+      "TopazID": 5771,
+      "Precipitation (mm)": 1779.025,
+      "Percolation (mm)": 13.341590909090911,
+      "Surface Runoff (mm)": 522.9118672554546,
+      "Lateral Flow (mm)": 361.36295454545456,
+      "Transpiration + Evaporation (mm)": 874.3088636363635
+    },
+    {
+      "TopazID": 5781,
+      "Precipitation (mm)": 1767.6159090909093,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 33.860577818113626,
+      "Lateral Flow (mm)": 1346.6277272727273,
+      "Transpiration + Evaporation (mm)": 387.61022727272723
+    },
+    {
+      "TopazID": 5791,
+      "Precipitation (mm)": 1767.5272727272727,
+      "Percolation (mm)": 14.610000000000001,
+      "Surface Runoff (mm)": 630.0540209365273,
+      "Lateral Flow (mm)": 518.6452272727273,
+      "Transpiration + Evaporation (mm)": 596.7390909090909
+    },
+    {
+      "TopazID": 5801,
+      "Precipitation (mm)": 1759.8454545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 17.522023708409094,
+      "Lateral Flow (mm)": 1361.0711363636362,
+      "Transpiration + Evaporation (mm)": 381.76795454545464
+    },
+    {
+      "TopazID": 5811,
+      "Precipitation (mm)": 1761.6272727272728,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 1.776032689090909,
+      "Lateral Flow (mm)": 1376.5204545454544,
+      "Transpiration + Evaporation (mm)": 383.8320454545455
+    },
+    {
+      "TopazID": 5821,
+      "Precipitation (mm)": 1742.2204545454545,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 264.25272198265907,
+      "Lateral Flow (mm)": 1066.4772727272727,
+      "Transpiration + Evaporation (mm)": 411.6161363636364
+    },
+    {
+      "TopazID": 5831,
+      "Precipitation (mm)": 1740.8977272727277,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 23.287849808181818,
+      "Lateral Flow (mm)": 1335.5254545454545,
+      "Transpiration + Evaporation (mm)": 382.5890909090909
+    },
+    {
+      "TopazID": 5841,
+      "Precipitation (mm)": 1751.7818181818184,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 25.129054280681817,
+      "Lateral Flow (mm)": 1343.3645454545454,
+      "Transpiration + Evaporation (mm)": 383.78795454545457
+    },
+    {
+      "TopazID": 5851,
+      "Precipitation (mm)": 1781.7272727272727,
+      "Percolation (mm)": 56.80772727272727,
+      "Surface Runoff (mm)": 488.1535787886363,
+      "Lateral Flow (mm)": 570.8293181818182,
+      "Transpiration + Evaporation (mm)": 663.835909090909
+    },
+    {
+      "TopazID": 5861,
+      "Precipitation (mm)": 1781.936363636364,
+      "Percolation (mm)": 0.0,
+      "Surface Runoff (mm)": 278.05859015160684,
+      "Lateral Flow (mm)": 1103.8902272727273,
+      "Transpiration + Evaporation (mm)": 400.14545454545447
+    }
+  ],
+  "yearly": [
+    {
+      "Year": 1980,
+      "Precipitation (mm)": 1343.9468457118,
+      "Percolation (mm)": 10.804537748559047,
+      "Surface Runoff (mm)": 160.77783824853702,
+      "Lateral Flow (mm)": 655.0385827899847,
+      "Transpiration + Evaporation (mm)": 662.9391445178547
+    },
+    {
+      "Year": 1981,
+      "Precipitation (mm)": 871.7113865659884,
+      "Percolation (mm)": 8.61528070649166,
+      "Surface Runoff (mm)": 8.58215827901946,
+      "Lateral Flow (mm)": 265.48942611834394,
+      "Transpiration + Evaporation (mm)": 618.7429700804574
+    },
+    {
+      "Year": 1982,
+      "Precipitation (mm)": 2814.1786898375817,
+      "Percolation (mm)": 13.89682109257842,
+      "Surface Runoff (mm)": 553.0649584512018,
+      "Lateral Flow (mm)": 1178.583349587708,
+      "Transpiration + Evaporation (mm)": 869.6317063710328
+    },
+    {
+      "Year": 1983,
+      "Precipitation (mm)": 2312.190960580384,
+      "Percolation (mm)": 15.226511759676386,
+      "Surface Runoff (mm)": 466.6508099860721,
+      "Lateral Flow (mm)": 1062.1337924274947,
+      "Transpiration + Evaporation (mm)": 836.416624685832
+    },
+    {
+      "Year": 1984,
+      "Precipitation (mm)": 1835.358743584942,
+      "Percolation (mm)": 13.988866665210214,
+      "Surface Runoff (mm)": 290.4237904320514,
+      "Lateral Flow (mm)": 858.9772335993954,
+      "Transpiration + Evaporation (mm)": 784.6034797018978
+    },
+    {
+      "Year": 1985,
+      "Precipitation (mm)": 1094.7322603310693,
+      "Percolation (mm)": 11.131672344813767,
+      "Surface Runoff (mm)": 22.903859125244406,
+      "Lateral Flow (mm)": 398.89966680360357,
+      "Transpiration + Evaporation (mm)": 674.9240254309194
+    },
+    {
+      "Year": 1986,
+      "Precipitation (mm)": 2061.1885269112954,
+      "Percolation (mm)": 11.376249548371142,
+      "Surface Runoff (mm)": 398.58792747214477,
+      "Lateral Flow (mm)": 822.6587929477266,
+      "Transpiration + Evaporation (mm)": 718.4339097886282
+    },
+    {
+      "Year": 1987,
+      "Precipitation (mm)": 615.6735751796828,
+      "Percolation (mm)": 7.591857766262245,
+      "Surface Runoff (mm)": 6.19012021577439,
+      "Lateral Flow (mm)": 217.64004036896034,
+      "Transpiration + Evaporation (mm)": 503.61408534481535
+    },
+    {
+      "Year": 1988,
+      "Precipitation (mm)": 836.5656531082329,
+      "Percolation (mm)": 8.65439076286454,
+      "Surface Runoff (mm)": 3.9136248877541133,
+      "Lateral Flow (mm)": 247.84967644001043,
+      "Transpiration + Evaporation (mm)": 575.5207229429438
+    },
+    {
+      "Year": 1989,
+      "Precipitation (mm)": 1731.131452524701,
+      "Percolation (mm)": 10.235095469058411,
+      "Surface Runoff (mm)": 221.73168387237808,
+      "Lateral Flow (mm)": 712.374948771041,
+      "Transpiration + Evaporation (mm)": 714.9971029376835
+    },
+    {
+      "Year": 1990,
+      "Precipitation (mm)": 1043.8127962661433,
+      "Percolation (mm)": 11.05448943335392,
+      "Surface Runoff (mm)": 12.225956069333419,
+      "Lateral Flow (mm)": 343.7358009275924,
+      "Transpiration + Evaporation (mm)": 703.2470053756554
+    },
+    {
+      "Year": 1991,
+      "Precipitation (mm)": 1012.071998109055,
+      "Percolation (mm)": 8.24111454568651,
+      "Surface Runoff (mm)": 29.022596790688663,
+      "Lateral Flow (mm)": 310.37075592732646,
+      "Transpiration + Evaporation (mm)": 686.7764263511455
+    },
+    {
+      "Year": 1992,
+      "Precipitation (mm)": 849.3885125823914,
+      "Percolation (mm)": 8.831722835868236,
+      "Surface Runoff (mm)": 9.432304444533377,
+      "Lateral Flow (mm)": 259.3323915837507,
+      "Transpiration + Evaporation (mm)": 590.3283574149136
+    },
+    {
+      "Year": 1993,
+      "Precipitation (mm)": 1961.4297623665918,
+      "Percolation (mm)": 11.825005701236838,
+      "Surface Runoff (mm)": 367.97089172144945,
+      "Lateral Flow (mm)": 798.4939896159326,
+      "Transpiration + Evaporation (mm)": 748.9391414018653
+    },
+    {
+      "Year": 1994,
+      "Precipitation (mm)": 790.2383443305712,
+      "Percolation (mm)": 8.886707961991066,
+      "Surface Runoff (mm)": 4.153161758342868,
+      "Lateral Flow (mm)": 237.81120915973503,
+      "Transpiration + Evaporation (mm)": 567.8682002315168
+    },
+    {
+      "Year": 1995,
+      "Precipitation (mm)": 2412.335958779413,
+      "Percolation (mm)": 11.84412742011959,
+      "Surface Runoff (mm)": 586.0597861215687,
+      "Lateral Flow (mm)": 941.8078403206051,
+      "Transpiration + Evaporation (mm)": 785.9469057962827
+    },
+    {
+      "Year": 1996,
+      "Precipitation (mm)": 2106.061292306384,
+      "Percolation (mm)": 13.007233124435938,
+      "Surface Runoff (mm)": 466.57543133929477,
+      "Lateral Flow (mm)": 921.0450021903,
+      "Transpiration + Evaporation (mm)": 776.5328826274289
+    },
+    {
+      "Year": 1997,
+      "Precipitation (mm)": 2181.6432338634804,
+      "Percolation (mm)": 12.663594364952603,
+      "Surface Runoff (mm)": 485.86560446053636,
+      "Lateral Flow (mm)": 999.4522878582477,
+      "Transpiration + Evaporation (mm)": 690.6107542480233
+    },
+    {
+      "Year": 1998,
+      "Precipitation (mm)": 2085.092834647643,
+      "Percolation (mm)": 11.826798565461878,
+      "Surface Runoff (mm)": 430.9256609873598,
+      "Lateral Flow (mm)": 737.7201468878578,
+      "Transpiration + Evaporation (mm)": 741.1773345337506
+    },
+    {
+      "Year": 1999,
+      "Precipitation (mm)": 1664.696001830844,
+      "Percolation (mm)": 13.392378067063666,
+      "Surface Runoff (mm)": 265.9778036578757,
+      "Lateral Flow (mm)": 726.4001694171988,
+      "Transpiration + Evaporation (mm)": 792.1800093728334
+    },
+    {
+      "Year": 2000,
+      "Precipitation (mm)": 1399.9642535447072,
+      "Percolation (mm)": 11.787185497785652,
+      "Surface Runoff (mm)": 113.30958101996015,
+      "Lateral Flow (mm)": 603.9008996479828,
+      "Transpiration + Evaporation (mm)": 704.5158009144227
+    },
+    {
+      "Year": 2001,
+      "Precipitation (mm)": 878.4017228193676,
+      "Percolation (mm)": 8.79358870281778,
+      "Surface Runoff (mm)": 10.683408168152903,
+      "Lateral Flow (mm)": 289.4954674279261,
+      "Transpiration + Evaporation (mm)": 570.4090407174036
+    },
+    {
+      "Year": 2002,
+      "Precipitation (mm)": 1346.1391895178601,
+      "Percolation (mm)": 10.473861753046783,
+      "Surface Runoff (mm)": 147.48303722617618,
+      "Lateral Flow (mm)": 508.36659127506505,
+      "Transpiration + Evaporation (mm)": 676.2162543007862
+    },
+    {
+      "Year": 2003,
+      "Precipitation (mm)": 1508.1043291966762,
+      "Percolation (mm)": 12.312174472226609,
+      "Surface Runoff (mm)": 148.24587599712,
+      "Lateral Flow (mm)": 670.4532409401033,
+      "Transpiration + Evaporation (mm)": 674.3743409798587
+    },
+    {
+      "Year": 2004,
+      "Precipitation (mm)": 1178.9274696950358,
+      "Percolation (mm)": 10.532858433481172,
+      "Surface Runoff (mm)": 69.18821238419005,
+      "Lateral Flow (mm)": 520.1895393291496,
+      "Transpiration + Evaporation (mm)": 588.2312437291699
+    },
+    {
+      "Year": 2005,
+      "Precipitation (mm)": 1830.3182778002856,
+      "Percolation (mm)": 12.95727959077153,
+      "Surface Runoff (mm)": 323.8406751853707,
+      "Lateral Flow (mm)": 760.0336806217398,
+      "Transpiration + Evaporation (mm)": 684.3662316671871
+    },
+    {
+      "Year": 2006,
+      "Precipitation (mm)": 2151.1416796244243,
+      "Percolation (mm)": 13.19713002347744,
+      "Surface Runoff (mm)": 480.1955250931558,
+      "Lateral Flow (mm)": 967.5485246757944,
+      "Transpiration + Evaporation (mm)": 718.6660908990939
+    },
+    {
+      "Year": 2007,
+      "Precipitation (mm)": 1070.8330483069067,
+      "Percolation (mm)": 10.644862945559458,
+      "Surface Runoff (mm)": 22.363413988170965,
+      "Lateral Flow (mm)": 431.9423417716861,
+      "Transpiration + Evaporation (mm)": 609.0729983512138
+    },
+    {
+      "Year": 2008,
+      "Precipitation (mm)": 1019.2721970448274,
+      "Percolation (mm)": 8.311376904288705,
+      "Surface Runoff (mm)": 38.40363742712758,
+      "Lateral Flow (mm)": 341.1898849001819,
+      "Transpiration + Evaporation (mm)": 647.8780970076725
+    },
+    {
+      "Year": 2009,
+      "Precipitation (mm)": 1466.8729624974608,
+      "Percolation (mm)": 11.658014203352133,
+      "Surface Runoff (mm)": 166.2796776112523,
+      "Lateral Flow (mm)": 581.3016048291249,
+      "Transpiration + Evaporation (mm)": 702.1190820644001
+    },
+    {
+      "Year": 2010,
+      "Precipitation (mm)": 1447.8717818957014,
+      "Percolation (mm)": 12.08884514292679,
+      "Surface Runoff (mm)": 158.59990249757945,
+      "Lateral Flow (mm)": 532.3955165067355,
+      "Transpiration + Evaporation (mm)": 723.4326834579708
+    },
+    {
+      "Year": 2011,
+      "Precipitation (mm)": 2242.332413519414,
+      "Percolation (mm)": 14.087078688150244,
+      "Surface Runoff (mm)": 480.0364091965815,
+      "Lateral Flow (mm)": 925.7755348407745,
+      "Transpiration + Evaporation (mm)": 764.7768800173766
+    },
+    {
+      "Year": 2012,
+      "Precipitation (mm)": 1012.159898015676,
+      "Percolation (mm)": 11.686214430979096,
+      "Surface Runoff (mm)": 43.09362027537383,
+      "Lateral Flow (mm)": 366.5151786850819,
+      "Transpiration + Evaporation (mm)": 669.3519003998462
+    },
+    {
+      "Year": 2013,
+      "Precipitation (mm)": 1212.707430752743,
+      "Percolation (mm)": 11.08294226652846,
+      "Surface Runoff (mm)": 42.04383373351358,
+      "Lateral Flow (mm)": 510.21035392268215,
+      "Transpiration + Evaporation (mm)": 630.9760213508804
+    },
+    {
+      "Year": 2014,
+      "Precipitation (mm)": 986.2449124734316,
+      "Percolation (mm)": 8.276450906240505,
+      "Surface Runoff (mm)": 16.416170523009196,
+      "Lateral Flow (mm)": 342.81413333037,
+      "Transpiration + Evaporation (mm)": 583.6976199225724
+    },
+    {
+      "Year": 2015,
+      "Precipitation (mm)": 986.1974259931746,
+      "Percolation (mm)": 10.993805446273909,
+      "Surface Runoff (mm)": 15.871425546239596,
+      "Lateral Flow (mm)": 363.34743707250965,
+      "Transpiration + Evaporation (mm)": 640.1542572730017
+    },
+    {
+      "Year": 2016,
+      "Precipitation (mm)": 1561.628090059138,
+      "Percolation (mm)": 11.291369523169287,
+      "Surface Runoff (mm)": 183.7596495430435,
+      "Lateral Flow (mm)": 702.41596463889,
+      "Transpiration + Evaporation (mm)": 670.3748724810164
+    },
+    {
+      "Year": 2017,
+      "Precipitation (mm)": 3076.8630796010375,
+      "Percolation (mm)": 14.353404348367299,
+      "Surface Runoff (mm)": 863.6805112672033,
+      "Lateral Flow (mm)": 1296.0675709244877,
+      "Transpiration + Evaporation (mm)": 781.8770568041417
+    },
+    {
+      "Year": 2018,
+      "Precipitation (mm)": 1457.7429228530268,
+      "Percolation (mm)": 13.573308237016674,
+      "Surface Runoff (mm)": 143.99444447350504,
+      "Lateral Flow (mm)": 709.384703354443,
+      "Transpiration + Evaporation (mm)": 711.4224666099187
+    },
+    {
+      "Year": 2019,
+      "Precipitation (mm)": 1989.6505603873022,
+      "Percolation (mm)": 11.017995883308014,
+      "Surface Runoff (mm)": 418.32802005172283,
+      "Lateral Flow (mm)": 809.4392715947093,
+      "Transpiration + Evaporation (mm)": 690.1924101108747
+    },
+    {
+      "Year": 2020,
+      "Precipitation (mm)": 1015.5672239267016,
+      "Percolation (mm)": 10.80444725260237,
+      "Surface Runoff (mm)": 63.20575817466284,
+      "Lateral Flow (mm)": 407.9440259709545,
+      "Transpiration + Evaporation (mm)": 594.9932763973748
+    },
+    {
+      "Year": 2021,
+      "Precipitation (mm)": 783.4339017650159,
+      "Percolation (mm)": 8.27385519807164,
+      "Surface Runoff (mm)": 9.91833293736962,
+      "Lateral Flow (mm)": 256.58826973795186,
+      "Transpiration + Evaporation (mm)": 510.4947235015035
+    },
+    {
+      "Year": 2022,
+      "Precipitation (mm)": 1426.6823256394644,
+      "Percolation (mm)": 12.316467285658787,
+      "Surface Runoff (mm)": 148.99498028919925,
+      "Lateral Flow (mm)": 552.6154865009293,
+      "Transpiration + Evaporation (mm)": 683.2903969769452
+    },
+    {
+      "Year": 2023,
+      "Precipitation (mm)": 2148.7113432735346,
+      "Percolation (mm)": 11.884482928803106,
+      "Surface Runoff (mm)": 513.3063026343738,
+      "Lateral Flow (mm)": 818.036253713425,
+      "Transpiration + Evaporation (mm)": 738.0905507849168
+    },
+    {
+      "Year": 2024,
+      "Precipitation (mm)": 320.7181692679858,
+      "Percolation (mm)": 3.071311764027214,
+      "Surface Runoff (mm)": 1.8583822065763738,
+      "Lateral Flow (mm)": 104.22007137833194,
+      "Transpiration + Evaporation (mm)": 107.6654455028069
+    }
+  ],
+  "summary_schema": "TopazID: int64\nWaterYear: int64\nArea_m2: double\nPrecipitation (mm): double\nPercolation (mm): double\nSurface Runoff (mm): double\nLateral Flow (mm): double\nTranspiration + Evaporation (mm): double\n-- schema metadata --\npandas: '{\"index_columns\": [], \"column_indexes\": [], \"columns\": [{\"name\":' + 1143",
+  "summary_sha256": "c8658aaa6b1c509e44528b2edba443f4a8bd0bc764005c999ac184711f106d01",
+  "wall_seconds": 3.205519786919467,
+  "memory_before": 225292288,
+  "memory_peak": 2554118144,
+  "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "uid": 1000,
+  "gid": 993,
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ]
+}

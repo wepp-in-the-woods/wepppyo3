@@ -1,0 +1,197 @@
+[
+  {
+    "path": "/workdir/wepppy/docs/schemas/output-scope-contract.md",
+    "command": [
+      "wctl",
+      "doc-lint",
+      "--path",
+      "docs/schemas/output-scope-contract.md"
+    ],
+    "cwd": "/workdir/wepppy",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppy/docs/schemas/nodb-persistence-concurrency-contract.md",
+    "command": [
+      "wctl",
+      "doc-lint",
+      "--path",
+      "docs/schemas/nodb-persistence-concurrency-contract.md"
+    ],
+    "cwd": "/workdir/wepppy",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": true
+  },
+  {
+    "path": "/workdir/wepppy/wepppy/wepp/reports/README.md",
+    "command": [
+      "wctl",
+      "doc-lint",
+      "--path",
+      "wepppy/wepp/reports/README.md"
+    ],
+    "cwd": "/workdir/wepppy",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppy/wepppy/wepp/interchange/wepppyo3-interchange-spec.md",
+    "command": [
+      "wctl",
+      "doc-lint",
+      "--path",
+      "wepppy/wepp/interchange/wepppyo3-interchange-spec.md"
+    ],
+    "cwd": "/workdir/wepppy",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/README.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "README.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/module-registry.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/module-registry.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/release-provenance.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/release-provenance.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/README.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/work-packages/README.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/prompts/active/execplan.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/work-packages/20260908-hillslope-watbal-native-001/prompts/active/execplan.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": true
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/tracker.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/work-packages/20260908-hillslope-watbal-native-001/tracker.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/README.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/README.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/forest-acceptance.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/forest-acceptance.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/independent-reviews.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/independent-reviews.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/native-contract.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/native-contract.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/nodb-contract.md",
+    "command": [
+      "markdown-doc",
+      "lint",
+      "--path",
+      "docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/nodb-contract.md"
+    ],
+    "cwd": "/workdir/wepppyo3",
+    "exit": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n",
+    "spelling_preview_changed": false
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "path": "/workdir/wepppy/docs/schemas/output-scope-contract.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppy/docs/schemas/nodb-persistence-concurrency-contract.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": true
+  },
+  {
+    "path": "/workdir/wepppy/wepppy/wepp/reports/README.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppy/wepppy/wepp/interchange/wepppyo3-interchange-spec.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/README.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/module-registry.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/release-provenance.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/README.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/prompts/active/execplan.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": true
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/tracker.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/README.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/forest-acceptance.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/independent-reviews.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/native-contract.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  },
+  {
+    "path": "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/nodb-contract.md",
+    "lint_exit": 101,
+    "lint_output": "\nthread 'main' panicked at /home/roger/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ignore-0.4.24/src/gitignore.rs:232:9:\npath is expected to be under the root\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "spelling_changes": false
+  }
+]

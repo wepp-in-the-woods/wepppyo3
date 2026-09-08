@@ -1,0 +1,23 @@
+Broad exception handler changed-file enforcement
+
+Repo root: /home/workdir/wepppy
+Base ref: origin/master
+Merge base: d8fbe9f4ab270b6a7ab119d7cdda55d3cb628986
+Path filter: wepppy, services
+Allowlist source: /home/workdir/wepppy/docs/standards/broad-exception-boundary-allowlist.md
+Changed Python files scanned: 4
+
+Files:
+  M wepppy/nodb/batch_runner.py
+  M wepppy/rq/batch_rq.py
+  M wepppy/wepp/interchange/_rust_interchange.py
+  M wepppy/wepp/reports/hillslope_watbal.py
+
+Per-file delta (unsuppressed broad catches):
+  M wepppy/nodb/batch_runner.py (base=0 current=0 delta=+0)
+  M wepppy/rq/batch_rq.py (base=14 current=12 delta=-2)
+  M wepppy/wepp/interchange/_rust_interchange.py (base=0 current=0 delta=+0)
+  M wepppy/wepp/reports/hillslope_watbal.py (base=0 current=0 delta=+0)
+
+Net delta (all changed files): -2
+Result: PASS

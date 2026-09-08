@@ -843,3 +843,18 @@ The paired repositories and immutable common runtime image are published and
 verified. See [publication receipt](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/publication.json).
 The pulled image passes 25 facade parity cases and the real RQ chain at 1.11 GiB
 with no source-code mounts. No production rollout is claimed.
+
+## Targeted hillslope water-balance refresh (2026-09-08)
+
+`confirmed`: the py312 interchange module adds `hillslope_watbal_wepp_ids`
+and `hillslope_watbal_to_parquet`. Built with
+`PYO3_PYTHON=/usr/bin/python3.12 cargo build --release -p wepp_interchange_rust`,
+then copied to a sibling temporary file and atomically renamed into the canonical
+release tree. The paired WEPPpy startup pin and API inventory are updated.
+
+Shared-object SHA-256:
+`fe5b2c156b361181fe52004399a6ce131b3b43f92797ae744350d6e9f5713917`.
+Source base: `21989c44fe941399f5e4f2d323614463e50809d5` plus this package's
+tracked source changes. See the [release manifest](work-packages/20260908-hillslope-watbal-native-001/artifacts/release-integration-manifest.json)
+for source hashes and publication status. Image publication and deployment are
+outside this package's authorization.

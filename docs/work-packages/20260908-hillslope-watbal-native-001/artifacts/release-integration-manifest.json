@@ -1,0 +1,63 @@
+{
+  "evidence": "confirmed",
+  "native_source_base": "21989c44fe941399f5e4f2d323614463e50809d5",
+  "wepppy_source_base": "d8fbe9f4ab270b6a7ab119d7cdda55d3cb628986",
+  "build_command": "PYO3_PYTHON=/usr/bin/python3.12 cargo build --release -p wepp_interchange_rust",
+  "rustc": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+  "python": "Python 3.12.3",
+  "image": "sha256:6ac7e71030467a10e5d73dc18893cbd85c9202976d4b1b561a19dbb0d7ef2b75",
+  "publication_status": "all package minimum gates passed; native-first commit/push and clean remote verification pending",
+  "image_published": false,
+  "deployed": false,
+  "files": [
+    {
+      "path": "/workdir/wepppyo3/wepp_interchange/src/hillslope_watbal.rs",
+      "bytes": 11975,
+      "sha256": "bbfbdabcccb5f85400dbeba29c85e9c5ea111f0aebb1e915f9a837b4c2044920"
+    },
+    {
+      "path": "/workdir/wepppyo3/wepp_interchange/src/lib.rs",
+      "bytes": 41531,
+      "sha256": "907cd2f09c1bddb9bcc7236e759857cbfb9110b81b179c40dd8fb9b44c2293b2"
+    },
+    {
+      "path": "/workdir/wepppyo3/wepp_interchange/src/parquet.rs",
+      "bytes": 31903,
+      "sha256": "63d640e1c3a77e431e25ec9341f33ada4faf5f782adb864d9e74f2dc88c4319b"
+    },
+    {
+      "path": "/workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so",
+      "bytes": 14968920,
+      "sha256": "fe5b2c156b361181fe52004399a6ce131b3b43f92797ae744350d6e9f5713917"
+    },
+    {
+      "path": "/workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/__init__.py",
+      "bytes": 3585,
+      "sha256": "02c9c6898fd0c87a88dc94285d9b868afdcff30ba0b0998a56c0a56ec25f99de"
+    },
+    {
+      "path": "/workdir/wepppy/docker/wepppyo3-interchange-preflight.py",
+      "bytes": 2981,
+      "sha256": "b675f5b12fefeae50fc594c7067d1d7ade1a2dc2589a6af116f3d33f544cd5de"
+    }
+  ],
+  "python_baseline_source": {
+    "revision": "d8fbe9f4ab270b6a7ab119d7cdda55d3cb628986",
+    "path": "wepppy/wepp/reports/hillslope_watbal.py",
+    "sha256": "7a0ed56c080504289d7224ae48f6c66007221c282512f377012f87978aa1cfc2",
+    "extraction_command": "git -C /workdir/wepppy show d8fbe9f4ab270b6a7ab119d7cdda55d3cb628986:wepppy/wepp/reports/hillslope_watbal.py > /workdir/wepppyo3/target/hillslope-watbal-evidence/python-baseline-hillslope_watbal.py"
+  },
+  "validation": {
+    "native_release": "107 passed",
+    "rust": "95 unit + 17 integration passed",
+    "wepppy_full": "7732 passed, 72 skipped",
+    "nodb": "2090 passed, 26 skipped",
+    "interchange": "73 passed, 1 skipped",
+    "combined_report_nodb_rq": "54 passed",
+    "batch_consumers": "35 passed",
+    "startup_nodb_rq": "53 passed",
+    "docs": "15 files lint passed",
+    "rq_graph": "passed; regenerated source-line references only",
+    "stubs": "completeness and report stubtest pass; extra source-only BatchRunner stubtest blocked by baseline typing errors (baseline reproduced)"
+  }
+}

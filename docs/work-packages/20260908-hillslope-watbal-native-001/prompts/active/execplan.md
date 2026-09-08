@@ -17,18 +17,42 @@ The batch orchestrator also records finalizer IDs without racing child writes to
 
 ## Progress
 
-- [x] (2026-09-08) Scaffolded the execution-ready cross-repository package from
-  live OOM and stale-write evidence.
-- [ ] Verify repository/LFS state and capture immutable baseline evidence.
-- [ ] Freeze Python output, cache, report iterator, and failure-mode oracles.
-- [ ] Freeze the native API and NoDb transaction design in reviewed artifacts.
-- [ ] Implement the Rust writer and native tests.
-- [ ] Integrate native-only WEPPpy behavior and safe receipt persistence.
-- [ ] Pass parity, scale, timing, memory, sequential, and real Compose RQ gates.
-- [ ] Run broad validation and close independent reviews.
-- [ ] Commit, push, and clean-checkout verify both repositories.
+- [x] (2026-09-08) Verified clean Forest revisions, pulls, LFS, 127 fixture
+  checksums, and reused scale generator provenance.
+- [x] Froze three real-fixture Python summaries and iterators. Edge oracles were
+  also captured from the immutable baseline revision after source extraction;
+  this preserves original behavior without retaining a runtime fallback.
+- [x] Independently reviewed native API and fresh NoDb transaction contracts.
+- [x] Implemented Rust writer, edge/failure/mode tests, and py312 release refresh.
+- [x] Integrated native-only report path and safe receipt persistence at both sites.
+- [x] Passed exact schema/iterator parity, five-pair timing, final-binary timings,
+  5,860-hillslope scale, repeatability, same-process, and real Compose gates.
+- [x] Closed independent correctness, QA, and high-impact security reviews.
+- [x] Complete package validation: 7732 full-suite tests pass (72 skipped),
+  107 native release, 112 Rust, 54 combined, 2090 NoDb, 73 interchange, and
+  35 batch-consumer tests pass. Report stubtest and stub completeness pass.
+  Extra source-only BatchRunner stubtest fails before comparison on baseline
+  typing errors, reproduced in the unchanged detached baseline checkout.
+- [ ] Commit/push native first, pin in WEPPpy, and clean-checkout verify remotes.
 
 ## Surprises & Discoveries
+
+- Confirmed: native cache replacement needed opt-in mode preservation to retain
+  restrictive existing access bits. Security review drove pre-write staging-mode
+  preservation, with 0600/0640/0660 regressions.
+- Confirmed: failed nested receipt acquisition must not clear the outer owner's
+  signature. Independent reproduction drove the acquired flag regression.
+- Confirmed: initial Compose jobs all passed, but the evidence collector failed
+  to serialize byte dependency IDs. Corrected collector and complete rerun pass.
+- Local tooling friction: absolute /workdir aliases make markdown-doc panic;
+  repository-relative paths pass. Original panic evidence is retained.
+
+- Confirmed: combined report/RQ collection fails because the report test installs
+  an empty pyproj stub. Separate package commands pass (7 report, 34 RQ tests).
+  Evidence: artifacts/baseline-combined-collection.log and baseline-*.log.
+- Confirmed: real NoDb persistence reproduces the same-size stale receipt write
+  while retaining the child update. Evidence: artifacts/test_receipt_baseline.py
+  and artifacts/baseline-receipt.log.
 
 - Observation: all seven production failures occurred after native
   totalwatsed3 returned successfully and immediately after Python hillslope
@@ -58,9 +82,19 @@ The batch orchestrator also records finalizer IDs without racing child writes to
 
 ## Outcomes & Retrospective
 
-Not started. Completion requires both repositories to be published and the
-real sequential Compose path to pass; implemented-but-unwired Rust is not an
-acceptable outcome.
+Implementation is wired and reviewed. Final release SHA-256 is
+fe5b2c156b361181fe52004399a6ce131b3b43f92797ae744350d6e9f5713917.
+Final native median is 2.8502 seconds versus frozen Python 3.1755 seconds.
+Real Compose same-process post-processing plus report/query consumption and a
+subsequent job pass at 1,165,426,688 bytes, with zero OOM/restart. Three final
+scale calls after warm-up retain only 90,112 additional anonymous bytes.
+
+Native-first remote verification remains before closure. Full-suite and all
+minimum package validation gates pass; the additional source-only BatchRunner
+stubtest limitation is preserved as baseline evidence, not hidden.
+The package does not publish images or deploy. Because WEPPpy master pushes
+normally publish images, the integration commit will use [skip ci], with local
+validation evidence retained. See artifacts/forest-acceptance.md and reviews.
 
 ## Context and Orientation
 
@@ -279,3 +313,9 @@ instead of adding an unreviewed library.
 Revision note: created 2026-09-08 from the live openwepp.org OOM and NoDb
 contention evidence, reusing the completed native-totalwatsed3 fixtures and
 Forest validation model.
+
+Revision note: recorded verified Forest baselines, Python oracles, and the
+deterministic receipt reproduction before implementation.
+
+Revision note: recorded implementation, review dispositions, final release and
+Forest acceptance; remote publication awaits the complete broad gate.

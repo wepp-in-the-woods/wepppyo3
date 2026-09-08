@@ -37,6 +37,7 @@ mod hill_pass;
 mod hill_pass_combine;
 mod hill_soil;
 mod hill_wat;
+mod hillslope_watbal;
 mod loss;
 mod mofe;
 mod parquet;
@@ -49,6 +50,35 @@ mod totalwatsed_schema;
 
 use crate::errors::InterchangeError;
 use crate::schema::VersionInfo;
+
+#[pyfunction]
+fn hillslope_watbal_wepp_ids(py: Python<'_>, wat_path: String) -> PyResult<Vec<i64>> {
+    py.allow_threads(|| hillslope_watbal::wepp_ids(std::path::Path::new(&wat_path)))
+}
+
+#[pyfunction]
+#[pyo3(signature = (wat_path, output_path, topaz_by_wepp_id, pandas_metadata=None))]
+fn hillslope_watbal_to_parquet(
+    py: Python<'_>,
+    wat_path: String,
+    output_path: String,
+    topaz_by_wepp_id: std::collections::HashMap<i64, i64>,
+    pandas_metadata: Option<String>,
+) -> PyResult<PyObject> {
+    let (input_rows, rows_written, ofe_keys) = py.allow_threads(|| {
+        hillslope_watbal::produce(
+            std::path::Path::new(&wat_path),
+            std::path::Path::new(&output_path),
+            &topaz_by_wepp_id,
+            pandas_metadata.as_deref(),
+        )
+    })?;
+    let result = PyDict::new_bound(py);
+    result.set_item("input_rows", input_rows)?;
+    result.set_item("rows_written", rows_written)?;
+    result.set_item("ofe_keys", ofe_keys)?;
+    Ok(result.into_py(py))
+}
 
 #[pyfunction]
 #[pyo3(signature = (pass_path, wat_path, output_path, gwstorage, bfcoeff, dscoeff, version_major, version_minor, soil_path=None, element_path=None, wepp_ids=None, ash_inputs=None, pandas_metadata=None))]
@@ -1120,6 +1150,8 @@ fn segment_single_ofe_slope_at_breakpoints(
 
 #[pymodule]
 fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(hillslope_watbal_wepp_ids, m)?)?;
+    m.add_function(wrap_pyfunction!(hillslope_watbal_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(totalwatsed3_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_pass_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_pass_cli_hint, m)?)?;

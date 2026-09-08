@@ -129,6 +129,13 @@ Deterministic-order contract:
 
 ### `wepppyo3.wepp_interchange`
 
+`confirmed`: the paired hillslope-water-balance report uses
+`hillslope_watbal_wepp_ids` and `hillslope_watbal_to_parquet` to stream H.wat
+into a compact Topaz/year cache. The API preserves first-OFE area and report
+flux semantics, returns compact telemetry, and publishes atomically. See the
+[execution evidence](docs/work-packages/20260908-hillslope-watbal-native-001/tracker.md)
+for fixture-specific parity, performance, memory, and release status.
+
 `confirmed`: `totalwatsed3_to_parquet` is included in the current py312 release
 and required by the paired WEPPpy daily-watershed facade. The Forest 12 GiB
 Compose RQ workflow passes after bounding documentation previews. See the

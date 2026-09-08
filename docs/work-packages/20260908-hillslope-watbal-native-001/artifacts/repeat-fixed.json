@@ -1,0 +1,94 @@
+[
+  {
+    "iteration": 0,
+    "warmup": true,
+    "before": {
+      "current": 158973952,
+      "peak": 179904512,
+      "stat": {
+        "anon": 158089216,
+        "file": 0,
+        "kernel": 929792
+      }
+    },
+    "after": {
+      "current": 204636160,
+      "peak": 299220992,
+      "stat": {
+        "anon": 196354048,
+        "file": 6881280,
+        "kernel": 1200128
+      }
+    },
+    "seconds": 24.03293946397025
+  },
+  {
+    "iteration": 1,
+    "warmup": false,
+    "before": {
+      "current": 204636160,
+      "peak": 299220992,
+      "stat": {
+        "anon": 196354048,
+        "file": 6881280,
+        "kernel": 1200128
+      }
+    },
+    "after": {
+      "current": 204632064,
+      "peak": 306360320,
+      "stat": {
+        "anon": 196493312,
+        "file": 6885376,
+        "kernel": 1224704
+      }
+    },
+    "seconds": 24.392598818056285
+  },
+  {
+    "iteration": 2,
+    "warmup": false,
+    "before": {
+      "current": 204627968,
+      "peak": 306360320,
+      "stat": {
+        "anon": 196493312,
+        "file": 6885376,
+        "kernel": 1224704
+      }
+    },
+    "after": {
+      "current": 204873728,
+      "peak": 306360320,
+      "stat": {
+        "anon": 196538368,
+        "file": 6885376,
+        "kernel": 1224704
+      }
+    },
+    "seconds": 24.4603798360331
+  },
+  {
+    "iteration": 3,
+    "warmup": false,
+    "before": {
+      "current": 204869632,
+      "peak": 306360320,
+      "stat": {
+        "anon": 196538368,
+        "file": 6885376,
+        "kernel": 1224704
+      }
+    },
+    "after": {
+      "current": 204902400,
+      "peak": 306360320,
+      "stat": {
+        "anon": 196583424,
+        "file": 6885376,
+        "kernel": 1224704
+      }
+    },
+    "seconds": 24.36558335099835
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "run": "decimal-pleasing",
+    "rows": 804,
+    "parity": true
+  },
+  {
+    "run": "incommensurate-stickball",
+    "rows": 1496,
+    "parity": true
+  },
+  {
+    "run": "throbbing-sylvan",
+    "rows": 26370,
+    "parity": true
+  }
+]

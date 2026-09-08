@@ -1,0 +1,53 @@
+{
+  "9c55ca28-e053-4bc8-9572-386411949d71": {
+    "job_id": "9c55ca28-e053-4bc8-9572-386411949d71",
+    "runid": "profile;;tmp;;hillslope-5860-a3f8b82fd723",
+    "status": "finished",
+    "result": {
+      "sequential": true
+    },
+    "started_at": "2026-09-08 08:41:32.547066",
+    "ended_at": "2026-09-08 08:42:40.622322",
+    "description": "hillslope_acceptance.sequential('profile;;tmp;;hillslope-5860-a3f8b82fd723')",
+    "elapsed_s": 68.075256,
+    "exc_info": null,
+    "auth_actor": null,
+    "culvert_batch_uuid": null,
+    "children": {}
+  },
+  "cfbd54bc-41f5-49c6-ba67-c6e96cb06df1": {
+    "job_id": "cfbd54bc-41f5-49c6-ba67-c6e96cb06df1",
+    "runid": "profile;;tmp;;hillslope-5860-a3f8b82fd723",
+    "status": "finished",
+    "result": {
+      "summary_rows": 263700,
+      "yearly_rows": 45,
+      "query_catalog": true,
+      "parity": true
+    },
+    "started_at": "2026-09-08 08:42:40.706446",
+    "ended_at": "2026-09-08 08:42:40.986611",
+    "description": "hillslope_acceptance.downstream('profile;;tmp;;hillslope-5860-a3f8b82fd723')",
+    "elapsed_s": 0.280165,
+    "exc_info": null,
+    "auth_actor": null,
+    "culvert_batch_uuid": null,
+    "children": {}
+  },
+  "6029222c-c65d-40e4-a9c2-c5d1ebb638a2": {
+    "job_id": "6029222c-c65d-40e4-a9c2-c5d1ebb638a2",
+    "runid": "profile;;tmp;;hillslope-586-a3f8b82fd723",
+    "status": "finished",
+    "result": {
+      "sequential": true
+    },
+    "started_at": "2026-09-08 08:42:41.038620",
+    "ended_at": "2026-09-08 08:42:49.244785",
+    "description": "hillslope_acceptance.sequential('profile;;tmp;;hillslope-586-a3f8b82fd723')",
+    "elapsed_s": 8.206165,
+    "exc_info": null,
+    "auth_actor": null,
+    "culvert_batch_uuid": null,
+    "children": {}
+  }
+}

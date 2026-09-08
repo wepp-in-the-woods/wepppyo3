@@ -1,0 +1,3 @@
+{"run": "decimal-pleasing", "summary": {"input_rows": 269206, "rows_written": 804, "ofe_keys": 67}, "wall_seconds": 0.1089852029690519, "memory_peak": 69484544, "errors": []}
+{"run": "incommensurate-stickball", "summary": {"input_rows": 1840800, "rows_written": 1496, "ofe_keys": 240}, "wall_seconds": 0.6275684470310807, "memory_peak": 70295552, "errors": []}
+{"run": "throbbing-sylvan", "summary": {"input_rows": 9417606, "rows_written": 26370, "ofe_keys": 586}, "wall_seconds": 3.3539255639771, "memory_peak": 89432064, "errors": []}

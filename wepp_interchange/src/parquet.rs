@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fs::{self, File, OpenOptions};
 use std::io;
+use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
@@ -43,7 +44,21 @@ static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 impl ParquetSink {
     pub fn try_new(path: &Path, schema: Schema) -> Result<Self, InterchangeError> {
-        let (tmp_path, file) = create_unique_temp_file(path)?;
+        Self::try_new_with_mode(path, schema, None)
+    }
+
+    /// A cache caller may preserve restrictive access bits on the stage itself.
+    pub(crate) fn try_new_with_mode(
+        path: &Path,
+        schema: Schema,
+        mode: Option<u32>,
+    ) -> Result<Self, InterchangeError> {
+        let (tmp_path, file) = create_unique_temp_file(path, mode)?;
+        let mut temp_guard = TempPathGuard(Some(tmp_path));
+        if let Some(mode) = mode {
+            file.set_permissions(fs::Permissions::from_mode(mode))
+                .map_err(|e| InterchangeError::io(path, e))?;
+        }
 
         let props = WriterProperties::builder()
             .set_compression(Compression::SNAPPY)
@@ -53,7 +68,6 @@ impl ParquetSink {
             .build();
 
         let schema = Arc::new(schema);
-        let mut temp_guard = TempPathGuard(Some(tmp_path));
         let writer = ArrowWriter::try_new(file, Arc::clone(&schema), Some(props))?;
         let tmp_path = temp_guard.0.take().expect("guarded staging path");
 
@@ -394,12 +408,16 @@ fn lock_output_directories(staged: &[StagedParquet]) -> Result<Vec<File>, Interc
     Ok(locks)
 }
 
-fn create_unique_temp_file(path: &Path) -> Result<(PathBuf, File), InterchangeError> {
+fn create_unique_temp_file(
+    path: &Path,
+    mode: Option<u32>,
+) -> Result<(PathBuf, File), InterchangeError> {
     for _ in 0..4096 {
         let candidate = unique_sibling_path(path, "stage");
         match OpenOptions::new()
             .write(true)
             .create_new(true)
+            .mode(mode.unwrap_or(0o666))
             .open(&candidate)
         {
             Ok(file) => return Ok((candidate, file)),

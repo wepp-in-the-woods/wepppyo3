@@ -1,0 +1,136 @@
+   Compiling wepp_interchange_rust v0.1.0 (/home/workdir/wepppyo3/wepp_interchange)
+warning: variable does not need to be mutable
+    --> wepp_interchange/src/totalwatsed.rs:1209:13
+     |
+1209 |         let mut row = finish_row(&[2020, 1, 1, 1, 1, 2020], &day, None, 1.0, 0.0, 0.0);
+     |             ----^^^
+     |             |
+     |             help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: `wepp_interchange_rust` (lib test) generated 1 warning (run `cargo fix --lib -p wepp_interchange_rust --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.12s
+     Running unittests src/lib.rs (target/debug/deps/wepp_interchange_rust-97aa6284a50c4654)
+
+running 95 tests
+test ag_fields::tests::source_validation_accepts_shared_field_and_rejects_bad_identity ... ok
+test ag_fields::tests::ag_fields_schema_replaces_only_identity_and_adds_kind_metadata ... ok
+test ag_fields::tests::every_ag_fields_writer_rejects_filename_mismatch_before_publication ... ok
+test hill_ebe::tests::calendar_day_to_julian_falls_back_to_any_year ... ok
+test ebe::tests::outlet_inference_prefers_maximum_hillslope_id ... ok
+test ebe::tests::outlet_inference_uses_channel_one_then_first_valid_channel ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_rejects_bad_magic ... ok
+test chnwb::tests::rejects_unsupported_chnwb_candidate_width ... ok
+test catalog::tests::arrow01_catalog_schema_read_contract ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_rejects_unsupported_endianness ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_reads_schema1_fixture ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_rejects_truncated_payload ... ok
+test hill_pass::tests::bulk_writer_rejects_invalid_hbp_process_name ... ok
+test hill_pass_combine::tests::accepts_phase4_strategy ... ok
+test hill_pass_combine::tests::combines_event_and_subevent_rows_with_event_precedence ... ok
+test hill_pass_combine::tests::rejects_calendar_mismatch_between_base_and_road_pass ... ok
+test hill_pass_combine::tests::rejects_e11_5_exponent_overflow_values ... ok
+test hill_pass_combine::tests::enforces_subevent_and_no_event_zeroing_rules ... ok
+test hill_pass_combine::tests::recomputes_oalpha_from_combined_peak_and_volume ... ok
+test hill_pass_combine::tests::rejects_simulation_header_mismatch ... ok
+test hill_pass_combine::tests::rejects_truncated_pass_header ... ok
+test ebe::tests::nonzero_ebe_peak_passes_channel_peak_audit ... ok
+test hill_pass_combine::tests::rejects_unknown_strategy ... ok
+test ebe::tests::all_zero_ebe_peaks_fail_when_channel_peaks_are_positive ... ok
+test hill_pass_combine::tests::weighted_failure_preserves_existing_output_and_removes_temporary_file ... ok
+test hill_pass_combine::tests::weighted_rejects_nonfinite_source_values ... ok
+test hill_pass_combine::tests::weighted_rejects_duplicate_ids_area_mismatch_and_calendar_mismatch ... ok
+test hill_wat::tests::parses_legacy_layout_with_null_optional_terms ... ok
+test loss::tests::annual_hill_parser_accepts_exact_incident_row ... ok
+test loss::tests::annual_hill_parser_normalizes_legacy_row_with_null_area ... ok
+test hill_pass_combine::tests::weighted_combines_all_event_labels_and_extensive_terms ... ok
+test loss::tests::annual_hill_parser_preserves_current_hillslope_area_and_pollutants ... ok
+test hill_wat::tests::parses_enriched_layout_without_interception_storage ... ok
+test hill_pass_combine::tests::weighted_preserves_signed_tdep_and_closure ... ok
+test hill_pass_combine::tests::weighted_preserves_nonunit_particle_component_sum ... ok
+test hill_pass_combine::tests::writes_event_rows_with_fortran_style_exponents_and_continuation_line ... ok
+test loss::tests::annual_hill_parser_rejects_mixed_layouts ... ok
+test loss::tests::annual_hill_parser_rejects_unknown_row_width ... ok
+test ag_fields::tests::all_ag_fields_writers_emit_exact_versioned_empty_schemas ... ok
+test hill_wat::tests::rejects_unknown_optional_column ... ok
+test mofe::tests::explicit_breakpoints_validate_boundaries_and_limit ... ok
+test hill_pass_combine::tests::weighted_half_background_plus_identical_half_field_is_identity ... ok
+test hill_wat::tests::parses_widened_scientific_dp_without_shifting_following_fields ... ok
+test hill_wat::tests::rejects_overlong_optional_layout ... ok
+test mofe::tests::explicit_breakpoints_preserve_length_and_accept_target_width ... ok
+test hill_wat::tests::parses_enriched_layout_with_interception_storage ... ok
+test hill_loss::tests::bulk_writer_preserves_path_order_and_row_groups ... ok
+test hill_pass::tests::bulk_writer_later_source_failure_preserves_prior_output_and_cleans_stage ... ok
+test hill_soil::tests::bulk_writer_emits_empty_parquet_with_schema_metadata ... ok
+test hill_pass_combine::tests::weighted_single_source_round_trips_header_and_closure ... ok
+test hill_pass_combine::tests::weighted_zero_area_background_does_not_change_full_coverage_result ... ok
+test soil::tests::reconstructs_uniform_legacy_overflow_days ... ok
+test soil::tests::rejects_inconsistent_legacy_day_size ... ok
+test soil::tests::rejects_numeric_gap ... ok
+test soil::tests::rejects_numeric_id_after_overflow ... ok
+test soil::tests::rejects_overflow_before_100 ... ok
+test totalwatsed::tests::null_sum_and_nonpositive_depth_contract ... ok
+test totalwatsed::tests::pass_runoff_and_sediment_units ... ok
+test parquet::tests::arrow01_writer_accepts_nonempty_utf8_batches_wepp_interchange ... ok
+test hill_pass::tests::ag_fields_writer_later_source_failure_preserves_prior_output_and_cleans_stage ... ok
+test pass::tests::pass_cli_hint_reads_plain_pass_metadata ... ok
+test pass::tests::pass_cli_hint_returns_none_for_malformed_pass ... ok
+test hill_ebe::tests::bulk_writer_preserves_path_order_and_row_groups ... ok
+test parquet::tests::arrow01_writer_empty_chunk_contract_wepp_interchange ... ok
+test parquet::tests::arrow01_writer_schema_metadata_roundtrip_wepp_interchange ... ok
+test parquet::tests::arrow01_writer_row_group_and_row_count_accounting_wepp_interchange ... ok
+test pass::tests::pass_cli_hint_reads_gzip_pass_metadata ... ok
+test parquet::tests::arrow01_error_mapping_typed_contract_wepp_interchange ... ok
+test hill_element::tests::bulk_writer_preserves_path_order_and_row_groups ... ok
+test chnwb::tests::accepts_current_27_field_chnwb_rows ... ok
+test hill_pass::tests::bulk_writer_preserves_path_order_and_row_groups ... ok
+test loss::tests::watershed_loss_later_output_failure_restores_all_eight_prior_outputs ... ok
+test parquet::tests::concurrent_sinks_use_unique_stages_and_clean_up_on_drop ... ok
+test parquet::tests::commit_preflight_error_cleans_stage_and_preserves_nonfile_target ... ok
+test hill_soil::tests::bulk_writer_preserves_path_order_and_row_groups ... ok
+test hill_wat::tests::writes_multiple_files_directly_with_calendar_day_indices ... ok
+test hill_loss::tests::ag_fields_writer_preserves_all_loss_values_and_coupled_identity ... ok
+test parquet::tests::coordinated_commit_leaves_no_public_set_on_later_failure_without_prior_outputs ... ok
+test parquet::tests::failed_rollback_restore_preserves_and_reports_recovery_backup ... ok
+test parquet::tests::coordinated_commit_restores_prior_generation_on_later_failure ... ok
+test parquet::tests::concurrent_publishers_never_share_or_expose_incomplete_stages ... ok
+test pass::tests::watershed_pass_later_output_failure_restores_both_prior_outputs ... ok
+test hill_ebe::tests::ag_fields_writer_preserves_all_ebe_values_and_coupled_identity ... ok
+test hill_pass::tests::ag_fields_writer_preserves_all_pass_values_and_coupled_identity ... ok
+test hill_wat::tests::ag_fields_writer_preserves_all_wat_values_and_coupled_identity ... ok
+test hill_soil::tests::ag_fields_writer_preserves_all_soil_values_and_coupled_identity ... ok
+test hill_element::tests::ag_fields_writer_preserves_all_element_values_and_coupled_identity ... ok
+test hill_hbp::tests::schema2_fixture_has_expected_directory_shape ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_rejects_schema2_bad_codec ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_rejects_schema2_stored_crc ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_rejects_schema2_slice_gap ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_rejects_schema2_bad_day_slot ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_rejects_schema2_bad_slice_bounds ... ok
+test hill_hbp::tests::hillslope_hbp_to_columns_reads_schema2_fixture ... ok
+test hill_hbp::tests::ag_fields_pass_writer_preserves_schema2_hbp_values_and_identity ... ok
+
+test result: ok. 95 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s
+
+     Running tests/tc_out.rs (target/debug/deps/tc_out-a536520801983622)
+
+running 17 tests
+test tests::schema_matches_wepppy_contract ... ok
+test parquet::tests::arrow01_writer_empty_chunk_contract_wepp_interchange ... ok
+test tests::malformed_channel_record_is_a_contextual_parse_error ... ok
+test tests::no_channel_rows_returns_empty_summary_without_output ... ok
+test tests::missing_input_is_typed_io_error_and_parse_failure_is_atomic ... ok
+test parquet::tests::arrow01_writer_schema_metadata_roundtrip_wepp_interchange ... ok
+test parquet::tests::arrow01_writer_row_group_and_row_count_accounting_wepp_interchange ... ok
+test parquet::tests::arrow01_error_mapping_typed_contract_wepp_interchange ... ok
+test parquet::tests::arrow01_writer_accepts_nonempty_utf8_batches_wepp_interchange ... ok
+test parquet::tests::commit_preflight_error_cleans_stage_and_preserves_nonfile_target ... ok
+test tests::selects_max_channel_and_preserves_selected_source_order ... ok
+test tests::uses_cli_calendar_start_year_and_day_counts ... ok
+test parquet::tests::concurrent_sinks_use_unique_stages_and_clean_up_on_drop ... ok
+test parquet::tests::failed_rollback_restore_preserves_and_reports_recovery_backup ... ok
+test parquet::tests::coordinated_commit_leaves_no_public_set_on_later_failure_without_prior_outputs ... ok
+test parquet::tests::coordinated_commit_restores_prior_generation_on_later_failure ... ok
+test parquet::tests::concurrent_publishers_never_share_or_expose_incomplete_stages ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s

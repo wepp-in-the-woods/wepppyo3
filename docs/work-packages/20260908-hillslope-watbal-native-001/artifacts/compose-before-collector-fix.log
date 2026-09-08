@@ -1,0 +1,57 @@
+INFO:wctl2:docker compose run --no-deps --name hillslope-watbal-acceptance rq-worker /opt/venv/bin/python /workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/hillslope_acceptance.py
+time="2026-09-08T01:32:15-07:00" level=warning msg="Found orphan containers (wepppy-f-esri) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container hillslope-watbal-acceptance Creating
+ Container hillslope-watbal-acceptance Created
+>>> WEPPpyo3 interchange import OK: /workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+>>> WEPPpyo3 interchange SHA256: 2f90126dacf39c0c29a15b5a92d59b40f32c213186bd4a27d9ab446415f6a9bb
+[2026-09-08 08:32:33,602] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+08:32:36 Worker rq:worker:hillslope-acceptance-35fc86834cff started with PID 7, version 1.16.2
+08:32:36 Subscribing to channel rq:pubsub:hillslope-acceptance-35fc86834cff
+08:32:36 *** Listening on hillslope-acceptance-35fc86834cff...
+08:32:36 Cleaning registries for queue: hillslope-acceptance-35fc86834cff
+08:32:36 hillslope-acceptance-35fc86834cff: hillslope_acceptance.sequential('profile;;tmp;;hillslope-5860-35fc86834cff') (9a3ec4ff-a537-49ce-bee3-4931ba105dc6)
+Starting job 9a3ec4ff-a537-49ce-bee3-4931ba105dc6
+Finished job 9a3ec4ff-a537-49ce-bee3-4931ba105dc6
+08:33:48 hillslope-acceptance-35fc86834cff: Job OK (9a3ec4ff-a537-49ce-bee3-4931ba105dc6)
+08:33:48 Result is kept for 3600 seconds
+08:33:48 hillslope-acceptance-35fc86834cff: hillslope_acceptance.downstream('profile;;tmp;;hillslope-5860-35fc86834cff') (61f9120b-f1a1-4d6f-8c00-e543722bcb44)
+Starting job 61f9120b-f1a1-4d6f-8c00-e543722bcb44
+Finished job 61f9120b-f1a1-4d6f-8c00-e543722bcb44
+08:33:48 hillslope-acceptance-35fc86834cff: Job OK (61f9120b-f1a1-4d6f-8c00-e543722bcb44)
+08:33:48 Result is kept for 3600 seconds
+08:33:49 hillslope-acceptance-35fc86834cff: hillslope_acceptance.sequential('profile;;tmp;;hillslope-586-35fc86834cff') (4c965f4b-13a1-492c-8fa4-37aa050359de)
+Starting job 4c965f4b-13a1-492c-8fa4-37aa050359de
+Finished job 4c965f4b-13a1-492c-8fa4-37aa050359de
+08:33:57 hillslope-acceptance-35fc86834cff: Job OK (4c965f4b-13a1-492c-8fa4-37aa050359de)
+08:33:57 Result is kept for 3600 seconds
+08:33:57 Worker rq:worker:hillslope-acceptance-35fc86834cff: done, quitting
+08:33:57 Unsubscribing from channel rq:pubsub:hillslope-acceptance-35fc86834cff
+Traceback (most recent call last):
+  File "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/hillslope_acceptance.py", line 75, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/hillslope_acceptance.py", line 70, in main
+    (EVIDENCE/'compose-rq-result.json').write_text(json.dumps(result,indent=2)+'\n')
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/encoder.py", line 202, in encode
+    chunks = list(chunks)
+             ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/usr/local/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/local/lib/python3.12/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/usr/local/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/local/lib/python3.12/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/usr/local/lib/python3.12/json/encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type bytes is not JSON serializable

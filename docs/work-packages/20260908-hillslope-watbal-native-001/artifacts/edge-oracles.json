@@ -1,0 +1,223 @@
+[
+  {
+    "case": "normal",
+    "columns": [
+      "TopazID",
+      "WaterYear",
+      "Area_m2",
+      "Precipitation (mm)",
+      "Percolation (mm)",
+      "Surface Runoff (mm)",
+      "Lateral Flow (mm)",
+      "Transpiration + Evaporation (mm)"
+    ],
+    "data": {
+      "TopazID": [
+        101,
+        101
+      ],
+      "WaterYear": [
+        2000,
+        2001
+      ],
+      "Area_m2": [
+        35.0,
+        35.0
+      ],
+      "Precipitation (mm)": [
+        2.0,
+        5.0
+      ],
+      "Percolation (mm)": [
+        0.2,
+        0.2
+      ],
+      "Surface Runoff (mm)": [
+        0.4,
+        0.4
+      ],
+      "Lateral Flow (mm)": [
+        0.6,
+        0.6
+      ],
+      "Transpiration + Evaporation (mm)": [
+        3.0,
+        3.0
+      ]
+    },
+    "pandas_metadata": "{\"index_columns\": [], \"column_indexes\": [], \"columns\": [{\"name\": \"TopazID\", \"field_name\": \"TopazID\", \"pandas_type\": \"int64\", \"numpy_type\": \"int64\", \"metadata\": null}, {\"name\": \"WaterYear\", \"field_name\": \"WaterYear\", \"pandas_type\": \"int64\", \"numpy_type\": \"int64\", \"metadata\": null}, {\"name\": \"Area_m2\", \"field_name\": \"Area_m2\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Precipitation (mm)\", \"field_name\": \"Precipitation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Percolation (mm)\", \"field_name\": \"Percolation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Surface Runoff (mm)\", \"field_name\": \"Surface Runoff (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Lateral Flow (mm)\", \"field_name\": \"Lateral Flow (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Transpiration + Evaporation (mm)\", \"field_name\": \"Transpiration + Evaporation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}], \"attributes\": {}, \"creator\": {\"library\": \"pyarrow\", \"version\": \"23.0.1\"}, \"pandas_version\": \"2.2.2\"}",
+    "parity": true
+  },
+  {
+    "case": "null_area",
+    "columns": [
+      "TopazID",
+      "WaterYear",
+      "Area_m2",
+      "Precipitation (mm)",
+      "Percolation (mm)",
+      "Surface Runoff (mm)",
+      "Lateral Flow (mm)",
+      "Transpiration + Evaporation (mm)"
+    ],
+    "data": {
+      "TopazID": [
+        101,
+        101
+      ],
+      "WaterYear": [
+        2000,
+        2001
+      ],
+      "Area_m2": [
+        5.0,
+        5.0
+      ],
+      "Precipitation (mm)": [
+        2.0,
+        5.0
+      ],
+      "Percolation (mm)": [
+        0.2,
+        0.2
+      ],
+      "Surface Runoff (mm)": [
+        0.4,
+        0.4
+      ],
+      "Lateral Flow (mm)": [
+        0.6,
+        0.6
+      ],
+      "Transpiration + Evaporation (mm)": [
+        3.0,
+        3.0
+      ]
+    },
+    "pandas_metadata": "{\"index_columns\": [], \"column_indexes\": [], \"columns\": [{\"name\": \"TopazID\", \"field_name\": \"TopazID\", \"pandas_type\": \"int64\", \"numpy_type\": \"int64\", \"metadata\": null}, {\"name\": \"WaterYear\", \"field_name\": \"WaterYear\", \"pandas_type\": \"int64\", \"numpy_type\": \"int64\", \"metadata\": null}, {\"name\": \"Area_m2\", \"field_name\": \"Area_m2\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Precipitation (mm)\", \"field_name\": \"Precipitation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Percolation (mm)\", \"field_name\": \"Percolation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Surface Runoff (mm)\", \"field_name\": \"Surface Runoff (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Lateral Flow (mm)\", \"field_name\": \"Lateral Flow (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Transpiration + Evaporation (mm)\", \"field_name\": \"Transpiration + Evaporation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}], \"attributes\": {}, \"creator\": {\"library\": \"pyarrow\", \"version\": \"23.0.1\"}, \"pandas_version\": \"2.2.2\"}",
+    "parity": true
+  },
+  {
+    "case": "null_ofe",
+    "columns": [
+      "TopazID",
+      "WaterYear",
+      "Area_m2",
+      "Precipitation (mm)",
+      "Percolation (mm)",
+      "Surface Runoff (mm)",
+      "Lateral Flow (mm)",
+      "Transpiration + Evaporation (mm)"
+    ],
+    "data": {
+      "TopazID": [
+        101,
+        101
+      ],
+      "WaterYear": [
+        2000,
+        2001
+      ],
+      "Area_m2": [
+        124.0,
+        124.0
+      ],
+      "Precipitation (mm)": [
+        2.0,
+        5.0
+      ],
+      "Percolation (mm)": [
+        0.2,
+        0.2
+      ],
+      "Surface Runoff (mm)": [
+        0.4,
+        0.4
+      ],
+      "Lateral Flow (mm)": [
+        0.6,
+        0.6
+      ],
+      "Transpiration + Evaporation (mm)": [
+        3.0,
+        3.0
+      ]
+    },
+    "pandas_metadata": "{\"index_columns\": [], \"column_indexes\": [], \"columns\": [{\"name\": \"TopazID\", \"field_name\": \"TopazID\", \"pandas_type\": \"int64\", \"numpy_type\": \"int64\", \"metadata\": null}, {\"name\": \"WaterYear\", \"field_name\": \"WaterYear\", \"pandas_type\": \"int64\", \"numpy_type\": \"int64\", \"metadata\": null}, {\"name\": \"Area_m2\", \"field_name\": \"Area_m2\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Precipitation (mm)\", \"field_name\": \"Precipitation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Percolation (mm)\", \"field_name\": \"Percolation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Surface Runoff (mm)\", \"field_name\": \"Surface Runoff (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Lateral Flow (mm)\", \"field_name\": \"Lateral Flow (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Transpiration + Evaporation (mm)\", \"field_name\": \"Transpiration + Evaporation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}], \"attributes\": {}, \"creator\": {\"library\": \"pyarrow\", \"version\": \"23.0.1\"}, \"pandas_version\": \"2.2.2\"}",
+    "parity": true
+  },
+  {
+    "case": "nan_ofe",
+    "columns": [
+      "TopazID",
+      "WaterYear",
+      "Area_m2",
+      "Precipitation (mm)",
+      "Percolation (mm)",
+      "Surface Runoff (mm)",
+      "Lateral Flow (mm)",
+      "Transpiration + Evaporation (mm)"
+    ],
+    "data": {
+      "TopazID": [
+        101,
+        101
+      ],
+      "WaterYear": [
+        2000,
+        2001
+      ],
+      "Area_m2": [
+        124.0,
+        124.0
+      ],
+      "Precipitation (mm)": [
+        2.0,
+        5.0
+      ],
+      "Percolation (mm)": [
+        0.2,
+        0.2
+      ],
+      "Surface Runoff (mm)": [
+        0.4,
+        0.4
+      ],
+      "Lateral Flow (mm)": [
+        0.6,
+        0.6
+      ],
+      "Transpiration + Evaporation (mm)": [
+        3.0,
+        3.0
+      ]
+    },
+    "pandas_metadata": "{\"index_columns\": [], \"column_indexes\": [], \"columns\": [{\"name\": \"TopazID\", \"field_name\": \"TopazID\", \"pandas_type\": \"int64\", \"numpy_type\": \"int64\", \"metadata\": null}, {\"name\": \"WaterYear\", \"field_name\": \"WaterYear\", \"pandas_type\": \"int64\", \"numpy_type\": \"int64\", \"metadata\": null}, {\"name\": \"Area_m2\", \"field_name\": \"Area_m2\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Precipitation (mm)\", \"field_name\": \"Precipitation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Percolation (mm)\", \"field_name\": \"Percolation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Surface Runoff (mm)\", \"field_name\": \"Surface Runoff (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Lateral Flow (mm)\", \"field_name\": \"Lateral Flow (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}, {\"name\": \"Transpiration + Evaporation (mm)\", \"field_name\": \"Transpiration + Evaporation (mm)\", \"pandas_type\": \"float64\", \"numpy_type\": \"float64\", \"metadata\": null}], \"attributes\": {}, \"creator\": {\"library\": \"pyarrow\", \"version\": \"23.0.1\"}, \"pandas_version\": \"2.2.2\"}",
+    "parity": true
+  },
+  {
+    "case": "empty",
+    "columns": [
+      "TopazID",
+      "WaterYear",
+      "Area_m2",
+      "Precipitation (mm)",
+      "Percolation (mm)",
+      "Surface Runoff (mm)",
+      "Lateral Flow (mm)",
+      "Transpiration + Evaporation (mm)"
+    ],
+    "data": {
+      "TopazID": [],
+      "WaterYear": [],
+      "Area_m2": [],
+      "Precipitation (mm)": [],
+      "Percolation (mm)": [],
+      "Surface Runoff (mm)": [],
+      "Lateral Flow (mm)": [],
+      "Transpiration + Evaporation (mm)": []
+    },
+    "pandas_metadata": "{\"index_columns\": [], \"column_indexes\": [], \"columns\": [{\"name\": \"TopazID\", \"field_name\": \"TopazID\", \"pandas_type\": \"empty\", \"numpy_type\": \"object\", \"metadata\": null}, {\"name\": \"WaterYear\", \"field_name\": \"WaterYear\", \"pandas_type\": \"empty\", \"numpy_type\": \"object\", \"metadata\": null}, {\"name\": \"Area_m2\", \"field_name\": \"Area_m2\", \"pandas_type\": \"empty\", \"numpy_type\": \"object\", \"metadata\": null}, {\"name\": \"Precipitation (mm)\", \"field_name\": \"Precipitation (mm)\", \"pandas_type\": \"empty\", \"numpy_type\": \"object\", \"metadata\": null}, {\"name\": \"Percolation (mm)\", \"field_name\": \"Percolation (mm)\", \"pandas_type\": \"empty\", \"numpy_type\": \"object\", \"metadata\": null}, {\"name\": \"Surface Runoff (mm)\", \"field_name\": \"Surface Runoff (mm)\", \"pandas_type\": \"empty\", \"numpy_type\": \"object\", \"metadata\": null}, {\"name\": \"Lateral Flow (mm)\", \"field_name\": \"Lateral Flow (mm)\", \"pandas_type\": \"empty\", \"numpy_type\": \"object\", \"metadata\": null}, {\"name\": \"Transpiration + Evaporation (mm)\", \"field_name\": \"Transpiration + Evaporation (mm)\", \"pandas_type\": \"empty\", \"numpy_type\": \"object\", \"metadata\": null}], \"attributes\": {}, \"creator\": {\"library\": \"pyarrow\", \"version\": \"23.0.1\"}, \"pandas_version\": \"2.2.2\"}",
+    "parity": true
+  }
+]

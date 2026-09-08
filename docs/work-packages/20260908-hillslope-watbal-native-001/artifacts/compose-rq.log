@@ -1,0 +1,29 @@
+INFO:wctl2:docker compose run --no-deps --name hillslope-watbal-final-acceptance rq-worker /opt/venv/bin/python /workdir/wepppyo3/docs/work-packages/20260908-hillslope-watbal-native-001/artifacts/hillslope_acceptance.py
+time="2026-09-08T01:41:12-07:00" level=warning msg="Found orphan containers (hillslope-watbal-acceptance, wepppy-f-esri) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container hillslope-watbal-final-acceptance Creating
+ Container hillslope-watbal-final-acceptance Created
+>>> WEPPpyo3 interchange import OK: /workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+>>> WEPPpyo3 interchange SHA256: fe5b2c156b361181fe52004399a6ce131b3b43f92797ae744350d6e9f5713917
+[2026-09-08 08:41:29,793] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+08:41:32 Worker rq:worker:hillslope-acceptance-a3f8b82fd723 started with PID 7, version 1.16.2
+08:41:32 Subscribing to channel rq:pubsub:hillslope-acceptance-a3f8b82fd723
+08:41:32 *** Listening on hillslope-acceptance-a3f8b82fd723...
+08:41:32 Cleaning registries for queue: hillslope-acceptance-a3f8b82fd723
+08:41:32 hillslope-acceptance-a3f8b82fd723: hillslope_acceptance.sequential('profile;;tmp;;hillslope-5860-a3f8b82fd723') (9c55ca28-e053-4bc8-9572-386411949d71)
+Starting job 9c55ca28-e053-4bc8-9572-386411949d71
+Finished job 9c55ca28-e053-4bc8-9572-386411949d71
+08:42:40 hillslope-acceptance-a3f8b82fd723: Job OK (9c55ca28-e053-4bc8-9572-386411949d71)
+08:42:40 Result is kept for 3600 seconds
+08:42:40 hillslope-acceptance-a3f8b82fd723: hillslope_acceptance.downstream('profile;;tmp;;hillslope-5860-a3f8b82fd723') (cfbd54bc-41f5-49c6-ba67-c6e96cb06df1)
+Starting job cfbd54bc-41f5-49c6-ba67-c6e96cb06df1
+Finished job cfbd54bc-41f5-49c6-ba67-c6e96cb06df1
+08:42:40 hillslope-acceptance-a3f8b82fd723: Job OK (cfbd54bc-41f5-49c6-ba67-c6e96cb06df1)
+08:42:40 Result is kept for 3600 seconds
+08:42:41 hillslope-acceptance-a3f8b82fd723: hillslope_acceptance.sequential('profile;;tmp;;hillslope-586-a3f8b82fd723') (6029222c-c65d-40e4-a9c2-c5d1ebb638a2)
+Starting job 6029222c-c65d-40e4-a9c2-c5d1ebb638a2
+Finished job 6029222c-c65d-40e4-a9c2-c5d1ebb638a2
+08:42:49 hillslope-acceptance-a3f8b82fd723: Job OK (6029222c-c65d-40e4-a9c2-c5d1ebb638a2)
+08:42:49 Result is kept for 3600 seconds
+08:42:49 Worker rq:worker:hillslope-acceptance-a3f8b82fd723: done, quitting
+08:42:49 Unsubscribing from channel rq:pubsub:hillslope-acceptance-a3f8b82fd723
+COMPOSE_ACCEPTANCE {"queue": "hillslope-acceptance-a3f8b82fd723", "jobs": [{"id": "9c55ca28-e053-4bc8-9572-386411949d71", "status": "finished", "exception": null, "dependencies": []}, {"id": "cfbd54bc-41f5-49c6-ba67-c6e96cb06df1", "status": "finished", "exception": null, "dependencies": ["rq:job:9c55ca28-e053-4bc8-9572-386411949d71"]}, {"id": "6029222c-c65d-40e4-a9c2-c5d1ebb638a2", "status": "finished", "exception": null, "dependencies": ["rq:job:cfbd54bc-41f5-49c6-ba67-c6e96cb06df1"]}], "runids": ["profile;;tmp;;hillslope-5860-a3f8b82fd723", "profile;;tmp;;hillslope-586-a3f8b82fd723"], "run_paths": ["/workdir/wepppyo3/target/hillslope-watbal-evidence/rq-runs/hillslope-5860-a3f8b82fd723", "/workdir/wepppyo3/target/hillslope-watbal-evidence/rq-runs/hillslope-586-a3f8b82fd723"], "uid": 1000, "gid": 993, "groups": [993], "umask": "0o22", "cpu_affinity": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "memory_max": "12884901888\n", "memory_peak": 1165426688, "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"}

@@ -1,6 +1,6 @@
 # Tracker: native hillslope water balance and batch receipt contention
 
-- Status: `READY`
+- Status: `IN PROGRESS`
 - Execution host: `forest`
 - Primary repository: `/workdir/wepppyo3`
 - Integration repository: `/workdir/wepppy`
@@ -15,14 +15,14 @@
   reuse without duplicate LFS payloads.
 - [x] Package, active ExecPlan, execution prompt, and evidence directory
   scaffolded.
-- [ ] Verify clean Forest checkouts, fixture LFS objects, and baseline revisions.
-- [ ] Freeze Python summary/cache/report oracles and reproduce memory/stale-write
-  failures.
-- [ ] Freeze native API and NoDb transaction contracts before implementation.
-- [ ] Implement Rust producer, focused tests, and py312 release refresh.
-- [ ] Integrate native-only WEPPpy report path and safe batch receipt update.
-- [ ] Pass parity, edge, timing, memory, same-process, and Compose RQ gates.
-- [ ] Complete broad validation and independent correctness/QA/security review.
+- [x] Verify clean Forest checkouts, fixture LFS objects, and baseline revisions.
+- [x] Freeze Python summary/cache/report oracles and reproduce stale-write
+  failure; retain production OOM incident evidence.
+- [x] Freeze native API and NoDb transaction contracts before implementation.
+- [x] Implement Rust producer, focused tests, and py312 release refresh.
+- [x] Integrate native-only WEPPpy report path and safe batch receipt update.
+- [x] Pass parity, edge, timing, memory, same-process, and Compose RQ gates.
+- [x] Complete broad validation and independent correctness/QA/security review.
 - [ ] Commit/push both repositories in native-first order and verify remotes.
 
 ## Incident evidence
@@ -52,3 +52,16 @@
 Execute `prompts/active/execute.md` on Forest. Keep this tracker and the active
 ExecPlan current at every stopping point. Preserve failed evidence and document
 all deviations from the stated gates.
+
+Baseline results: 7 report tests and 34 RQ tests pass separately. Combined
+collection exposes an existing pyproj stub leak. Three Python report oracles
+and a passing stale-write reproduction are captured; contract review is underway.
+
+Final release: fe5b2c156b361181fe52004399a6ce131b3b43f92797ae744350d6e9f5713917.
+Independent reviews are closed. Final native median 2.8502 s versus Python
+3.1755 s; Compose peak 1,165,426,688 bytes, all three jobs finished. Full suite
+and native-first publication/remote verification remain. See artifacts/forest-acceptance.md.
+
+Full suite: 7732 passed, 72 skipped. Required stub completeness and report
+stubtest pass. Additional source-only BatchRunner stubtest is uncheckable due
+to baseline typing errors, reproduced on d8fbe9f4a; see validation-summary.md.

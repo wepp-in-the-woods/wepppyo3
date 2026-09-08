@@ -69,3 +69,16 @@ workflow, including bounded README previews and a subsequent job, peaks at
 861.34 MiB. Independent correctness, QA and security reviews pass. Repository
 and immutable image publication are verified, including image-contained RQ at
 1.11 GiB. No production rollout is claimed. See the [disposition](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/final-disposition.md).
+
+## Native hillslope water-balance summary
+
+`confirmed`: `wepppyo3.wepp_interchange` exports bounded distinct-ID discovery
+and a compact Topaz/year cache writer, consumed by WEPPpy's
+`wepppy/wepp/reports/hillslope_watbal.py`. It keeps first area per WEPP/OFE,
+compensated independent flux sums, nullable output types, and sorted keys.
+The required-native boundary has no full-source pandas fallback.
+
+Evidence: [package tracker](work-packages/20260908-hillslope-watbal-native-001/tracker.md),
+[standalone timings](work-packages/20260908-hillslope-watbal-native-001/artifacts/benchmark-summary.json),
+and `tests/wepp_interchange/test_hillslope_watbal.py`. These are measured
+fixture-specific results, not a general speedup claim.

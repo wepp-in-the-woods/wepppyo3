@@ -24,7 +24,8 @@ abandoned jobs.
 - [x] (2026-09-08) Both models' 20 freshly regenerated hillslope Parquet files are byte-identical under old/new schedulers.
 - [x] (2026-09-08) Independent correctness, security, QA and performance reviews have no unresolved medium/high finding. Installed native suite: 139 passed; Rust: 98 + 17 passed; focused integration: 23 passed; combined interchange/report: 85 passed, 1 skipped. Both stubtests, stub inventory, RQ graph, broad-exception and scoped isolation checks pass.
 - [x] (2026-09-08) Full WEPPpy suite passed: 7,742 passed, 72 skipped in 792.90 seconds.
-- [ ] Bind final release provenance, push native-first, verify remotes, and archive this plan.
+- [x] (2026-09-08) Source/binary binding approved; native `2f395bed` then WEPPpy `9e30d217f` pushed. Clean remote tests: 139 native passed; 118 WEPPpy passed, 1 skipped. LFS checks pass. Plan archived after acceptance.
+
 ## Surprises & Discoveries
 
 - Ran/Static: Watanabe saved post hydrology differs from the current upstream
@@ -72,8 +73,8 @@ abandoned jobs.
 
 ## Outcomes & Retrospective
 Implementation, parity, performance, bounded-memory and real RQ workflow gates
-pass. Native-first commit/remote verification remains
-active. Production is unchanged. Durable scope is recorded in WEPPpy
+pass. Native-first publication and clean remote verification pass. The plan is
+complete. No image publication or deployment occurred. Durable scope is recorded in WEPPpy
 `docs/schemas/output-scope-contract.md`, "AshPost file-production scope".
 
 A full-suite run exposed test-only import cleanup that deleted real interchange
@@ -81,6 +82,7 @@ modules and left stale module references in report tests. Cleanup now removes
 only loader-owned injections and preserves real module identity; the regression,
 combined report suite and scoped isolation checks pass. No production fallback
 or storage mechanism was added to address this test defect.
+
 ## Context and Orientation
 
 The native repository is `/workdir/wepppyo3`. Its existing PyO3 extension is
@@ -89,13 +91,13 @@ The native repository is `/workdir/wepppyo3`. Its existing PyO3 extension is
 `release/linux/py312/wepppyo3/wepp_interchange/` for WEPPpy images.
 
 The integration repository is `/workdir/wepppy`. Per-hillslope orchestration is
-in `wepppy/nodb/mods/ash_transport/ash.py`. It constructs every work dictionary,
-including pandas climate and water-balance tables, stores them in `args`, submits
-all futures, and retains them until the surrounding function returns. Each task
+in `wepppy/nodb/mods/ash_transport/ash.py`. Before this work, it constructed every work dictionary,
+including pandas climate and water-balance tables, stored them in `args`, submitted
+all futures, and retained them until the surrounding function returned. Each task
 writes `ash/H<wepp_id>_ash.parquet` plus plots.
 
-`wepppy/nodb/mods/ash_transport/ashpost.py` owns post-processing. Its
-`watershed_daily_aggregated()` reads all hill parquets into DataFrames,
+`wepppy/nodb/mods/ash_transport/ashpost.py` owns post-processing. Before this work, its
+`watershed_daily_aggregated()` read all hill parquets into DataFrames,
 concatenates them, makes deep copies for multiple analyses, then rereads the
 files for cumulative results. `AshPost.run_post()` stores compact return-period
 dictionaries in NoDb, writes five parquets under `ash/post/`, writes a version

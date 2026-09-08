@@ -1,0 +1,50 @@
+INFO:wctl2:docker compose exec weppcloud bash -lc 'cd /workdir/wepppyo3/target/ashpost-wepppy-remote-check && PYTHONPATH=/workdir/wepppyo3/target/ashpost-wepppy-remote-check:/workdir/wepppyo3/target/ashpost-native-remote-check/release/linux/py312 WEPPPYO3_INTERCHANGE_RELEASE_ROOT=/workdir/wepppyo3/target/ashpost-native-remote-check/release/linux/py312 /opt/venv/bin/python docker/wepppyo3-interchange-preflight.py -- /opt/venv/bin/python -m pytest tests/nodb/mods/test_ash_transport_run_ash.py tests/nodb/mods/test_ashpost_no_data.py tests/nodb/mods/test_ash_multi_year_model_alex_static.py tests/wepp/interchange tests/wepp/reports/test_hillslope_watbal.py tests/docker/unit/test_wepppyo3_interchange_startup_contract.py --maxfail=1'
+>>> WEPPpyo3 interchange import OK: /workdir/wepppyo3/target/ashpost-native-remote-check/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+>>> WEPPpyo3 interchange SHA256: c6b746bb77be39d38321a365df1762fd8d88ce0522f3a51215d5bb8bfdddf248
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.0.3, pluggy-1.6.0
+rootdir: /workdir/wepppyo3/target/ashpost-wepppy-remote-check
+configfile: pyproject.toml
+plugins: reportlog-0.4.0, timeout-2.4.0, cov-7.0.0, libtmux-0.47.0, dash-4.2.0, anyio-4.14.2
+collected 119 items
+
+tests/nodb/mods/test_ash_transport_run_ash.py ..............             [ 11%]
+tests/nodb/mods/test_ashpost_no_data.py ...                              [ 14%]
+tests/nodb/mods/test_ash_multi_year_model_alex_static.py ......          [ 19%]
+tests/wepp/interchange/test_ag_fields_interchange.py ................... [ 35%]
+..                                                                       [ 36%]
+tests/wepp/interchange/test_calendar_utils.py .                          [ 37%]
+tests/wepp/interchange/test_catalog_scan_rust.py .                       [ 38%]
+tests/wepp/interchange/test_hec_ras_boundary.py .                        [ 39%]
+tests/wepp/interchange/test_hill_interchange_cleanup.py ....             [ 42%]
+tests/wepp/interchange/test_hill_interchange_import_smoke.py .           [ 43%]
+tests/wepp/interchange/test_interchange_documentation.py .....           [ 47%]
+tests/wepp/interchange/test_module_loader.py .                           [ 48%]
+tests/wepp/interchange/test_native_only_interchange_facades.py ....      [ 52%]
+tests/wepp/interchange/test_rust_interchange.py ......                   [ 57%]
+tests/wepp/interchange/test_totalwatsed3.py .....                        [ 61%]
+tests/wepp/interchange/test_utils_phase7.py ...                          [ 63%]
+tests/wepp/interchange/test_versioning.py ....                           [ 67%]
+tests/wepp/interchange/test_watershed_chan_interchange.py .              [ 68%]
+tests/wepp/interchange/test_watershed_chan_peak_interchange.py .         [ 68%]
+tests/wepp/interchange/test_watershed_chanwb_interchange.py .            [ 69%]
+tests/wepp/interchange/test_watershed_ebe_interchange.py .....           [ 73%]
+tests/wepp/interchange/test_watershed_interchange_pass_family.py ....    [ 77%]
+tests/wepp/interchange/test_watershed_loss_interchange.py ..             [ 78%]
+tests/wepp/interchange/test_watershed_pass_interchange.py s              [ 79%]
+tests/wepp/interchange/test_watershed_totalwatsed_export.py ...          [ 82%]
+tests/wepp/reports/test_hillslope_watbal.py ...........                  [ 91%]
+tests/docker/unit/test_wepppyo3_interchange_startup_contract.py ........ [ 98%]
+..                                                                       [100%]
+
+=============================== warnings summary ===============================
+../../../../opt/venv/lib/python3.12/site-packages/pytz/tzinfo.py:27
+  /opt/venv/lib/python3.12/site-packages/pytz/tzinfo.py:27: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _epoch = datetime.utcfromtimestamp(0)
+
+../../../../opt/venv/lib/python3.12/site-packages/pyparsing.py:108
+  /opt/venv/lib/python3.12/site-packages/pyparsing.py:108: DeprecationWarning: module 'sre_constants' is deprecated
+    import sre_constants
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 118 passed, 1 skipped, 2 warnings in 32.85s ==================

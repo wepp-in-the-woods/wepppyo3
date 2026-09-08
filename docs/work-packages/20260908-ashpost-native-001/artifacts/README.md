@@ -8,7 +8,10 @@ recovery and NFS publication proposals are superseded history.
 
 - Ran/Static: [execution results](execution-results.md) summarize delivered behavior,
   parity, memory, validation and release boundaries. `release-integration-manifest.json`
-  binds the tested source and shared object. `full-wepppy-tests.log` records
+  binds the tested source and shared object; `build-Cargo.lock` preserves the
+  generated dependency lock. `clean-*-tests.log` and `clean-*-lfs.log` record
+  remote-checkout validation; `image-workflow-no-publication.json` confirms
+  no new image workflow ran. `full-wepppy-tests.log` records
   7,742 passing tests; focused, Rust, native and hygiene logs sit beside it.
 
 - Ran: `small-fixture-provenance.json` and `frozen-source-manifest.json` identify

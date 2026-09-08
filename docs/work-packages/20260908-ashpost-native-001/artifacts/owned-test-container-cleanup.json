@@ -1,0 +1,82 @@
+[
+  {
+    "name": "ashpost-scheduler-parity",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 2,
+      "Error": "",
+      "StartedAt": "2026-09-08T20:28:21.995031912Z",
+      "FinishedAt": "2026-09-08T20:28:26.838430395Z"
+    }
+  },
+  {
+    "name": "ashpost-scheduler-parity-2",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 143,
+      "Error": "",
+      "StartedAt": "2026-09-08T20:28:52.725378986Z",
+      "FinishedAt": "2026-09-08T20:31:27.320227054Z"
+    }
+  },
+  {
+    "name": "ashpost-scheduler-parity-3",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 143,
+      "Error": "",
+      "StartedAt": "2026-09-08T20:30:46.312490205Z",
+      "FinishedAt": "2026-09-08T20:33:43.289437648Z"
+    }
+  },
+  {
+    "name": "ashpost-scheduler-parity-4",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-08T20:33:44.311627976Z",
+      "FinishedAt": "2026-09-08T20:36:15.228181545Z"
+    }
+  },
+  {
+    "name": "ashpost-rq-acceptance-241a8c06c6",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-08T20:13:12.732300565Z",
+      "FinishedAt": "2026-09-08T20:37:17.923940512Z"
+    }
+  }
+]

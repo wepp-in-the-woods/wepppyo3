@@ -19,7 +19,7 @@ All evidence artifacts must separate:
 
 ## Package index
 - `20260908-ashpost-native-001/`
-  - Status: `ready`
+  - Status: `completed`
   - Purpose: bound per-hillslope ash-model scheduling and replace
     whole-watershed pandas AshPost with required native streaming aggregation,
     validated on both ash models and OR-202 under the 12 GiB worker cap.

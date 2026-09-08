@@ -19,10 +19,10 @@ rebuild explains why historical upstream generations must be kept separate.
 No scientific or workflow-order correction is part of this scope.
 
 Durable specification: WEPPpy `docs/schemas/output-scope-contract.md`, section
-"AshPost file-production scope". Active execution sources: `../package.md`,
-`../tracker.md`, and `../prompts/active/execplan.md`. Native API details and edge
+"AshPost file-production scope". Execution sources: `../package.md`,
+`../tracker.md`, and `../prompts/completed/execplan.md`. Native API details and edge
 oracles remain implementation preparation, not a storage redesign checkpoint.
 
 At this scope-confirmation checkpoint, implementation had not begun. Follow the
-active plan for current implementation status. Commit/push sequencing and
+completed plan for implementation and acceptance results. Commit/push sequencing and
 image/deployment exclusions remain as specified by the package.

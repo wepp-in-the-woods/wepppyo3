@@ -2,9 +2,12 @@
 
 ## Status
 
-- state: in progress
+- state: completed
 - date: 2026-09-08
 - execution host: `forest` via `ssh forest`
+- native release: `2f395bedda6bd16e0cf8c8cdcaee81d7614347e3`
+- WEPPpy release: `9e30d217f830ac73494df241259175ef3e8a2b16`
+- closure: all gates passed; [execution results](artifacts/execution-results.md)
 - repositories: `/workdir/wepppyo3` and `/workdir/wepppy`
 - baseline revisions: wepppyo3 `05328ddcd0a8f91dfeae4c25f533fd69d74dd963`;
   WEPPpy `abebd09239f398af7627924c4c000ff3229a01ee`

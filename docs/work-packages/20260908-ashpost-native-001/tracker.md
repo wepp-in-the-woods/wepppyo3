@@ -1,6 +1,6 @@
 # Tracker: bounded ash modeling and native AshPost
 
-- Status: `IN_PROGRESS` (operator-confirmed simple scope)
+- Status: `COMPLETED` (operator-confirmed simple scope)
 - Execution host: `forest`
 - Primary repository: `/workdir/wepppyo3`
 - Integration repository: `/workdir/wepppy`
@@ -13,9 +13,9 @@
 - [x] Streaming Rust AshPost, edge tests and canonical py312 release implemented.
 - [x] Required native AshPost and bounded hillslope scheduling integrated in WEPPpy.
 - [x] Both model and OR-202 parity, five-run small benchmarks, eight-call memory audit and real sequential Compose RQ gates pass.
-- [x] Independent correctness, QA, performance and security reviews have no unresolved medium/high finding; final release binding remains to verify.
+- [x] Independent correctness, QA, performance and security reviews have no unresolved medium/high finding; final release binding verified.
 - [x] Full WEPPpy suite passed: 7,742 passed, 72 skipped; documentation/provenance checks pass.
-- [ ] Commit/push native-first and verify clean remote checkouts and LFS objects.
+- [x] Native release `2f395bed` and WEPPpy `9e30d217f` pushed native-first; clean remote checkouts, source/binary hashes and LFS objects verified.
 ## Incident evidence
 
 - Production job: `8eb973ed-d7e6-4b5d-be24-b371237cea1e`.
@@ -48,16 +48,20 @@
   Rationale: preserve production evidence and avoid duplicating large data.
 
 ## Handoff
-Implementation and acceptance are complete: 139 installed native tests,
-98 + 17 Rust tests, both model parity fixtures, OR-202 standalone parity,
-five warm measurements per small mode/model, eight consecutive native calls,
-and both real RQ jobs pass. Full-workflow peak was 4.43 GiB under 12 GiB;
-there were no OOM events or restarts. Source hash verification found no changes
-in 1,115 OR-202 NoDb/Parquet files and 42 small-fixture records.
 
-Native-first commit/remote verification remains active.
-See `artifacts/README.md` for evidence and `prompts/active/execplan.md` for the
-living plan. Durable decision: WEPPpy
+Completed on 2026-09-08. Native release: `2f395bedda6bd16e0cf8c8cdcaee81d7614347e3`.
+WEPPpy release: `9e30d217f830ac73494df241259175ef3e8a2b16`.
+Both repositories and their remote verification checkouts are clean.
+
+Full WEPPpy suite: 7,742 passed, 72 skipped. Native suite: 139 passed.
+Clean remote verification: 139 native tests and 118 WEPPpy tests passed,
+with one WEPPpy skip; startup hash and LFS integrity checks passed.
+Real OR-202 then canine-liar RQ acceptance peaked at 4.43 GiB under 12 GiB,
+with no OOM or restart. Both models preserve output parity. Reviews are closed.
+
+See [execution results](artifacts/execution-results.md),
+[evidence index](artifacts/README.md), and the
+[completed plan](prompts/completed/execplan.md). Durable decision: WEPPpy
 `docs/schemas/output-scope-contract.md#ashpost-file-production-scope`.
-No registry image publication or deployment is authorized. WEPPpy commits use
-`[skip ci]` because master pushes otherwise trigger image publication.
+No registry image was published and no deployment was performed. `[skip ci]`
+prevented master pushes from triggering the image-publication workflow.

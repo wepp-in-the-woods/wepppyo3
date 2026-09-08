@@ -2,10 +2,6 @@
   "native_base": "8fc2afa91775825a8f6901d63bc7a0d957bdf146",
   "wepppy_base": "abebd09239f398af7627924c4c000ff3229a01ee",
   "native": {
-    "Cargo.lock": {
-      "bytes": 61590,
-      "sha256": "8135dc7071158b42d6382e5089b0510ef9017a0e6be4e3f9c7cbf1e963f26155"
-    },
     "wepp_interchange/Cargo.toml": {
       "bytes": 365,
       "sha256": "9cddcde8629b07ec2e14fad417443dbe96a41290ea50c70b7101e6f2521a4a77"
@@ -167,6 +163,10 @@
     "docker/wepppyo3-interchange-preflight.py": {
       "bytes": 2981,
       "sha256": "fe76d76841a54b29963dc76e7ed2176ab5d8164a8a2a15b856f075c53adcb3ec"
+    },
+    ".github/workflows/publish-weppcloud-image.yml": {
+      "bytes": 7492,
+      "sha256": "51f75022d910b2f3d0d611ba1452026fff659b78182c4e2a47127628c7fd4205"
     }
   },
   "toolchain": {
@@ -176,9 +176,48 @@
   },
   "build_command": "PYO3_PYTHON=/usr/bin/python3.12 cargo build -p wepp_interchange_rust --release",
   "image": "sha256:6ac7e71030467a10e5d73dc18893cbd85c9202976d4b1b561a19dbb0d7ef2b75",
-  "publication": "pending native-first commits and clean-checkout verification; no registry image or deployment",
+  "publication": "Source commits pushed native-first; clean remote source, binary, LFS and targeted tests verified. No image publication or deployment.",
   "frozen_python_baseline": {
     "ash.py": "38ddee500e7e880f8c67d19e7a8cad3917b5836af4e42be5472c60b5045849c1",
     "ashpost.py": "7c9aa06cbca1019fb557ef1be5cb19c0e56f9e905099ea8bc191c2f836a620a0"
+  },
+  "native_release_revision": "2f395bedda6bd16e0cf8c8cdcaee81d7614347e3",
+  "wepppy_implementation_revision": "aff94307542ac19e0db2cef3fed6daeb401e8e4c",
+  "wepppy_release_revision": "9e30d217f830ac73494df241259175ef3e8a2b16",
+  "image_published": false,
+  "deployed": false,
+  "generated_build_inputs": {
+    "Cargo.lock": {
+      "bytes": 61590,
+      "sha256": "8135dc7071158b42d6382e5089b0510ef9017a0e6be4e3f9c7cbf1e963f26155",
+      "evidence_path": "docs/work-packages/20260908-ashpost-native-001/artifacts/build-Cargo.lock"
+    }
+  },
+  "validation": {
+    "native_installed": "139 passed",
+    "rust": "98 library + 17 writer passed",
+    "wepppy_full": "7742 passed, 72 skipped, 3105 warnings in 792.90s",
+    "wepppy_ash": "23 passed",
+    "interchange_reports": "85 passed, 1 skipped",
+    "stubtests": "ash and ashpost pass",
+    "stubs": "pass",
+    "isolation": "two repeated passes and per-file checks pass; no shuffle plugin",
+    "rq_graph": "pass",
+    "broad_exceptions": "pass, net delta 0",
+    "clean_native": "139 passed; LFS pull and fsck pass",
+    "clean_wepppy": "118 passed, 1 skipped; startup import root and SHA verified; remote LFS pointers checked against verified local cache; 490 required interchange fixture objects materialized",
+    "image_workflow": "No run for either new WEPPpy SHA; [skip ci] used"
+  },
+  "clean_checkouts": {
+    "native": {
+      "path": "/workdir/wepppyo3/target/ashpost-native-remote-check",
+      "revision": "2f395bedda6bd16e0cf8c8cdcaee81d7614347e3",
+      "clean": true
+    },
+    "wepppy": {
+      "path": "/workdir/wepppyo3/target/ashpost-wepppy-remote-check",
+      "revision": "9e30d217f830ac73494df241259175ef3e8a2b16",
+      "clean": true
+    }
   }
 }

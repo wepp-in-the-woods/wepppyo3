@@ -80,8 +80,13 @@ run were deliberately interrupted while narrowing that test-only diagnosis.
 
 Static/Ran: `release-integration-manifest.json` binds native source/package
 hashes, Python/Rust toolchain, integration source and the acceptance image.
-Native-first commit/push and clean remote verification remain to complete at
-this checkpoint. The canonical binary SHA-256 is
+Native `2f395bedda6bd16e0cf8c8cdcaee81d7614347e3` was pushed first; WEPPpy
+`9e30d217f830ac73494df241259175ef3e8a2b16` pins that revision. Clean remote
+verification passed 139 native tests and 118 WEPPpy tests (one skip), with
+startup origin/hash checks and LFS integrity checks. Required test fixtures
+were materialized from the verified local LFS cache before the final run.
+The repository ignores its generated Cargo.lock; `build-Cargo.lock` preserves
+the exact dependency lock used for the tested build. The canonical binary SHA-256 is
 `c6b746bb77be39d38321a365df1762fd8d88ce0522f3a51215d5bb8bfdddf248`.
 WEPPpy commits use `[skip ci]` because master push otherwise publishes an image.
 No registry publication or deployment is part of this package.

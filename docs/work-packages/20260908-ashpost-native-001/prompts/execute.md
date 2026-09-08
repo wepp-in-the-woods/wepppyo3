@@ -1,10 +1,13 @@
 # Execute bounded ash modeling and native AshPost package
 
-Execute `docs/work-packages/20260908-ashpost-native-001/package.md` end to end on
+Archived execution prompt: this package completed on 2026-09-08. See the tracker
+for release revisions and acceptance results.
+
+Original instruction: execute `docs/work-packages/20260908-ashpost-native-001/package.md` end to end on
 `forest` across `/workdir/wepppyo3` and `/workdir/wepppy`.
 
 Read both repositories' complete root and applicable nested `AGENTS.md` files,
-the complete package, and `prompts/active/execplan.md` before editing. Maintain
+the complete package, and `prompts/completed/execplan.md` before editing. Maintain
 the ExecPlan, tracker, evidence index, and review dispositions throughout.
 
 Treat this as faithful extraction. Freeze the existing Python outputs before

@@ -1,0 +1,16 @@
+{
+  "native": {
+    "head": "0ba67a55f35c7193c6313fb5487d6874dc42e198",
+    "remote_head": "0ba67a55f35c7193c6313fb5487d6874dc42e198",
+    "clean": true,
+    "lfs_fsck": "Git LFS fsck OK"
+  },
+  "wepppy": {
+    "head": "59d1b94b67e8c35dfcda363b0ae2927727f148c6",
+    "remote_head": "59d1b94b67e8c35dfcda363b0ae2927727f148c6",
+    "clean": true,
+    "lfs_fsck": "Git LFS fsck OK"
+  },
+  "verified_fixture_checksums": 127,
+  "publish_workflow_runs": []
+}

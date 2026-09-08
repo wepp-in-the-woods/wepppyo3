@@ -2,7 +2,7 @@
 
 ## Status
 
-- state: validated; publication in progress
+- state: completed; source published, no image publication or deployment
 - date: 2026-09-08
 - execution host: `forest` via `ssh forest`
 - repositories: `/workdir/wepppyo3` and `/workdir/wepppy`

@@ -47,3 +47,15 @@ Absolute /workdir aliases caused markdown-doc's root-prefix panic. Repository-
 relative paths pass; doc-validation-alias-panic.json preserves the failure.
 Two spelling-preview suggestions affect untouched prior prose and were retained.
 The smallest tooling follow-up is canonicalizing root/path aliases before lint.
+
+Clean-checkout verification initially exposed harness omissions: same-named
+pytest modules from two repositories collide in one collection; batch tests
+require writable `/wc1` and Redis locks. Separate repository test invocations,
+a disposable `/wc1` tmpfs, and an isolated Redis container provide those
+requirements without production data or service access. Failed attempts are
+preserved in clean-*-failed.log.
+
+Final clean remote checkouts pass startup hash validation, 62 WEPPpy tests,
+and 18 native tests. Both worktrees remain clean. All 127 fixture hashes and
+Git LFS integrity pass. Source revisions and the empty image-publishing run
+list are recorded in clean-remote-verification.json.

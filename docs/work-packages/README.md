@@ -19,7 +19,7 @@ All evidence artifacts must separate:
 
 ## Package index
 - `20260908-hillslope-watbal-native-001/`
-  - Status: `in progress`
+  - Status: `completed`
   - Purpose: replace WEPPpy's full-table pandas hillslope water-balance producer
     with required bounded native processing and repair batch finalizer receipt
     NoDb contention, validated through the 12 GiB Forest Compose worker path.

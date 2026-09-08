@@ -1,6 +1,6 @@
 # Tracker: native hillslope water balance and batch receipt contention
 
-- Status: `IN PROGRESS`
+- Status: `COMPLETED`
 - Execution host: `forest`
 - Primary repository: `/workdir/wepppyo3`
 - Integration repository: `/workdir/wepppy`
@@ -23,7 +23,7 @@
 - [x] Integrate native-only WEPPpy report path and safe batch receipt update.
 - [x] Pass parity, edge, timing, memory, same-process, and Compose RQ gates.
 - [x] Complete broad validation and independent correctness/QA/security review.
-- [ ] Commit/push both repositories in native-first order and verify remotes.
+- [x] Commit/push both repositories in native-first order and verify remotes.
 
 ## Incident evidence
 
@@ -49,19 +49,16 @@
 
 ## Handoff
 
-Execute `prompts/active/execute.md` on Forest. Keep this tracker and the active
-ExecPlan current at every stopping point. Preserve failed evidence and document
-all deviations from the stated gates.
+Native release: `0ba67a55f35c7193c6313fb5487d6874dc42e198`.
+WEPPpy integration: `59d1b94b67e8c35dfcda363b0ae2927727f148c6`.
+Both source revisions are pushed and verified from clean Forest checkouts;
+LFS integrity and all 127 fixture checksums pass. Clean runtime preflight and
+62 WEPPpy plus 18 native tests pass. No image was published or deployed.
 
-Baseline results: 7 report tests and 34 RQ tests pass separately. Combined
-collection exposes an existing pyproj stub leak. Three Python report oracles
-and a passing stale-write reproduction are captured; contract review is underway.
-
-Final release: fe5b2c156b361181fe52004399a6ce131b3b43f92797ae744350d6e9f5713917.
-Independent reviews are closed. Final native median 2.8502 s versus Python
-3.1755 s; Compose peak 1,165,426,688 bytes, all three jobs finished. Full suite
-and native-first publication/remote verification remain. See artifacts/forest-acceptance.md.
-
-Full suite: 7732 passed, 72 skipped. Required stub completeness and report
-stubtest pass. Additional source-only BatchRunner stubtest is uncheckable due
-to baseline typing errors, reproduced on d8fbe9f4a; see validation-summary.md.
+Final native median: 2.8502 s versus Python 3.1755 s. Compose peak:
+1,165,426,688 bytes; all three jobs finished. Full suite: 7732 passed,
+72 skipped. Independent correctness, QA, and security reviews are closed.
+Required stub completeness and report stubtest pass; the extra source-only
+BatchRunner stubtest remains limited by reproduced baseline typing errors.
+See `artifacts/validation-summary.md`, `artifacts/clean-remote-verification.json`,
+and `prompts/completed/execplan.md` for final evidence and decisions.

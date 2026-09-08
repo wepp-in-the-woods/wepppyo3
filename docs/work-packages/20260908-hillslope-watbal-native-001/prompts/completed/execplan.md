@@ -33,7 +33,8 @@ The batch orchestrator also records finalizer IDs without racing child writes to
   35 batch-consumer tests pass. Report stubtest and stub completeness pass.
   Extra source-only BatchRunner stubtest fails before comparison on baseline
   typing errors, reproduced in the unchanged detached baseline checkout.
-- [ ] Commit/push native first, pin in WEPPpy, and clean-checkout verify remotes.
+- [x] Pushed native 0ba67a55 then WEPPpy 59d1b94b6; clean remote revisions,
+  LFS, 127 fixture hashes, preflight, 62 WEPPpy and 18 native tests pass.
 
 ## Surprises & Discoveries
 
@@ -89,11 +90,11 @@ Real Compose same-process post-processing plus report/query consumption and a
 subsequent job pass at 1,165,426,688 bytes, with zero OOM/restart. Three final
 scale calls after warm-up retain only 90,112 additional anonymous bytes.
 
-Native-first remote verification remains before closure. Full-suite and all
+Native-first remote verification is complete. Full-suite and all
 minimum package validation gates pass; the additional source-only BatchRunner
 stubtest limitation is preserved as baseline evidence, not hidden.
 The package does not publish images or deploy. Because WEPPpy master pushes
-normally publish images, the integration commit will use [skip ci], with local
+normally publish images, the integration commit uses [skip ci], with local
 validation evidence retained. See artifacts/forest-acceptance.md and reviews.
 
 ## Context and Orientation
@@ -319,3 +320,6 @@ deterministic receipt reproduction before implementation.
 
 Revision note: recorded implementation, review dispositions, final release and
 Forest acceptance; remote publication awaits the complete broad gate.
+
+Revision note: source publication and clean Forest verification completed;
+archived this plan. No publishing workflow was created for the WEPPpy commit.

@@ -1,0 +1,4189 @@
+>>> WEPPpyo3 interchange import OK: /workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+>>> WEPPpyo3 interchange SHA256: fe5b2c156b361181fe52004399a6ce131b3b43f92797ae744350d6e9f5713917
+....................FFFFFFFFFFFFFFFFFFF.......................           [100%]
+=================================== FAILURES ===================================
+______ test_run_batch_project_clears_existing_leaf_locks_before_redisprep ______
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_run_batch_project_clears_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d81ea20>
+
+    def test_run_batch_project_clears_existing_leaf_locks_before_redisprep(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:243:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+_ test_run_batch_project_repairs_hillslope_interchange_before_watershed_retry __
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_run_batch_project_repairs0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d8f3cb0>
+
+    def test_run_batch_project_repairs_hillslope_interchange_before_watershed_retry(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:279:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+____ test_classify_batch_run_state_marks_base_climate_drift_retry_eligible _____
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_state_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d8f1160>
+
+    def test_classify_batch_run_state_marks_base_climate_drift_retry_eligible(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:362:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+_______ test_classify_batch_run_state_ignores_leaf_generated_cligen_seed _______
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_state_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d81e870>
+
+    def test_classify_batch_run_state_ignores_leaf_generated_cligen_seed(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:411:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+____ test_classify_batch_run_state_accepts_runtime_resolved_climate_station ____
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_state_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d8f3290>
+
+    def test_classify_batch_run_state_accepts_runtime_resolved_climate_station(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:443:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+_ test_classify_batch_run_state_accepts_compatible_runtime_station_modes[legacy] _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_state_3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d8f5970>
+serialization = 'legacy'
+
+    @pytest.mark.parametrize("serialization", ("legacy", "raw"))
+    def test_classify_batch_run_state_accepts_compatible_runtime_station_modes(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        serialization: str,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:472:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+_ test_classify_batch_run_state_accepts_compatible_runtime_station_modes[raw] __
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_state_4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6d25a0>
+serialization = 'raw'
+
+    @pytest.mark.parametrize("serialization", ("legacy", "raw"))
+    def test_classify_batch_run_state_accepts_compatible_runtime_station_modes(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        serialization: str,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:472:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+______ test_classify_batch_run_state_rejects_foreign_runtime_station_mode ______
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_state_5')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6d0e60>
+
+    def test_classify_batch_run_state_rejects_foreign_runtime_station_mode(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:510:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+____ test_resync_preserves_runtime_resolved_climate_station_and_timestamps _____
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_resync_preserves_runtime_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6de8a0>
+
+    def test_resync_preserves_runtime_resolved_climate_station_and_timestamps(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:549:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+____ test_classify_batch_run_state_detects_explicit_climate_station_change _____
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_state_6')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6d3530>
+
+    def test_classify_batch_run_state_detects_explicit_climate_station_change(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:585:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+_ test_run_batch_project_resyncs_base_climate_and_invalidates_downstream_timestamps _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_run_batch_project_resyncs0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6fb380>
+
+    def test_run_batch_project_resyncs_base_climate_and_invalidates_downstream_timestamps(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:615:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+__ test_run_batch_project_watar_only_reuses_runtime_resolved_climate_and_wepp __
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_run_batch_project_watar_o0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6c2930>
+
+    def test_run_batch_project_watar_only_reuses_runtime_resolved_climate_and_wepp(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:665:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+_ test_run_batch_project_rehydrates_climate_inside_lock_for_downstream_readers _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_run_batch_project_rehydra0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6fbe30>
+
+    def test_run_batch_project_rehydrates_climate_inside_lock_for_downstream_readers(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:767:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+_____________ test_clear_retry_runtime_locks_uses_child_path_scope _____________
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_clear_retry_runtime_locks0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6e35f0>
+
+    def test_clear_retry_runtime_locks_uses_child_path_scope(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:870:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+_________ test_classify_batch_run_states_uses_timestamps_and_metadata __________
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_states0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3c4bdbb0>
+
+    def test_classify_batch_run_states_uses_timestamps_and_metadata(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:908:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+____ test_retry_eligible_watershed_features_skips_completed_old_style_runs _____
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_retry_eligible_watershed_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3c4bc860>
+
+    def test_retry_eligible_watershed_features_skips_completed_old_style_runs(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:973:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+____ test_classify_batch_run_states_skips_absent_optional_timeseries_tasks _____
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_states1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3c48e5d0>
+
+    def test_classify_batch_run_states_skips_absent_optional_timeseries_tasks(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:997:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+___________ test_classify_batch_run_state_rejects_invalid_leaf_runid ___________
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_classify_batch_run_state_7')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3c4bc7d0>
+
+    def test_classify_batch_run_state_rejects_invalid_leaf_runid(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:1023:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+__________ test_generate_runstate_cli_report_omits_retry_status_text ___________
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+>           sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/retry.py:87: in call_with_retry
+    return do()
+           ^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:386: in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:797: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:781: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+>           client.ping()
+
+wepppy/nodb/base.py:514:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/opt/venv/lib/python3.12/site-packages/redis/commands/core.py:1219: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:623: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/client.py:629: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/utils.py:191: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:1530: in get_connection
+    connection.connect()
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:379: in connect
+    self.connect_check_health(check_health=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True
+
+    def connect_check_health(self, check_health: bool = True):
+        if self._sock:
+            return
+        try:
+            sock = self.retry.call_with_retry(
+                lambda: self._connect(), lambda error: self.disconnect(error)
+            )
+        except socket.timeout:
+            raise TimeoutError("Timeout connecting to server")
+        except OSError as e:
+>           raise ConnectionError(self._error_message(e))
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+/opt/venv/lib/python3.12/site-packages/redis/connection.py:391: ConnectionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_generate_runstate_cli_rep0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719a3d6e18e0>
+
+    def test_generate_runstate_cli_report_omits_retry_status_text(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+>       runner = _runner(tmp_path, monkeypatch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/rq/test_batch_rq_retry_selection.py:1037:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/rq/test_batch_rq_retry_selection.py:55: in _runner
+    runner = BatchRunner(str(batch_dir), "batch/default_batch.cfg", "dummy_base.cfg")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+wepppy/nodb/batch_runner.py:374: in __init__
+    with self.locked():
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+wepppy/nodb/base.py:1682: in locked
+    self.lock()
+wepppy/nodb/base.py:2308: in lock
+    lock_client = _ensure_redis_lock_client()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _ensure_redis_lock_client() -> redis.StrictRedis:
+        """Return a lock Redis client, reconnecting once if startup init failed."""
+
+        global redis_lock_client, redis_lock_pool
+
+        if redis_lock_client is not None:
+            return redis_lock_client
+
+        try:
+            pool_kwargs = redis_connection_kwargs(
+                RedisDB.LOCK,
+                decode_responses=True,
+                extra={"max_connections": 50},
+            )
+            pool = redis.ConnectionPool(**pool_kwargs)
+            client = redis.StrictRedis(connection_pool=pool)
+            client.ping()
+        except (redis.exceptions.RedisError, OSError, ValueError) as exc:
+            redis_lock_pool = None
+            redis_lock_client = None
+            logging.critical(
+                "Error reconnecting to Redis (LOCK): %s",
+                exc,
+                exc_info=True,
+            )
+>           raise RuntimeError('Redis lock client is unavailable') from exc
+E           RuntimeError: Redis lock client is unavailable
+
+wepppy/nodb/base.py:523: RuntimeError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:base.py:518 Error reconnecting to Redis (LOCK): Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 514, in _ensure_redis_lock_client
+    client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+=============================== warnings summary ===============================
+../../opt/venv/lib/python3.12/site-packages/pytz/tzinfo.py:27
+  /opt/venv/lib/python3.12/site-packages/pytz/tzinfo.py:27: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _epoch = datetime.utcfromtimestamp(0)
+
+../../opt/venv/lib/python3.12/site-packages/pyparsing.py:108
+  /opt/venv/lib/python3.12/site-packages/pyparsing.py:108: DeprecationWarning: module 'sre_constants' is deprecated
+    import sre_constants
+
+tests/nodb/test_batch_receipt_transaction.py::test_same_size_child_commit_preserves_receipts[run_batch_rq]
+  /opt/venv/lib/python3.12/site-packages/awesome_codename/data/__init__.py:1: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import resource_string
+
+tests/nodb/test_batch_receipt_transaction.py::test_same_size_child_commit_preserves_receipts[run_batch_rq]
+  /opt/venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+tests/nodb/test_batch_receipt_transaction.py::test_same_size_child_commit_preserves_receipts[run_batch_rq]
+  /workdir/wepppy/wepppy/weppcloud/utils/assets.py:32: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return datetime.utcnow().strftime("%Y%m%d%H%M%S")
+
+tests/nodb/test_batch_receipt_transaction.py::test_same_size_child_commit_preserves_receipts[run_batch_rq]
+  /opt/venv/lib/python3.12/site-packages/flask_security/core.py:1426: DeprecationWarning: The ConfirmRegisterForm and the confirm_register_form option are deprecated as of version 5.6.0 and will be removed in a future release.
+    self.init_app(app, datastore, register_blueprint=register_blueprint)
+
+tests/nodb/test_batch_receipt_transaction.py::test_same_size_child_commit_preserves_receipts[run_batch_rq]
+  /opt/venv/lib/python3.12/site-packages/flask_security/core.py:1426: DeprecationWarning: The RegisterForm is deprecated as of version 5.6.0 and will be removed in a future release. The form RegisterFormV2 should be sub-classed instead.
+    self.init_app(app, datastore, register_blueprint=register_blueprint)
+
+tests/nodb/test_batch_receipt_transaction.py::test_same_size_child_commit_preserves_receipts[run_batch_rq]
+tests/nodb/test_batch_receipt_transaction.py::test_same_size_child_commit_preserves_receipts[run_batch_rq]
+  /opt/venv/lib/python3.12/site-packages/starlette/applications.py:239: DeprecationWarning: The `middleware` decorator is deprecated, and will be removed in version 1.0.0. Refer to https://starlette.dev/middleware/#using-middleware for recommended approach.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_run_batch_project_clears_existing_leaf_locks_before_redisprep
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_run_batch_project_repairs_hillslope_interchange_before_watershed_retry
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_state_marks_base_climate_drift_retry_eligible
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_state_ignores_leaf_generated_cligen_seed
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_state_accepts_runtime_resolved_climate_station
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_state_accepts_compatible_runtime_station_modes[legacy]
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_state_accepts_compatible_runtime_station_modes[raw]
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_state_rejects_foreign_runtime_station_mode
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_resync_preserves_runtime_resolved_climate_station_and_timestamps
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_state_detects_explicit_climate_station_change
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_run_batch_project_resyncs_base_climate_and_invalidates_downstream_timestamps
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_run_batch_project_watar_only_reuses_runtime_resolved_climate_and_wepp
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_run_batch_project_rehydrates_climate_inside_lock_for_downstream_readers
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_clear_retry_runtime_locks_uses_child_path_scope
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_states_uses_timestamps_and_metadata
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_retry_eligible_watershed_features_skips_completed_old_style_runs
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_states_skips_absent_optional_timeseries_tasks
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_classify_batch_run_state_rejects_invalid_leaf_runid
+FAILED tests/rq/test_batch_rq_retry_selection.py::test_generate_runstate_cli_report_omits_retry_status_text
+19 failed, 43 passed, 9 warnings in 38.04s

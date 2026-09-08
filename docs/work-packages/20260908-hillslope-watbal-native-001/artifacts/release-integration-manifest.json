@@ -6,7 +6,7 @@
   "rustc": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
   "python": "Python 3.12.3",
   "image": "sha256:6ac7e71030467a10e5d73dc18893cbd85c9202976d4b1b561a19dbb0d7ef2b75",
-  "publication_status": "all package minimum gates passed; native-first commit/push and clean remote verification pending",
+  "publication_status": "source commits pushed native-first; clean remote revisions, LFS and 127 fixture hashes verified; no image publication or deployment",
   "image_published": false,
   "deployed": false,
   "files": [
@@ -58,6 +58,9 @@
     "startup_nodb_rq": "53 passed",
     "docs": "15 files lint passed",
     "rq_graph": "passed; regenerated source-line references only",
-    "stubs": "completeness and report stubtest pass; extra source-only BatchRunner stubtest blocked by baseline typing errors (baseline reproduced)"
-  }
+    "stubs": "completeness and report stubtest pass; extra source-only BatchRunner stubtest blocked by baseline typing errors (baseline reproduced)",
+    "clean_checkouts": "62 WEPPpy + 18 native tests pass; startup hash verified in both invocations"
+  },
+  "native_release_revision": "0ba67a55f35c7193c6313fb5487d6874dc42e198",
+  "wepppy_release_revision": "59d1b94b67e8c35dfcda363b0ae2927727f148c6"
 }

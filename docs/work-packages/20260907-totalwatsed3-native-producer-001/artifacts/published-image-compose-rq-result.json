@@ -1,0 +1,53 @@
+{
+  "queue": "totalwatsed3-acceptance-96c712532018",
+  "worker": "totalwatsed3-acceptance-96c712532018",
+  "jobs": [
+    {
+      "id": "e055647e-6057-4988-ac51-a9bc505d1fb1",
+      "status": "finished",
+      "exception": null
+    },
+    {
+      "id": "1c8d9101-4dcc-43cd-be17-f8c91e2ef6fe",
+      "status": "finished",
+      "exception": null
+    },
+    {
+      "id": "9b778ff3-910c-4d06-9671-d035c14171a2",
+      "status": "finished",
+      "exception": null
+    }
+  ],
+  "runids": [
+    "profile;;tmp;;totalwatsed3-5860-96c712532018",
+    "profile;;tmp;;totalwatsed3-586-96c712532018"
+  ],
+  "run_paths": [
+    "/workdir/wepppyo3/target/totalwatsed3-evidence/rq-runs/totalwatsed3-5860-96c712532018",
+    "/workdir/wepppyo3/target/totalwatsed3-evidence/rq-runs/totalwatsed3-586-96c712532018"
+  ],
+  "uid": 1000,
+  "gid": 993,
+  "groups": [
+    993
+  ],
+  "umask": "0o22",
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "WEPPPY_NCPU": "12",
+  "memory_max": "12884901888",
+  "memory_peak_bytes": 1191563264,
+  "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"
+}

@@ -1,0 +1,9 @@
+{
+  "commit": "d8fbe9f4ab270b6a7ab119d7cdda55d3cb628986",
+  "native_pin": "bb7451eeb83690e0ffc5f5eed7c4f4c9c1688d23",
+  "checkout": "/home/workdir/wepppyo3/target/totalwatsed3-evidence/remote-verification/wepppy",
+  "isolated_lfs_store_started_empty": true,
+  "lfs_files": 639,
+  "paired_code_hashes_verified": true,
+  "clean": true
+}

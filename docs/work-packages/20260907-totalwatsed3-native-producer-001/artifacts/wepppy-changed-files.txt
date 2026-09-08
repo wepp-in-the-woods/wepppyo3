@@ -1,3 +1,4 @@
+.github/workflows/publish-weppcloud-image.yml
 docker/wepppyo3-interchange-preflight.py
 docs/dev-notes/totalwatsed3-native-release.md
 tests/docker/unit/test_wepppyo3_interchange_startup_contract.py

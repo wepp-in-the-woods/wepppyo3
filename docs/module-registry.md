@@ -67,4 +67,5 @@ The final controlled host-prewarm 5,860/586 peak ratio is 1.43983; a mixed-cache
 2.07079 observation is retained separately. The final real Forest Compose RQ
 workflow, including bounded README previews and a subsequent job, peaks at
 861.34 MiB. Independent correctness, QA and security reviews pass. Repository
-and image publication are proceeding; no production rollout is claimed. See the [disposition](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/final-disposition.md).
+and immutable image publication are verified, including image-contained RQ at
+1.11 GiB. No production rollout is claimed. See the [disposition](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/final-disposition.md).

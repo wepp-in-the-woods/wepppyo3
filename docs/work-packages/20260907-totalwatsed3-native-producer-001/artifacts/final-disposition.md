@@ -20,8 +20,8 @@ pass. Final targeted WEPPpy suite: 83 pass, 1 skip; this includes bounded-previe
 and correct output-path logging coverage. Independent security additionally
 passes 12 path/input probes and an actual Compose facade error-boundary probe.
 All 127 fixture Parquet files are frozen with SHA-256 manifests and LFS pointers.
-The broad final-source WEPPpy suite is running; the earlier 7,720/72 result remains
-historical evidence. Eight original downstream suites passed 148 tests.
+The broad final-source WEPPpy suite passes 7,723 tests with 72 skips in 790.65
+seconds; the earlier 7,720/72 result remains historical evidence. Eight original downstream suites passed 148 tests.
 
 ## Resources and real workflow
 
@@ -43,7 +43,16 @@ historical single-OFE fixture remain unchanged.
 
 ## Publication
 
-Reviews and release-specific gates are complete. Native-first commit/push,
-remote clean-checkout LFS verification, paired WEPPpy publication and GHCR image
-publication are in progress. No production deployment is claimed. Publication
-receipts will identify both source revisions and the immutable image digest.
+Complete. Native release bb7451ee and paired WEPPpy d8fbe9f4 are pushed and
+verified through clean remote checkouts, including all 127 native fixture files
+and 639 WEPPpy LFS files. The canonical GHCR workflow succeeded and published
+`ghcr.io/rogerlew/wepppy@sha256:3201f5cdd187e0e1bae280425c60ab81141c89371276861c076aa287bc0efcb7`.
+
+The pulled image matches all reviewed implementation hashes and passes 25 public
+facade parity cases. Its real RQ chain completes three jobs at 1.11 GiB peak
+with zero OOM events or restarts and no source-code mounts. Cleanup is verified.
+See [container-publication.md](container-publication.md) and
+[publication.json](publication.json) for exact revisions, digest and receipts.
+No production deployment is claimed; source HPC runs and original fixtures are
+preserved. The final documentation commit records the publication evidence;
+image native code remains pinned to the reviewed bb7451ee release commit.

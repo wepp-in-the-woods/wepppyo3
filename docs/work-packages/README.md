@@ -19,7 +19,7 @@ All evidence artifacts must separate:
 
 ## Package index
 - `20260907-totalwatsed3-native-producer-001/`
-  - Status: `in_progress`
+  - Status: `completed`
   - Purpose: replace WEPPpy's Python/DuckDB `totalwatsed3` producer with a
     required, bounded-memory `wepppyo3.wepp_interchange` implementation and
     prove parity and performance on Forest/HPC fixtures.

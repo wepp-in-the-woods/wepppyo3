@@ -2,7 +2,7 @@
 
 ## Status
 
-- state: in_progress
+- state: completed
 - date: 2026-09-07
 - execution host: `forest` via `ssh forest`
 - repositories: `/workdir/wepppyo3` and `/workdir/wepppy`
@@ -370,3 +370,14 @@ retrieval, then pin that native commit in WEPPpy
 master branch through the canonical GHCR workflow and verify the immutable image
 contains the paired native release and facade. This extends publication scope to
 the common runtime image; production deployment remains outside this package.
+
+## Final disposition
+
+The reviewed release and paired WEPPpy integration are published. Independent
+correctness, QA and security findings are closed; final regression, real RQ and
+published-image checks pass. See artifacts/final-disposition.md and
+artifacts/publication.json for exact immutable revisions and image digest.
+The raw scaling threshold remains 1.5: the controlled symmetric host-prewarm
+repeat passes at 1.4398346, while the mixed-cache 2.07079 failure is preserved.
+The passing measurement is conditional on cache ownership/warmth, not a universal
+cache-independent ratio. No formulas, output tolerances or resource limits changed.

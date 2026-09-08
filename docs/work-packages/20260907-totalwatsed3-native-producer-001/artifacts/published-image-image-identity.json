@@ -1,0 +1,10 @@
+{
+  "image_id": "sha256:1db5854da4e7e705aaf56fda700631728db1aecb4eb27ae016222d335e44dae2",
+  "repo_digests": [
+    "ghcr.io/rogerlew/wepppy@sha256:3201f5cdd187e0e1bae280425c60ab81141c89371276861c076aa287bc0efcb7"
+  ],
+  "labels": {
+    "org.opencontainers.image.revision": "d8fbe9f4ab270b6a7ab119d7cdda55d3cb628986",
+    "org.opencontainers.image.source": "https://github.com/rogerlew/wepppy"
+  }
+}

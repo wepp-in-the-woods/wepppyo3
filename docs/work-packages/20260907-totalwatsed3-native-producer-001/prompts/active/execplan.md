@@ -29,7 +29,7 @@ rebuilt release module, generated output parity, and the real Forest RQ workflow
 - [x] Refresh release provenance and pass downstream and live Compose RQ gates.
 - [x] Complete independent correctness, QA and security reviews; all findings closed.
 - [x] Rebuild and validate repaired release, 25 facade oracles, resource and real RQ gates.
-- [ ] Publish native then WEPPpy, verify remote LFS and publish/verify GHCR image.
+- [x] Publish native then WEPPpy, verify remote LFS and publish/verify GHCR image.
 
 ## Surprises & Discoveries
 
@@ -81,12 +81,24 @@ wire the source candidate, refresh the canonical release, or publish either repo
 
 ## Outcomes & Retrospective
 
-Source implementation exists and the approved real fixtures plus thirteen
-synthetic cases pass. The implementation is not wired or released. The timing
-gate failed and the package remains incomplete. Memory is far below the absolute
-limit, but the measured relative-memory threshold has negligible margin.
-Two nullable/nonfinite source-inspection edges need correction and coverage;
-no claim of full parity closure is made. See artifacts/final-disposition.md.
+The reviewed native release is wired, built, committed and remotely verified.
+Correctness, QA and security reviewers found and closed parity/null handling,
+malformed metadata error-boundary and valid-empty-state defects. The final
+release passes 89 native-module tests, 25 facade oracles and the 7,723-test broad
+WEPPpy suite. The real Forest RQ chain passes at 861.34 MiB under 12 GiB.
+
+Timing is 106.5921% of Python median, within the accepted disposition. Raw peak
+scaling is 1.4398346 under symmetric host prewarming; the 2.07079 mixed-cache
+failure is retained and the result is not cache-independent. Cache ownership
+must be recorded alongside cgroup memory observations. No thresholds or output
+tolerances changed. Required independent review was valuable: passing original
+fixtures alone did not expose nullable-area, first-NaN or empty dictionary cases.
+
+Native bb7451ee and WEPPpy d8fbe9f4 are published; clean remote checkouts verify
+all 127 native fixture files and 639 WEPPpy LFS files. GHCR publication and
+image-contained workflow verification are complete: digest 3201f5cd, 25 parity
+cases and the three-job RQ chain at 1.11 GiB with no source overlays. Production
+deployment is outside scope. Final receipts are in artifacts/publication.json.
 
 ## Context and Orientation
 
@@ -272,3 +284,9 @@ at 861.34 MiB pass. Controlled symmetric host-prewarm raw scaling is 1.4398346;
 the mixed-cache 2.07079 failure is preserved and no cache-independent guarantee
 is made. See artifacts/review-performance.md for unchanged thresholds and methods.
 Native-first publication can proceed; final WEPPpy broad revalidation is running.
+
+Final closure revision: publication workflow 34192361367 succeeded, the immutable
+image was pulled and verified, all disposable jobs/containers were cleaned, and
+both remote source revisions plus all LFS payloads were verified from clean
+Forest checkouts. The package is complete; the final documentation commit records
+receipts without changing the pinned implementation. No production rollout occurred.

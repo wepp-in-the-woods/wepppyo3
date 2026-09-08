@@ -36,12 +36,22 @@
   },
   {
     "path": "review-rust-tests.log",
-    "raw_sha256": "33df5ac08119daae5daa8be1c374c3221aad260e7bf99e34cf4052df58a2eb22",
+    "raw_sha256": "5f2de1783f58e0cb17f1f26ba2b6cd8365747e66635e04ad4c90327892bf9a77",
     "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
   },
   {
     "path": "review-workflow-compose-rq.log",
     "raw_sha256": "577602634cee18d0ae8a2842baeaa5cf9a5fb0478138bdb11cbffc069a9ae157",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "published-image-compose-rq.log",
+    "raw_sha256": "80271278c335455e282a7b2d262f99f025c19dc8bf6ee44a7c34eb8f9247d6c0",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "published-image-cleanup.log",
+    "raw_sha256": "0f9ecd02ac78c76ccb19f4d1b277ecc74b158eb2214d82f0cd764bd96eb1f71d",
     "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
   }
 ]

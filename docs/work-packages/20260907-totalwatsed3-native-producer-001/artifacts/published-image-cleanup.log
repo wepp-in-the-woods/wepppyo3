@@ -1,0 +1,7 @@
+INFO:wctl2:docker compose run --rm --no-deps --name totalwatsed3-published-cleanup rq-worker /opt/venv/bin/python /workdir/wepppyo3/target/totalwatsed3-evidence/cleanup_acceptance.py
+time="2026-09-07T23:16:08-07:00" level=warning msg="Found orphan containers (totalwatsed3-published-acceptance, wepppy-f-esri) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container totalwatsed3-published-cleanup Creating
+ Container totalwatsed3-published-cleanup Created
+>>> WEPPpyo3 interchange import OK: /opt/vendor/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+>>> WEPPpyo3 interchange SHA256: bf21f5e5aea9a7c690b7f48926d74f8bb412269d4127b74a166a1e0ef598a354
+Removed only the three published-image acceptance jobs and their private queue.

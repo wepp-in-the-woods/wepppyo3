@@ -55,3 +55,11 @@ first attempt. This fix changes documentation memory use, not any data formula.
 After preserving job states, the six acceptance jobs and their two private queues
 were removed; both stopped one-shot containers were removed. Disposable run trees
 remain as evidence. Existing application services and source runs were untouched.
+
+## Final reviewed release and image
+
+The initial workflow above precedes independent review. Final bf21f5e5 release
+workflow evidence is in review-workflow-* artifacts (861.34 MiB peak). The
+published image separately passes the same real chain with no source overlays
+at 1.11 GiB; see container-publication.md and publication.json. Original failed
+and initial passing receipts remain preserved as capture-stage evidence.

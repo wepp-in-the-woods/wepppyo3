@@ -52,3 +52,11 @@ year0/days-from-fire metadata. The 127 Parquet files comprise the preserved
 original fixtures plus these additional cases. Canonical Compose captures use
 PyArrow 23.0.1; earlier host probe output remains in disposable evidence and
 independent review notes. All fixture identities are in all-fixture-checksums.json.
+
+## Final publication verification
+
+The capture-stage statuses above are historical. Native revision bb7451ee is
+published; a clean remote checkout with an initially empty isolated LFS store
+fetched and verified all 127 fixture files. The 66 unique uploaded LFS objects
+include the original ten HPC payloads and all frozen contracts. See
+remote-native-verification.json and publication.json. Original fixtures are preserved.

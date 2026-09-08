@@ -9,6 +9,11 @@ from unittest.mock import patch
 import importlib, importlib.util, json, tempfile
 import pyarrow.parquet as pq
 root=Path('/workdir/wepppyo3'); fixtures=root/'tests/fixtures/totalwatsed3'
+manifest=json.loads((root/'docs/work-packages/20260907-totalwatsed3-native-producer-001/artifacts/release-integration-manifest.json').read_text())
+for expected in manifest['files']:
+    actual_path=Path(expected['path'])
+    assert hashlib.sha256(actual_path.read_bytes()).hexdigest()==expected['sha256'],actual_path
+print('Verified all paired implementation file hashes from the native release manifest.')
 facade=importlib.import_module('wepppy.wepp.interchange.totalwatsed3')
 spec=importlib.util.spec_from_file_location('compare',root/'docs/work-packages/20260907-totalwatsed3-native-producer-001/artifacts/compare_oracle.py');compare=importlib.util.module_from_spec(spec);spec.loader.exec_module(compare)
 output=Path(tempfile.mkdtemp(prefix='facade-'));results=[]

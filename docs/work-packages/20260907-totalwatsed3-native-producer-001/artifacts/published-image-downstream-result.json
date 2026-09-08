@@ -1,0 +1,16 @@
+{
+  "parity": {
+    "oracle": "/workdir/wepppyo3/target/totalwatsed3-evidence/rq-runs/totalwatsed3-5860-96c712532018/scaled-oracle.parquet",
+    "actual": "/workdir/wepppyo3/target/totalwatsed3-evidence/rq-runs/totalwatsed3-5860-96c712532018/wepp/output/interchange/totalwatsed3.parquet",
+    "oracle_rows": 16071,
+    "actual_rows": 16071,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true
+  },
+  "water_balance_years": 45,
+  "query_catalog": "/workdir/wepppyo3/target/totalwatsed3-evidence/rq-runs/totalwatsed3-5860-96c712532018/_query_engine/catalog.json"
+}

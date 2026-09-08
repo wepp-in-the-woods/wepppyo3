@@ -35,6 +35,9 @@
   ],
   "native_base_revision": "3123547e677eb113dd64c43024eda20a06505796",
   "wepppy_base_revision": "3c51780f50e2599ef72b03214c35bf20538e55c4",
-  "committed": false,
-  "production_deployed": false
+  "committed": true,
+  "production_deployed": false,
+  "native_release_revision": "bb7451eeb83690e0ffc5f5eed7c4f4c9c1688d23",
+  "committed_scope": "native and paired WEPPpy release revisions; publication receipts in publication.json",
+  "wepppy_release_revision": "d8fbe9f4ab270b6a7ab119d7cdda55d3cb628986"
 }

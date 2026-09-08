@@ -839,5 +839,7 @@ release/facade hashes are in [release-integration-manifest.json](work-packages/2
 Installed release tests pass 89 cases. The real Forest Compose startup verified
 the hash and all required APIs before running the native-only RQ stage under
 12 GiB. See [workflow evidence](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/forest-compose-integration.md).
-This records the local paired release build; publication and production rollout
-are not claimed.
+The paired repositories and immutable common runtime image are published and
+verified. See [publication receipt](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/publication.json).
+The pulled image passes 25 facade parity cases and the real RQ chain at 1.11 GiB
+with no source-code mounts. No production rollout is claimed.

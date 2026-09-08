@@ -1,6 +1,6 @@
 # Tracker: native totalwatsed3 producer
 
-- Status: `IN_PROGRESS`
+- Status: `COMPLETED`
 - Execution host: `forest`
 - Primary repository: `/workdir/wepppyo3`
 - Integration repository: `/workdir/wepppy`
@@ -14,13 +14,14 @@
 - [x] Implement source candidate and focused Rust/Python tests.
 - [x] Pass the three approved real-oracle comparisons and nineteen synthetic cases.
 - [x] Close identified null/nonfinite contract edges; 26 Python tests pass.
-- [ ] Complete independent/security review.
+- [x] Complete independent correctness, QA and security reviews; no open blockers.
 - [x] Record operator acceptance of measured 107.1821% timing.
 - [x] Run scaling and three-consecutive-call repeatability.
 - [x] Pass scaling gate after metadata compaction: 1.45178 times versus maximum 1.5.
 - [x] Integrate required native path and delete Python producer/fallback.
 - [x] Refresh release artifact and pass downstream/Compose RQ gates under 12 GiB.
-- [ ] Commit/push both repositories and verify clean remote LFS checkout.
+- [x] Commit/push both repositories and verify clean remote LFS checkout.
+- [x] Publish and verify immutable GHCR image.
 
 ## Evidence
 
@@ -30,9 +31,9 @@ benchmark-results.md, benchmark-summary.json, benchmark-measurements.json,
 native-tests.log, cargo-test.log, validation-summary.json, and
 final-disposition.md are under artifacts/.
 
-Required but not reached: independent review sign-off and final publication
-evidence. First-party correctness/security inventories and real Compose evidence
-are present.
+All independent review gates and paired repository/LFS publication are complete.
+GHCR workflow 34192361367 succeeded for d8fbe9f4 with native bb7451ee. The
+published image passes 25 parity cases and the real RQ chain at 1.11 GiB. See artifacts/publication.json.
 
 ## Decision authority
 
@@ -110,3 +111,12 @@ is 106.5921%; controlled symmetric host-prewarm scaling is 1.4398346. Preserve t
 mixed-cache 2.07079 raw-ratio failure and qualify the passing cache condition.
 Native-first repository publication is proceeding while final WEPPpy broad
 revalidation runs. See artifacts/final-disposition.md and review-performance.md.
+
+## Final closure
+
+All review, parity, accepted timing, controlled-cache scaling, workflow and
+publication gates are complete. Native release bb7451ee and WEPPpy d8fbe9f4 are
+published and clean-remote verified. GHCR digest 3201f5cd passes packed-code,
+25-case parity and three-job RQ validation with no source overlays. Cleanup is
+complete. Artifacts/publication.json contains the full immutable identifiers;
+container-publication.md explains the validation boundary and retained limits.

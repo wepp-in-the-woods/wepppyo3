@@ -1,0 +1,43 @@
+INFO:wctl2:docker compose run --no-deps --name totalwatsed3-published-acceptance rq-worker /opt/venv/bin/python /workdir/wepppyo3/target/totalwatsed3-evidence/totalwatsed3_acceptance.py
+time="2026-09-07T23:12:28-07:00" level=warning msg="Found orphan containers (wepppy-f-esri) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container totalwatsed3-published-acceptance Creating
+ Container totalwatsed3-published-acceptance Created
+>>> WEPPpyo3 interchange import OK: /opt/vendor/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+>>> WEPPpyo3 interchange SHA256: bf21f5e5aea9a7c690b7f48926d74f8bb412269d4127b74a166a1e0ef598a354
+Discord notifications disabled ([Errno 2] No such file or directory: '/workdir/weppcloud2/weppcloud2/discord_bot/.bot_token')
+Profile coverage disabled: unable to create /workdir/wepppy-test-engine-data/coverage ([Errno 13] Permission denied: '/workdir/wepppy-test-engine-data')
+[2026-09-08 06:12:46,285] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+[2026-09-08 06:12:46,285] ERROR in settings: Profile coverage disabled: unable to create /workdir/wepppy-test-engine-data/coverage ([Errno 13] Permission denied: '/workdir/wepppy-test-engine-data')
+fatal: not a git repository (or any of the parent directories): .git
+[2026-09-08 06:12:48,281] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+[2026-09-08 06:12:48,282] ERROR in settings: Profile coverage disabled: unable to create /workdir/wepppy-test-engine-data/coverage ([Errno 13] Permission denied: '/workdir/wepppy-test-engine-data')
+[2026-09-08 06:12:48,709] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+[2026-09-08 06:12:48,709] ERROR in settings: Profile coverage disabled: unable to create /workdir/wepppy-test-engine-data/coverage ([Errno 13] Permission denied: '/workdir/wepppy-test-engine-data')
+[2026-09-08 06:12:49,165] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+[2026-09-08 06:12:49,166] ERROR in settings: Profile coverage disabled: unable to create /workdir/wepppy-test-engine-data/coverage ([Errno 13] Permission denied: '/workdir/wepppy-test-engine-data')
+[2026-09-08 06:12:49,704] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+[2026-09-08 06:12:49,704] ERROR in settings: Profile coverage disabled: unable to create /workdir/wepppy-test-engine-data/coverage ([Errno 13] Permission denied: '/workdir/wepppy-test-engine-data')
+[2026-09-08 06:12:50,155] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+[2026-09-08 06:12:50,155] ERROR in settings: Profile coverage disabled: unable to create /workdir/wepppy-test-engine-data/coverage ([Errno 13] Permission denied: '/workdir/wepppy-test-engine-data')
+06:12:50 Worker rq:worker:totalwatsed3-acceptance-96c712532018 started with PID 7, version 1.16.2
+06:12:50 Subscribing to channel rq:pubsub:totalwatsed3-acceptance-96c712532018
+06:12:50 *** Listening on totalwatsed3-acceptance-96c712532018...
+06:12:50 Cleaning registries for queue: totalwatsed3-acceptance-96c712532018
+06:12:50 totalwatsed3-acceptance-96c712532018: wepppy.rq.wepp_rq_stage_post._build_totalwatsed3_rq('profile;;tmp;;totalwatsed3-5860-96c712532018') (e055647e-6057-4988-ac51-a9bc505d1fb1)
+Starting job e055647e-6057-4988-ac51-a9bc505d1fb1
+Finished job e055647e-6057-4988-ac51-a9bc505d1fb1
+06:13:27 totalwatsed3-acceptance-96c712532018: Job OK (e055647e-6057-4988-ac51-a9bc505d1fb1)
+06:13:27 Result is kept for 3600 seconds
+06:13:27 totalwatsed3-acceptance-96c712532018: totalwatsed3_acceptance.downstream('profile;;tmp;;totalwatsed3-5860-96c712532018') (1c8d9101-4dcc-43cd-be17-f8c91e2ef6fe)
+Starting job 1c8d9101-4dcc-43cd-be17-f8c91e2ef6fe
+Finished job 1c8d9101-4dcc-43cd-be17-f8c91e2ef6fe
+06:13:28 totalwatsed3-acceptance-96c712532018: Job OK (1c8d9101-4dcc-43cd-be17-f8c91e2ef6fe)
+06:13:28 Result is kept for 3600 seconds
+06:13:28 totalwatsed3-acceptance-96c712532018: wepppy.rq.wepp_rq_stage_post._build_totalwatsed3_rq('profile;;tmp;;totalwatsed3-586-96c712532018') (9b778ff3-910c-4d06-9671-d035c14171a2)
+Starting job 9b778ff3-910c-4d06-9671-d035c14171a2
+Finished job 9b778ff3-910c-4d06-9671-d035c14171a2
+06:13:33 totalwatsed3-acceptance-96c712532018: Job OK (9b778ff3-910c-4d06-9671-d035c14171a2)
+06:13:33 Result is kept for 3600 seconds
+06:13:33 Worker rq:worker:totalwatsed3-acceptance-96c712532018: done, quitting
+06:13:33 Unsubscribing from channel rq:pubsub:totalwatsed3-acceptance-96c712532018
+COMPOSE_RQ_ACCEPTANCE {"queue": "totalwatsed3-acceptance-96c712532018", "worker": "totalwatsed3-acceptance-96c712532018", "jobs": [{"id": "e055647e-6057-4988-ac51-a9bc505d1fb1", "status": "finished", "exception": null}, {"id": "1c8d9101-4dcc-43cd-be17-f8c91e2ef6fe", "status": "finished", "exception": null}, {"id": "9b778ff3-910c-4d06-9671-d035c14171a2", "status": "finished", "exception": null}], "runids": ["profile;;tmp;;totalwatsed3-5860-96c712532018", "profile;;tmp;;totalwatsed3-586-96c712532018"], "run_paths": ["/workdir/wepppyo3/target/totalwatsed3-evidence/rq-runs/totalwatsed3-5860-96c712532018", "/workdir/wepppyo3/target/totalwatsed3-evidence/rq-runs/totalwatsed3-586-96c712532018"], "uid": 1000, "gid": 993, "groups": [993], "umask": "0o22", "cpu_affinity": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "WEPPPY_NCPU": "12", "memory_max": "12884901888", "memory_peak_bytes": 1191563264, "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"}

@@ -1,0 +1,22 @@
+{
+  "mode": "python",
+  "fixture": "assisted-weakness",
+  "label": "dcc822-5",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:25:25.736239047Z",
+    "FinishedAt": "2026-09-08T20:25:38.98182922Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 325791744,
+  "threshold_stop": false,
+  "command_exit": 0
+}

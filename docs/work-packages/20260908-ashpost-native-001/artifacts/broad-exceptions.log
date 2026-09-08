@@ -1,0 +1,21 @@
+Broad exception handler changed-file enforcement
+
+Repo root: /home/workdir/wepppy
+Base ref: origin/master
+Merge base: abebd09239f398af7627924c4c000ff3229a01ee
+Path filter: wepppy, services
+Allowlist source: /home/workdir/wepppy/docs/standards/broad-exception-boundary-allowlist.md
+Changed Python files scanned: 3
+
+Files:
+  M wepppy/nodb/mods/ash_transport/ash.py
+  M wepppy/nodb/mods/ash_transport/ashpost.py
+  M wepppy/wepp/interchange/_rust_interchange.py
+
+Per-file delta (unsuppressed broad catches):
+  M wepppy/nodb/mods/ash_transport/ash.py (base=2 current=2 delta=+0)
+  M wepppy/nodb/mods/ash_transport/ashpost.py (base=0 current=0 delta=+0)
+  M wepppy/wepp/interchange/_rust_interchange.py (base=0 current=0 delta=+0)
+
+Net delta (all changed files): +0
+Result: PASS

@@ -1,0 +1,296 @@
+[
+  {
+    "fixture": "canine-liar",
+    "path": "ash.nodb",
+    "bytes": 9180,
+    "sha256": "d10b9f8cb93a1bf57989bd2bd8e9b24c1a86ed3f8fb117deb06d1ec7de18c6a3",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "watershed.nodb",
+    "bytes": 2844,
+    "sha256": "fee51eb2fed176ad60e9e80b8407390f866777a5c202d64b9c9aff777f7a95c8",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H44_ash.parquet",
+    "bytes": 464537,
+    "sha256": "2aa8bf697b9146fd144508d850ba7e93dd64101bd9a264aea0b6afc38f7c7455",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H46_ash.parquet",
+    "bytes": 476803,
+    "sha256": "3b329b4a74e7b4bb0d33d12e50d1fd621bc04142a7b03dcd90305e86e95a4821",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H50_ash.parquet",
+    "bytes": 384407,
+    "sha256": "5ba42f5fc798494677d60c02c3f4ea7b47625e2084dfcea87a948d99947e9afa",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H51_ash.parquet",
+    "bytes": 443911,
+    "sha256": "5d3b5ac92a81972a3035c0e64ed0f7d8ac37ae5a3a03497c4a3c92e0199ccee0",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H52_ash.parquet",
+    "bytes": 380603,
+    "sha256": "57358a09537a22b1a1adff4c339f8340624df798e2ac0fc4b033dafbaef3d12e",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H53_ash.parquet",
+    "bytes": 521527,
+    "sha256": "06ad58902d4b7f1a0c0ed70fc5aea20a38446c49c913597d9eb28bd3bcf35921",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H55_ash.parquet",
+    "bytes": 502953,
+    "sha256": "fa499bdaf4eb215d8b8fb4f072c621dd101fd1e6123b7f9afe5611fc5946196e",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H56_ash.parquet",
+    "bytes": 515755,
+    "sha256": "7d624f253ddcc240ae94c662e09de8e47c738c439a1638c3a8803375031466a4",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H58_ash.parquet",
+    "bytes": 374866,
+    "sha256": "3ccc3b7c8af822588a1ba955cfe8c734cf7ed7f374a117c4b89e11e405b60285",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/H61_ash.parquet",
+    "bytes": 370877,
+    "sha256": "04cfda6a6a560fc919d1cf29029138c9e6c255499a1be748593d1460d1bb04e3",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/post/README.md",
+    "bytes": 11815,
+    "sha256": "7066b59e1136936778ed45eb54323c4bb52fd268acb9570005d7ddc40045d789",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/post/ashpost_version.json",
+    "bytes": 50,
+    "sha256": "cd7673254daf4457e48a81598eb81b063c3fe54a3f0a0f380d12a3738bc65378",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/post/hillslope_annuals.parquet",
+    "bytes": 2678,
+    "sha256": "d77647d809a9fc708e710e699c4a5a4b6e2274b0eab8524b960b9f39a50e3863",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/post/watershed_annuals.parquet",
+    "bytes": 8596,
+    "sha256": "36ccb476b718a08fc0c25167b40a90c9202944d7f5aa98b464d1d75dab56d3b5",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/post/watershed_cumulatives.parquet",
+    "bytes": 9553,
+    "sha256": "c8311beb138db625522e9db437315cdb192fce61e382288f03a3818ba6e1f245",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/post/watershed_daily.parquet",
+    "bytes": 46005,
+    "sha256": "0ade9130252d3786a5753ef2b660c8625e5e79298a5603b5afdfe46cd34f24bf",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "ash/post/watershed_daily_by_burn_class.parquet",
+    "bytes": 26888,
+    "sha256": "5589e8515f5fd4ee0a6c8cb53d6a965fc6189cf39ff1389b4f48338421c42e77",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "wepp/output/interchange/H.wat.parquet",
+    "bytes": 6873193,
+    "sha256": "25dbb22b7483a5a9811007b7599419d268db6caa3366e497ce0578f27ea38af6",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "canine-liar",
+    "path": "wepp/output/interchange/totalwatsed3.parquet",
+    "bytes": 752621,
+    "sha256": "4256d819a84aa6e87cff3c5e1be57f450d316f3d822360a539a02467448c9036",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash.nodb",
+    "bytes": 9182,
+    "sha256": "9371bb469d463bcc97900fc0d76c30d261d6a039be889e49e01f3dc0c888c782",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "watershed.nodb",
+    "bytes": 2818,
+    "sha256": "f474a4026c66845d5c743afaa100cbb4d62fb15b60a7eb906b090e8cda20d28a",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H44_ash.parquet",
+    "bytes": 520760,
+    "sha256": "b8dcca023d2d5eb8b53bd1c56340da2dad236c50f6788e5dda08d167d1d5b51c",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H46_ash.parquet",
+    "bytes": 522908,
+    "sha256": "2c94b81480a8e45ad8a825f60496b0145df6edeb71681d29be39e2e4568ab283",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H50_ash.parquet",
+    "bytes": 367301,
+    "sha256": "ade25b33ffde2f6fafb0dc64fed7a8f1edaacba171e690fda299ba068bdf01bb",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H51_ash.parquet",
+    "bytes": 480808,
+    "sha256": "5da391746436b511345d710029f3337e53b8cd67dac182bf9cf4d26d2d696738",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H52_ash.parquet",
+    "bytes": 393913,
+    "sha256": "43977c456974635bb02de588df59a6c95ccc40963825e58f31d547d7b00b4c0a",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H53_ash.parquet",
+    "bytes": 566217,
+    "sha256": "008cd7d72259533d41900c39b31964fbd1f208afb44400e7fda356807e2ca6fb",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H55_ash.parquet",
+    "bytes": 473787,
+    "sha256": "6c8e6c5a3e4426535715cad03f095978cd49db3f38b97f27dc951377d2adc1ce",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H56_ash.parquet",
+    "bytes": 580949,
+    "sha256": "028686946f24034dd86df19a2e64ea28542e89d0e5572860d61a9d3755127585",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H58_ash.parquet",
+    "bytes": 386064,
+    "sha256": "c46c38c8a83ba35bf8881568914b7a4d837434d58f50c4a7893a9884de1ca8ed",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/H61_ash.parquet",
+    "bytes": 354379,
+    "sha256": "8b58b9d335481c3ed7a2d2b28210dea19568080491cfbc324d8764f50e239616",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/post/README.md",
+    "bytes": 11790,
+    "sha256": "95969cd80f1cab9be48369908f3f982951195aeb362107dc5bf9c1000df52976",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/post/ashpost_version.json",
+    "bytes": 50,
+    "sha256": "cd7673254daf4457e48a81598eb81b063c3fe54a3f0a0f380d12a3738bc65378",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/post/hillslope_annuals.parquet",
+    "bytes": 2694,
+    "sha256": "f667e96a1f7fffede1d3bc41f7a822b266b53e1de379e92fdd1cd8042d43966d",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/post/watershed_annuals.parquet",
+    "bytes": 8724,
+    "sha256": "875fd1252c26b5a2a68e71cd35e4e880d331833ecb8abd18c6a1e4aa356f6f4a",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/post/watershed_cumulatives.parquet",
+    "bytes": 9609,
+    "sha256": "ac02f3007d373cb43286adfd3671fe203a7bb7b84625099273e8de23fb655d53",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/post/watershed_daily.parquet",
+    "bytes": 61426,
+    "sha256": "52d815ee33f31d1405b36abd7947f5af8f0f973eb4254d58b9e71339292b1fde",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "ash/post/watershed_daily_by_burn_class.parquet",
+    "bytes": 33529,
+    "sha256": "1989131bbfe97c0b3558fbe665e9aae222beb414fb61df595e70bf158ba6f786",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "wepp/output/interchange/H.wat.parquet",
+    "bytes": 5498945,
+    "sha256": "7853bee7ceb3efe8cecff55edf472ec79f5f03d791f2518b17fb4ce2e04880e3",
+    "source_still_matches": true
+  },
+  {
+    "fixture": "assisted-weakness",
+    "path": "wepp/output/interchange/totalwatsed3.parquet",
+    "bytes": 653114,
+    "sha256": "5b430b17d34ce0535c2edce8ffd75957cc1375098da5c9a7f11f8630b505d819",
+    "source_still_matches": true
+  }
+]

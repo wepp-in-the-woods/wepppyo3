@@ -1,0 +1,36 @@
+{
+  "label": "Ran",
+  "baseline": "unchanged Python abebd09239f398af7627924c4c000ff3229a01ee",
+  "differences": [
+    {
+      "file": "watershed_daily.parquet",
+      "column": "Streamflow_orig (mm)",
+      "bad_count": 7,
+      "max_absolute_difference": 0.060322179824123134,
+      "indices": [
+        590,
+        591,
+        599,
+        640,
+        853,
+        854,
+        1006
+      ]
+    },
+    {
+      "file": "watershed_daily.parquet",
+      "column": "Streamflow_ash_corr (mm)",
+      "bad_count": 5,
+      "max_absolute_difference": 0.06032217982412308,
+      "indices": [
+        591,
+        640,
+        853,
+        854,
+        1006
+      ]
+    }
+  ],
+  "source_hashes_verified": true,
+  "candidate_native_code_exists": false
+}

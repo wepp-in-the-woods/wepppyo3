@@ -15,20 +15,27 @@ production 12 GiB limit. Users see the same reports and datasets without
 abandoned jobs.
 
 ## Progress
-
-- [x] (2026-09-08) Characterized the three production OOM kills and located the
-  immediate failure after all hillslope files and before the first post output.
-- [x] Selected `canine-liar`, `assisted-weakness`, and OR-202 fixtures and wrote
-  the execution package.
-- [ ] Verify Forest revisions, clean trees, tools, fixture provenance, and
-  disposable output setup.
-- [ ] Capture immutable Python oracles, contracts, and baseline measurements.
-- [ ] Implement and validate native streaming AshPost.
-- [ ] Implement and validate bounded per-hillslope scheduling and integration.
-- [ ] Pass Compose, full-suite, independent-review, and remote-verification
-  gates; archive this plan under `prompts/completed/`.
-
+- [x] (2026-09-08) Characterized the production failure boundary and froze both model oracles.
+- [x] (2026-09-08) Operator confirmed existing individual-file writer scope; added storage proposals are superseded.
+- [x] (2026-09-08) Implemented streaming native AshPost and bounded parent input loading. All five tables, mappings, small-model facades, docs and version manifests match frozen Python; OR-202 tables also match.
+- [x] (2026-09-08) Five corrected warm measurements per implementation/model pass: 81.8%/82.0% lower incremental memory and 83.1%/83.2% lower runtime for Srivastava/Watanabe.
+- [x] (2026-09-08) OR-202 standalone Python completed at 8.40 GiB / 159.4 seconds with the corrected sampler; native completed at 0.32 GiB / 44.4 seconds. Both used a 12 GiB limit.
+- [x] (2026-09-08) Eight consecutive native calls show bounded resident memory and no temporary residue. Real 12-worker Compose RQ model -> post -> totalwatsed3 completed OR-202, then canine-liar on the same worker; peak 4.43 GiB, zero OOM/restart events.
+- [x] (2026-09-08) Both models' 20 freshly regenerated hillslope Parquet files are byte-identical under old/new schedulers.
+- [x] (2026-09-08) Independent correctness, security, QA and performance reviews have no unresolved medium/high finding. Installed native suite: 139 passed; Rust: 98 + 17 passed; focused integration: 23 passed; combined interchange/report: 85 passed, 1 skipped. Both stubtests, stub inventory, RQ graph, broad-exception and scoped isolation checks pass.
+- [x] (2026-09-08) Full WEPPpy suite passed: 7,742 passed, 72 skipped in 792.90 seconds.
+- [ ] Bind final release provenance, push native-first, verify remotes, and archive this plan.
 ## Surprises & Discoveries
+
+- Ran/Static: Watanabe saved post hydrology differs from the current upstream
+  generation, which RQ rebuilds after AshPost. Both previous Python and current
+  native totalwatsed3 match current Streamflow within tolerance. Fresh Python
+  AshPost captures on the same inputs match exactly. Evidence:
+  `../../artifacts/watanabe-hydrology-investigation.json` and
+  `../../artifacts/watanabe-oracle-repeatability.json`.
+- Discovery: the initial plan introduced unnecessary set-atomic publication
+  requirements. The operator rejected that expansion; NFS directory exchange
+  and custom recovery design are not blockers to the established writer pattern.
 
 - Observation: the immediate OOM boundary is AshPost, but producer inputs remain
   live across that call.
@@ -37,6 +44,18 @@ abandoned jobs.
   `AshPost.run_post()` in the same function.
 
 ## Decision Log
+
+- Decision: use the established individual-file producer/aggregate-reader
+  pattern, without new multi-file transactions, rollback/recovery, generation
+  directories, migrations, or NFS-specific mechanisms. Preserve existing writer
+  error handling and rerun behavior. No all-five staging barrier is required.
+  Rationale: the operator explicitly confirmed this matches the original intent;
+  the existing interchange -> totalwatsed3 workflow is the precedent.
+  Date/Author: 2026-09-08, Roger Lew; recorded by Codex.
+- Decision: compare fresh Python/native results using identical point-in-time
+  inputs and preserve historical saved-output drift as evidence. RQ ordering
+  and scientific formulas remain unchanged.
+  Date/Author: 2026-09-08, Codex for Roger Lew.
 
 - Decision: change both object lifetime and aggregation implementation.
   Rationale: either fix alone leaves an avoidable watershed-scale allocation
@@ -52,9 +71,16 @@ abandoned jobs.
   Date/Author: 2026-09-08, Codex for Roger Lew.
 
 ## Outcomes & Retrospective
+Implementation, parity, performance, bounded-memory and real RQ workflow gates
+pass. Native-first commit/remote verification remains
+active. Production is unchanged. Durable scope is recorded in WEPPpy
+`docs/schemas/output-scope-contract.md`, "AshPost file-production scope".
 
-Pending implementation and Forest acceptance.
-
+A full-suite run exposed test-only import cleanup that deleted real interchange
+modules and left stale module references in report tests. Cleanup now removes
+only loader-owned injections and preserves real module identity; the regression,
+combined report suite and scoped isolation checks pass. No production fallback
+or storage mechanism was added to address this test defect.
 ## Context and Orientation
 
 The native repository is `/workdir/wepppyo3`. Its existing PyO3 extension is
@@ -102,16 +128,16 @@ catalog behavior. Capture failure/edge behavior. Reproduce and measure OR-202
 in a disposable copy under a 12 GiB container; preserve OOM evidence or a
 successful high-memory oracle without modifying its source.
 
-Freeze a native API and multi-file transaction contract in artifacts. WEPPpy
-should pass a bounded manifest of path, Topaz ID, area, and burn class. Rust
-must validate the manifest, stream projected row groups, maintain only bounded
-keyed aggregates, calculate existing return-period products, and stage all five
-outputs. Publication must never expose a mixed old/new set after failure.
+Freeze the native API in artifacts, including ordered path/Topaz/area/burn
+metadata, optional hydrology paths, and independent ash WEPP-ID selection.
+Rust validates and streams inputs, maintains bounded keyed aggregates, computes
+existing return-period products, and writes outputs individually using the
+existing writer behavior. Do not add a multi-file transaction or recovery layer.
 
 Implement the Rust pieces in testable layers: manifest validation and path
 containment, schema projection, row-batch aggregation, output schema/metadata,
-return-period calculations, atomic multi-file staging, cleanup, and PyO3 error
-translation. Add generated edge fixtures and fault injection. Refresh the
+return-period calculations, existing per-file writing, and PyO3 error
+translation. Add relevant generated edge fixtures and write-failure coverage. Refresh the
 canonical py312 release only after source tests pass.
 
 Then refactor the Python scheduler into a lazy work iterator with a bounded
@@ -157,7 +183,7 @@ After native changes run:
 After integration run:
 
     cd /workdir/wepppy
-    wctl run-pytest wepppy/nodb/mods/ash_transport/tests --maxfail=1
+    wctl run-pytest tests/nodb/mods/test_ashpost_no_data.py tests/nodb/mods/test_ash_transport_run_ash.py --maxfail=1
     wctl run-pytest tests/wepp/interchange --maxfail=1
     wctl run-pytest tests/nodb --maxfail=1
     wctl run-pytest tests/rq --maxfail=1
@@ -173,7 +199,7 @@ limit. Record raw commands and outputs, not only summaries. Move this plan to
 ## Validation and Acceptance
 
 Acceptance requires exact or tolerance-governed parity for both small fixtures,
-all specified malformed/atomic cases, and proof that the installed release is
+all specified malformed-input/write-failure cases, and proof that the installed release is
 the tested binary. OR-202 must complete the real sequential worker path below
 9 GiB with all five outputs, NoDb and RQ completion, no OOM event or restart,
 and a subsequent accepted job. Inspecting code or passing a microbenchmark does
@@ -182,14 +208,14 @@ not satisfy wired completion.
 Independent correctness review must validate formulas and schemas against the
 frozen oracle. QA must audit test coverage and commands. Performance review must
 audit cgroup measurement and cache conditions. Security review must cover paths,
-symlinks, malformed inputs, bounded allocation, panic translation, multi-file
-atomicity, temporary permissions, and cleanup. No medium/high finding may remain.
+symlinks, malformed inputs, bounded allocation, panic translation, existing
+writer behavior, temporary permissions, and cleanup. No medium/high finding may remain.
 
 ## Idempotence and Recovery
 
 All captures and benchmarks write to unique disposable directories and may be
-rerun. Never delete or overwrite source fixture data. Atomic fault tests must
-start from copies and verify the prior complete output set remains readable. If
+rerun. Never delete or overwrite source fixture data. Write-failure tests use
+disposable outputs and preserve existing error propagation and rerun behavior. If
 implementation or validation fails, preserve logs and cgroup evidence, update
 this plan and tracker, and leave production untouched. Revert code through
 normal Git commits; do not reset shared checkouts destructively.
@@ -213,3 +239,6 @@ the required native function.
 
 Revision note: initial plan created 2026-09-08 from the production OOM evidence
 and Roger Lew's fixture and ownership decisions.
+
+Revision note: operator confirmed the original simple scope; removed assistant-
+added transaction/recovery requirements and recorded existing-writer precedent.

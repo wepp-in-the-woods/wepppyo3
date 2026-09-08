@@ -1,0 +1,36 @@
+{
+  "canine-liar": {
+    "python": {
+      "median_seconds": 1.1392561600077897,
+      "max_seconds": 1.2050063500646502,
+      "median_increment": 97566720,
+      "max_container_peak": 326115328
+    },
+    "native": {
+      "median_seconds": 0.1926357540069148,
+      "max_seconds": 0.1947660279693082,
+      "median_increment": 17739776,
+      "max_container_peak": 244015104
+    },
+    "runtime_ratio": 0.16908906071273527,
+    "memory_reduction": 0.8181780016792611,
+    "passed": true
+  },
+  "assisted-weakness": {
+    "python": {
+      "median_seconds": 1.122148246038705,
+      "max_seconds": 1.1442651839461178,
+      "median_increment": 101699584,
+      "max_container_peak": 328933376
+    },
+    "native": {
+      "median_seconds": 0.18821679498068988,
+      "max_seconds": 0.19042912498116493,
+      "median_increment": 18321408,
+      "max_container_peak": 243154944
+    },
+    "runtime_ratio": 0.16772899271118044,
+    "memory_reduction": 0.819847758669298,
+    "passed": true
+  }
+}

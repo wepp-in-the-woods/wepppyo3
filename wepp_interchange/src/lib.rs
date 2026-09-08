@@ -21,6 +21,8 @@ use pyo3::types::PyDict;
 mod ag_fields;
 mod arrays;
 mod arrow_support;
+mod ashpost;
+mod ashpost_stats;
 mod calendar;
 mod catalog;
 mod chan_peak;
@@ -50,6 +52,80 @@ mod totalwatsed_schema;
 
 use crate::errors::InterchangeError;
 use crate::schema::VersionInfo;
+
+#[pyfunction]
+#[pyo3(signature = (input_root, output_dir, manifest, recurrence, hydrology_path=None, wat_path=None, ash_wepp_ids=None, field_metadata=None))]
+fn ashpost_to_parquet(
+    py: Python<'_>,
+    input_root: String,
+    output_dir: String,
+    manifest: Vec<ashpost::ManifestEntry>,
+    recurrence: Vec<u32>,
+    hydrology_path: Option<String>,
+    wat_path: Option<String>,
+    ash_wepp_ids: Option<Vec<i64>>,
+    field_metadata: Option<ashpost::Metadata>,
+) -> PyResult<PyObject> {
+    let result = PyDict::new_bound(py);
+    if manifest.is_empty() {
+        result.set_item("input_rows", 0)?;
+        result.set_item("rows_written", PyDict::new_bound(py))?;
+        for name in [
+            "return_periods",
+            "cum_return_periods",
+            "burn_class_return_periods",
+        ] {
+            result.set_item(name, py.None())?;
+        }
+        return Ok(result.into_py(py));
+    }
+    let (products, stats) = py.allow_threads(|| {
+        let products = ashpost::aggregate(
+            std::path::Path::new(&input_root),
+            &manifest,
+            hydrology_path.as_deref(),
+            wat_path.as_deref(),
+            &ash_wepp_ids.unwrap_or_default(),
+        )?;
+        let stats = ashpost_stats::calculate(&products, &recurrence)?;
+        ashpost::write(
+            &products,
+            std::path::Path::new(&output_dir),
+            &field_metadata.unwrap_or_default(),
+        )?;
+        Ok::<_, pyo3::PyErr>((products, stats))
+    })?;
+    result.set_item("input_rows", products.input_rows)?;
+    let counts = PyDict::new_bound(py);
+    for table in &products.tables {
+        counts.set_item(table.name, table.rows.len())?;
+    }
+    result.set_item("rows_written", counts)?;
+    let daily = &products.tables[2];
+    let original = daily.index("Streamflow_orig (mm)")?;
+    let corrected = daily.index("Streamflow_ash_corr (mm)")?;
+    let mut count = 0;
+    let mut max_overage = 0.0_f64;
+    let mut samples = Vec::new();
+    for row in &daily.rows {
+        if row[corrected] > row[original] {
+            count += 1;
+            max_overage = max_overage.max(row[corrected] - row[original]);
+            if samples.len() < 5 {
+                samples.push((row[1] as u16, row[2] as u16, row[original], row[corrected]));
+            }
+        }
+    }
+    if count > 0 {
+        let warning = PyDict::new_bound(py);
+        warning.set_item("count", count)?;
+        warning.set_item("max_overage_mm", max_overage)?;
+        warning.set_item("samples", samples)?;
+        result.set_item("streamflow_exceedance", warning)?;
+    }
+    stats.add_to(py, &result)?;
+    Ok(result.into_py(py))
+}
 
 #[pyfunction]
 fn hillslope_watbal_wepp_ids(py: Python<'_>, wat_path: String) -> PyResult<Vec<i64>> {
@@ -1150,6 +1226,7 @@ fn segment_single_ofe_slope_at_breakpoints(
 
 #[pymodule]
 fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(ashpost_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_watbal_wepp_ids, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_watbal_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(totalwatsed3_to_parquet, m)?)?;

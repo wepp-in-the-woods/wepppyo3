@@ -1,0 +1,12 @@
+{
+  "uid": 1000,
+  "gid": 993,
+  "umask": "0022",
+  "root": "/wc1",
+  "exchange_returncode": -1,
+  "errno": 22,
+  "error": "Invalid argument",
+  "a": "old",
+  "b": "new",
+  "existing_symlink_pointer_replacement": "new"
+}

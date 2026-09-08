@@ -1,0 +1,34 @@
+INFO:wctl2:docker compose exec weppcloud bash -lc cd /workdir/wepppy && /opt/venv/bin/python tools/check_test_isolation.py tests/wepp/interchange tests/wepp/reports/test_hillslope_watbal.py --quick --max-workers 2
+⚠️  No randomization plugin detected; running without shuffle support.
+🔍 Test Isolation Check
+=====================================================================
+
+Running 2 iterations with random ordering...
+  ✓ Seed 42: All tests passed
+  ✓ Seed 123: All tests passed
+
+Checking file isolation...
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_calendar_utils.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_ag_fields_interchange.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_catalog_scan_rust.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_hec_ras_boundary.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_hill_interchange_cleanup.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_hill_interchange_import_smoke.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_interchange_documentation.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_module_loader.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_native_only_interchange_facades.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_rust_interchange.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_totalwatsed3.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_utils_phase7.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_versioning.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_watershed_chan_interchange.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_watershed_chan_peak_interchange.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_watershed_chanwb_interchange.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_watershed_ebe_interchange.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_watershed_interchange_pass_family.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_watershed_pass_interchange.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_watershed_loss_interchange.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/interchange/test_watershed_totalwatsed_export.py - Isolated OK
+  ✓ /workdir/wepppy/tests/wepp/reports/test_hillslope_watbal.py - Isolated OK
+
+✅ No isolation issues detected.

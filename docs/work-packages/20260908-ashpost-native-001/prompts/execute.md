@@ -29,6 +29,11 @@ Compose RQ worker at `WEPPPY_NCPU=12` and a 12 GiB cgroup limit. It must remain
 below 9 GiB, produce all outputs, finish RQ successfully, and accept a subsequent
 job without restart. A standalone native success is insufficient.
 
+Follow the operator-confirmed simple scope in package.md: individual complete
+files using existing writer behavior, as in hillslope interchange -> totalwatsed3.
+Do not revive superseded multi-file transactions, rollback/recovery systems,
+generation layouts, migrations, or NFS-specific publication requirements.
+
 Complete independent correctness, QA, performance, and high-impact security
 reviews. Resolve every medium/high finding, run focused and full validation,
 commit/push wepppyo3 before WEPPpy, and verify clean remote checkouts plus LFS

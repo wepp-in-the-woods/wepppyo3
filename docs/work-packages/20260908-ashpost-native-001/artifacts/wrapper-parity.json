@@ -1,0 +1,23 @@
+{
+  "canine-liar": {
+    "watershed_cumulatives.parquet": 9,
+    "hillslope_annuals.parquet": 10,
+    "watershed_daily_by_burn_class.parquet": 964,
+    "watershed_annuals.parquet": 5,
+    "watershed_daily.parquet": 964
+  },
+  "assisted-weakness": {
+    "watershed_cumulatives.parquet": 10,
+    "hillslope_annuals.parquet": 10,
+    "watershed_daily_by_burn_class.parquet": 1415,
+    "watershed_annuals.parquet": 7,
+    "watershed_daily.parquet": 1415
+  },
+  "OR-202": {
+    "watershed_cumulatives.parquet": 39,
+    "hillslope_annuals.parquet": 1090,
+    "watershed_daily_by_burn_class.parquet": 31086,
+    "watershed_annuals.parquet": 39,
+    "watershed_daily.parquet": 13398
+  }
+}

@@ -1,0 +1,286 @@
+--- a/package.md
++++ b/package.md
+@@ -2,12 +2,21 @@
+ 
+ ## Status
+ 
+-- state: blocked on atomic publication and oracle disposition
++- state: proposed revision; pending operator acceptance and contract checkpoint
+ - date: 2026-09-08
+ - execution host: `forest` via `ssh forest`
+ - repositories: `/workdir/wepppyo3` and `/workdir/wepppy`
+ - baseline revisions: wepppyo3 `05328ddcd0a8f91dfeae4c25f533fd69d74dd963`;
+   WEPPpy `abebd09239f398af7627924c4c000ff3229a01ee`
++
++## Revision scope
++
++This draft preserves the memory-remediation objective and scientific/output
++contracts. It narrows publication to atomic replacement per file with explicit
++rollback limits on NFS, and defines parity against identical frozen inputs.
++Generation-directory migration and concurrent multi-file snapshot consistency
++are outside this package. See `artifacts/suggested-work-package-revisions.md`
++for investigation evidence and rationale. This draft is not yet approved.
+ 
+ ## Objective
+ 
+@@ -59,6 +68,19 @@
+ directory. Record source revision, configuration stem, model, input manifest,
+ file sizes, row counts, schemas, and SHA-256 checksums before testing.
+ 
++Capture the exact inputs visible at AshPost entry: all present hillslope ash
++files, ordered watershed IDs/areas and ash metadata, H.wat, and totalwatsed3.
++Use fresh unchanged-Python output on that immutable snapshot as the native
++parity oracle. Preserve saved historical outputs separately and quantify any
++drift; historical output drift alone is not a native parity failure when input
++generations differ. Never silently overwrite either evidence set.
++
++The existing RQ order is Ash.run_ash (including AshPost), then totalwatsed3
++rebuild. Preserve that order. Standalone baseline/candidate comparisons use
++identical upstream bytes; end-to-end acceptance records hashes before AshPost
++and after the subsequent upstream rebuild. Do not require AshPost original
++streamflow to equal a later replacement of its upstream file.
++
+ ### Srivastava single-OFE contract fixture
+ 
+ Use Forest project `canine-liar`:
+@@ -78,6 +100,11 @@
+ 
+ This exercises the Watanabe dynamic model with single-OFE hillslopes. It is a
+ separate required parity fixture; Srivastava success cannot stand in for it.
++The investigation found seven saved original-streamflow rows differing from
++current upstream hydrology, maximum 0.06032218 mm. Both prior Python and current
++native upstream recomputations match current totalwatsed3 Streamflow within
++tolerance (hydrology-only comparison). Retain that
++history and freeze a fresh Python oracle without changing formulas/tolerances.
+ 
+ ### Production-scale memory and performance fixture
+ 
+@@ -131,19 +158,22 @@
+ signature and Rust-side data contract in an artifact before implementation. It
+ must:
+ 
+-- accept a destination directory plus a bounded manifest containing each input
+-  path, Topaz ID, area in hectares, and burn class;
++- accept an authorized input root, destination directory, ordered manifest of
++  input path/Topaz ID/area in hectares/burn class, recurrence values, optional
++  totalwatsed3 and H.wat paths, and independent ash-type-selected WEPP IDs;
+ - validate that paths and metadata are one-to-one and reject duplicates,
+   traversal, symlink escape, incompatible schemas, missing required columns,
+   invalid IDs/classes/areas, malformed parquet, and mixed model contracts;
+-- project and stream row groups or bounded record batches rather than collecting
+-  all hillslope tables or all watershed days in memory;
++- project and stream row groups or bounded record batches without collecting
++  watershed source rows/tables; bounded per-hillslope date state and keyed
++  watershed output aggregates are allowed and must be measured;
+ - aggregate hillslope annual, watershed annual/daily, burn-class daily, and
+   cumulative products with state bounded by the output key cardinality;
+ - calculate existing return-period structures without returning full tables to
+   Python;
+-- stage every output in the destination filesystem, publish the complete set
+-  failure-atomically, and remove temporary files on success or failure;
++- stage and validate all five parquet outputs before replacing any canonical
++  parquet, then publish using same-filesystem atomic replacement per file under
++  the publication/recovery contract below;
+ - preserve existing schemas and Arrow metadata exactly; and
+ - return compact telemetry and return-period dictionaries only.
+ 
+@@ -151,11 +181,72 @@
+ specific Python exceptions. Do not add a new external dependency unless the
+ precedent and capability gate is documented and accepted.
+ 
++## Publication and recovery contract
++
++Keep `ash/post/` an ordinary directory with the existing filenames. Preserve
++unrelated content and supported access restrictions. Compute, validate, and
++close all five staged parquets before replacing any canonical parquet. Use
++non-catalogable temporary names on the destination filesystem and protect
++staging access. Qualify the existing owned ParquetSink/commit_staged machinery
++before reuse; do not introduce a parallel storage-generation architecture.
++
++Each canonical file is replaced atomically. Multi-file snapshot consistency is
++not promised: readers may observe complete files from different executions
++across independent opens. There is no single transaction spanning parquet,
++version manifest, README, NoDb mappings, and catalog. Native success requires
++all five replacements confirmed; Python success retains all existing downstream
++persistence/documentation/catalog steps and their error propagation.
++
++Failure before publication leaves files present at native entry unchanged.
++Attempt backup/restore rollback after ordinary handled publication failures,
++and verify/report whether restoration completed. A rename error on NFS can be
++ambiguous; reconcile destination identities, including the failing target, or
++report an indeterminate outcome. Failed restoration, process termination, or
++unverifiable storage outcomes may leave a mixed set of complete files (or a
++subset on first publication) and retained recovery files. Preserve recovery
++evidence. Detected publication or restoration failures propagate as job failures;
++abrupt worker termination retains existing RQ failure handling. Prove complete
++regeneration on retry.
++Do not claim failure atomicity for server failure, SIGKILL, or rollback failure.
++
++After all five replacements are confirmed, cleanup failure is observable but
++does not retroactively mean that publication rolled back. Define private-stage
++permissions, supported ownership/group/mode/ACL handling, commit point, and
++recovery-file ownership before implementation. Never silently weaken access or
++delete the only recovery copy to satisfy a no-temporary-files assertion.
++
++Existing producer cleanup and major-version invalidation remain separate Python
++policy. Preservation applies after those policies, to files at native entry.
++Validate and anchor input and destination boundaries before producer cleanup
++or major-version invalidation; reject hostile path substitutions without affecting external
++sentinels. Pure pathname checks followed by unanchored reopening are insufficient.
++
++## Preimplementation contract checkpoint
++
++Before production edits, ratify an exact native signature, required and optional
++columns per input/model, telemetry/no-data shape, metadata representation, and
++null/NaN/infinity/key/area/class policies. Define publication ownership from
++acquisition through release, participating writers, and how to detect/respond to
++destination or input changes before replacement. Primitive locking success does
++not establish concurrent transaction isolation. Characterize absent files separately
++from zero-row files, and optional hydrology absent/empty/partial/unmatched cases.
++Freeze float32 area semantics, annual hillslope-day area sums, calendar-date
++collapse, cumulative selection by year0/julian, and sequential return-period tie
++ordering. Do not correct historical formulas during extraction.
++
++Promote the accepted publication, native-boundary, and scheduling rules into
++current canonical WEPPpy contracts. Obtain two independent contract reviews,
++resolve medium/high findings, and commit the accepted checkpoint as an ancestor
++before implementation. The prior native-contract.md is a preliminary proposal,
++not a completed checkpoint. No additional external dependency is assumed.
++
+ ## Bounded hillslope execution contract
+ 
+ Refactor `Ash.run_ash()` so modeling does not accumulate watershed-sized Python
+ state. Construct one hillslope work item at a time and keep at most a small,
+-documented multiple of `max_workers` submitted futures in flight. When a future
++documented bound of `2 * max_workers` submitted futures in flight. Keep
++H.wat reads in the parent, preserving one loader at a time. Scalar metadata may
++be prepared ahead of execution; large DataFrames may not. When a future
+ finishes, consume its result, remove all references to its arguments and future,
+ and submit the next item. Do not build a list of every hillslope DataFrame.
+ 
+@@ -173,7 +264,8 @@
+ - Implement and test native streaming AshPost in `wepppyo3`.
+ - Integrate it as required native functionality in WEPPpy with no fallback.
+ - Bound per-hillslope scheduling and promptly release inputs/results.
+-- Preserve atomicity, versioning, documentation, catalog, NoDb, and RQ behavior.
++- Preserve per-file publication integrity and explicit rollback/recovery,
++  versioning, documentation, catalog, NoDb, and RQ behavior.
+ - Refresh the canonical py312 native release and provenance, WEPPpy startup
+   preflight, stubs, native pin, and relevant documentation.
+ - Validate focused modules, the complete WEPPpy suite, and a real Forest Compose
+@@ -189,6 +281,8 @@
+ - Changing queue topology, RQ dependency behavior, user routes, or batch retry
+   policy.
+ - Mutating fixture projects, the HPC batch tree, or active production jobs.
++- Generation-pointer storage migration, reader snapshot/pinning protocols, or
++  archive/fork layout changes. These require a separate consistency package.
+ - Deploying to openwepp.org. Deployment requires a later explicit request after
+   workload state is checked.
+ 
+@@ -203,20 +297,38 @@
+   equality.
+ - Edge coverage for empty manifests, missing files/columns, null/nonfinite
+   values, zero area, duplicate metadata, invalid burn classes, malformed
+-  parquet, mixed schemas, atomic replacement failure, symlinks, and stale output
+-  version removal.
++  parquet, mixed schemas, staging failure, failure at each replacement, rollback
++  success/failure, ambiguous NFS rename outcomes, process termination, retry
++  regeneration, symlinks, and stale output version removal.
+ - Existing return-period dictionaries, documentation, query catalog, NoDb
+   persistence, and report/UI consumers continue to work.
+ - Static inspection confirms no executable whole-watershed Python AshPost
+   producer or runtime fallback remains.
++- Direct disposable NFS tests establish complete per-file visibility and
++  documented mixed-generation limits; no false success on replacement failure.
++- All five staged outputs exist and validate before the first replacement.
++  Recovery failures preserve evidence; successful retry produces all five
++  correct outputs and the ordinary directory remains archive/browse compatible.
+ 
+ ## Forest performance and memory gates
+ 
+ Measure a one-shot container matching the Forest/open-wepp.org worker image,
+ UID 1000, GID 993, umask 0022, CPU allocation, `WEPPPY_NCPU=12`, and a hard
+-12 GiB cgroup limit. Record exact revisions, image ID, fixture hashes, cold/warm
++12 GiB cgroup limit. Run publication and complete-workflow acceptance on a
++package-owned disposable location on the actual `/wc1` NFS mount. Record mount
++source/type/options and worker-visible paths; ext4 microbenchmarks cannot stand
++in for NFS acceptance. Never use or mutate the selected source fixture paths.
++Record exact revisions, image ID, fixture hashes, cold/warm
+ cache condition, wall/user/system time, output hashes, `memory.current`,
+ `memory.peak`, `memory.events`, process count, exit status, and restart count.
++Sample memory.current/stat (anonymous/file/kernel), processes/threads, completed
++and pending work across modeling, executor shutdown, post-processing, and the
++subsequent job. Use an external monitor for the candidate 10 GiB stop threshold;
++post-completion checks alone cannot enforce it. Include child CPU usage.
++Separate timed kernel measurements from full-table parity allocation. Define
++incremental peak against the pre-operation baseline using measurements that
++exclude earlier warm-up high-water marks. Define a numeric material-growth
++criterion before the repeatability experiment; do not choose it after results.
+ 
+ For each small fixture, compare five warm Python-oracle and five final-native
+ AshPost runs. The native median wall time must be no greater than 105% of the
+@@ -258,6 +370,7 @@
+ 
+ - `wepppy/nodb/mods/ash_transport/ash.py` and `ashpost.py`
+ - ash-transport stubs, versioning, documentation, and README as required
++- `docs/schemas/output-scope-contract.md` for the accepted canonical contract
+ - required-native interchange/startup integration and native pin/provenance
+ - focused tests under the ash-transport, interchange, NoDb, RQ, report, query,
+   and UI snapshot areas
+@@ -278,7 +391,8 @@
+ git diff --check
+ 
+ cd /workdir/wepppy
+-wctl run-pytest wepppy/nodb/mods/ash_transport/tests --maxfail=1
++wctl run-pytest tests/nodb/mods/test_ashpost_no_data.py tests/nodb/mods/test_ash_transport_run_ash.py tests/nodb/mods/test_ash_multi_year_model_alex_static.py --maxfail=1
++wctl run-pytest tests/weppcloud/routes/test_watar_bp.py --maxfail=1
+ wctl run-pytest tests/wepp/interchange --maxfail=1
+ wctl run-pytest tests/nodb --maxfail=1
+ wctl run-pytest tests/rq --maxfail=1
+@@ -314,28 +428,38 @@
+ - OR-202 completes through the real Compose RQ path below 9 GiB with zero OOM,
+   restart, abandoned job, incomplete output, or memory-growth finding.
+ - A subsequent job succeeds in the same worker.
+-- Atomicity, malformed input, path, schema, version, facade, documentation,
+-  catalog, NoDb, and RQ gates pass.
++- Per-file integrity, staged publication, rollback/recovery, malformed input,
++  path, schema, version, facade, documentation, catalog, NoDb, and RQ gates pass
++  under the documented consistency limits on actual NFS storage.
+ - Full validation and independent reviews have no unresolved medium/high finding.
+ - Both repositories are clean, committed, pushed, and clean-checkout verified.
+ 
+ ## Stop conditions
+ 
+-Stop and preserve evidence if scientific or public output semantics differ,
++Stop and preserve evidence if fresh Python/native scientific or public output
++semantics differ on identical frozen inputs,
+ fixture provenance cannot be verified, any source fixture would be mutated,
+ candidate peak reaches 10 GiB, OR-202 OOMs or restarts, memory grows with total
+ hillslopes rather than bounded in-flight/output state, native timing misses the
+-gate, atomic publication can expose a partial set, a new dependency or public
+-contract change is required without approval, or remote/release provenance
+-cannot be verified.
++gate, a canonical parquet can expose partially written content, publication
++begins before all five stages validate, a failed/indeterminate publication is
++reported as normal success, successful completion leaves missing/invalid output,
++permissions/containment or retry recovery fails on NFS, a new dependency or
++unapproved public contract/layout change is required, or remote/release
++provenance cannot be verified. Complete mixed files during replacement or after
++an explicitly failed publication are the documented limitation, not an
++unconditional set-atomicity claim. Historical saved-output drift with changed
++upstream generations must be quantified and isolated, not silently accepted as
++candidate parity or used to relax numerical tolerances.
+ 
+ ## Security impact
+ 
+ - security_impact: high
+ - dedicated_security_review_required: yes
+ - rationale: native code will parse thousands of shared-run parquet files and
+-  atomically replace a multi-file output set, while Python process scheduling
++  replace multiple files using staged per-file atomic publication and explicit
++  recovery limits, while Python process scheduling
+   and shared NoDb workflow boundaries change. Review path containment, symlink
+   handling, malformed parquet, allocation bounds, integer overflow, panic/error
+-  translation, temporary-file permissions, atomic rollback, cancellation,
++  translation, temporary-file permissions, conditional rollback and indeterminate outcomes, cancellation,
+   worker cleanup, and failure observability.

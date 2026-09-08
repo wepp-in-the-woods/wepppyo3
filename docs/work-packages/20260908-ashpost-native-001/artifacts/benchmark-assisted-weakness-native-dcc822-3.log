@@ -1,0 +1,174 @@
+CRITICAL:root:Error connecting to Redis (NODB_CACHE) with pool: Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 433, in <module>
+    redis_nodb_cache_client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+CRITICAL:root:Error connecting to Redis (STATUS) with pool: Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 451, in <module>
+    redis_status_client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+CRITICAL:root:Error connecting to Redis (LOCK) with pool: Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 469, in <module>
+    redis_lock_client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+CRITICAL:root:Error connecting to Redis (LOG_LEVEL) with pool: Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 487, in <module>
+    redis_log_level_client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+WARNING:matplotlib:Matplotlib created a temporary cache directory at /tmp/matplotlib-1ignys7x because the default path (/.config/matplotlib) is not a writable directory; it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+Error connecting to Redis: Error 111 connecting to localhost:6379. Connection refused.
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 374 day(s); max overage 0.0000 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 2000     223              0.210714                  0.210714
+ 2000     224              0.207144                  0.207144
+ 2000     226              0.201148                  0.201148
+ 2000     231              0.187295                  0.187295
+ 2000     237              0.173366                  0.173366
+{"mode": "native", "fixture": "assisted-weakness", "label": "dcc822-3", "wall_seconds": 0.18821679498068988, "calls": [{"repetition": 1, "wall_seconds": 0.1864980299724266, "before": 225361920, "after": 242708480, "stat": {"anon": "227602432", "file": "221184", "kernel": "11792384", "kernel_stack": "1032192", "pagetables": "3649536", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "143360", "file_writeback": "0", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "0", "active_anon": "227635200", "inactive_file": "180224", "active_file": "0", "unevictable": "0", "slab_reclaimable": "4134312", "slab_unreclaimable": "2903960", "slab": "7038272", "workingset_refault_anon": "0", "workingset_refault_file": "0", "workingset_activate_anon": "0", "workingset_activate_file": "0", "workingset_restore_anon": "0", "workingset_restore_file": "0", "workingset_nodereclaim": "0", "pgscan": "0", "pgsteal": "0", "pgscan_kswapd": "0", "pgscan_direct": "0", "pgscan_khugepaged": "0", "pgsteal_kswapd": "0", "pgsteal_direct": "0", "pgsteal_khugepaged": "0", "pgfault": "178397", "pgmajfault": "0", "pgrefill": "0", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "393760 kB"}], "user_seconds": 0.16363100000000053, "system_seconds": 0.024832999999999883, "precall_memory": 224362496, "postcall_memory": 242708480, "sampled_peak": 242708480, "sampled_increment": 18345984, "memory_peak": 242970624, "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n", "memory_max": "12884901888\n", "samples": 138, "uid": 1000, "gid": 993, "cpu_affinity": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "cache": "streamed source bytes before timed call; fresh container/process per sample", "sampler": "separate process, 1ms target; sampled peaks are lower bounds", "timing_scope": "Python discovery and five-table production plus compact mappings; no docs/facades"}

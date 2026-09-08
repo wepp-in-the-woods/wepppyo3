@@ -1,0 +1,487 @@
+[
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/baseline-1/measurement.json",
+    "bytes": 890,
+    "sha256": "7f6c2e468fe340188e11279457ebd39402d79d2a17b3789f9fbd3e2ea52ffb4c"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/baseline-1/samples.json",
+    "bytes": 8298463,
+    "sha256": "187afa677a2cc0415abf083cea5df7b08c1cdc9fc5204401d91b1f249fb8637c"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/native-native-1/measurement.json",
+    "bytes": 882,
+    "sha256": "ee60a7d68741154de3605394258aa41a117e9503f758633d9793f4b1dd689423"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/native-native-1/samples.json",
+    "bytes": 1996302,
+    "sha256": "70aba119d7b40cade8155f48335076ef88644fd36b9181c3ab44463cfca15d55"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/native-repeat-repeat-1/measurement.json",
+    "bytes": 1287,
+    "sha256": "e06fe12efff3bb35b929ada9f1c333d0a020e13bec535c9921e7cba0be9c5fd3"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/native-repeat-repeat-1/samples.json",
+    "bytes": 6643159,
+    "sha256": "8c2722bf2b624e93c0bfcb7b0255edea10eab3deafca2a78587a4c532307d6a1"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/native-repeat-repeat-streamed-1/measurement.json",
+    "bytes": 1287,
+    "sha256": "3de134d30a02ca30ba627d0a56633d7878cdf6615f66448964666105b87c997f"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/native-repeat-repeat-streamed-1/samples.jsonl",
+    "bytes": 6130982,
+    "sha256": "7c0fbb470b7a5c8f2d5b7dc9f2c508dec6dfa187263875d9ba9a08785db55403"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/native-repeat-repeat-streamed-8/measurement.json",
+    "bytes": 16150,
+    "sha256": "818e6667f8405f912b767ff0397ddaedff62bffae7d75e982db7da0cfd01566e"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/native-repeat-repeat-streamed-8/samples.jsonl",
+    "bytes": 21226271,
+    "sha256": "d99f33f996b46ed9eb950c7c3e59db0ef3a7354358763277b53edc860ee352bd"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/python-baseline-streamed-1/measurement.json",
+    "bytes": 1030,
+    "sha256": "f3d705a1097a1ca77145f43b1f1ed2b25d36c7d4c54d501c334df25bf2731e98"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/OR-202/python-baseline-streamed-1/samples.jsonl",
+    "bytes": 7387395,
+    "sha256": "e8e599972bcad6ccb08fe0bed7ca35df73eba968bd4fccc6de65c2726ae1050a"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-1/measurement.json",
+    "bytes": 894,
+    "sha256": "313ef0f75c9360b38f409d1ee35ffdb7927abf912eb3944a47995946fbebcad8"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-1/samples.json",
+    "bytes": 8017,
+    "sha256": "a7247e798fa33f4f5187cb068b2c3b263169587082f5627571a7965a809a97da"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-2/measurement.json",
+    "bytes": 894,
+    "sha256": "813ec10825cf0253d0015b2f30e211f23622ba1fbd9d5bf3dc36a43976d7e556"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-2/samples.json",
+    "bytes": 7962,
+    "sha256": "d79893130f41694dc4ec0ac8126897c435f1958819ecea25c8500d6a5e27dd6d"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-3/measurement.json",
+    "bytes": 894,
+    "sha256": "070d79effa3a7c531488ad2251a43858a70f331772f6ab0ddecd86a5763cbe14"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-3/samples.json",
+    "bytes": 8446,
+    "sha256": "b73a9a497de90c7e2a4c62c624916b9bb51cd1aeda94a5ed7c377965ea7a07ad"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-4/measurement.json",
+    "bytes": 893,
+    "sha256": "b6ca3337d588683ebffdbd4a8404b0b84907b763c373f39e8611f01c0510ce13"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-4/samples.json",
+    "bytes": 8540,
+    "sha256": "7fe1924c9e036b0b96092219a07e0bbb7e8da445e806670ca88a5ecc2056f4bb"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-5/measurement.json",
+    "bytes": 894,
+    "sha256": "4964832e8972400d338c5e5c37b50d24c1994031a49b48c40812d8ef96b75072"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-80d36e-5/samples.json",
+    "bytes": 10203,
+    "sha256": "ea27ca6c2b04ebacafca534ec5c6b9a41268bb37a0cfc7c38e01468f61e03423"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-1/measurement.json",
+    "bytes": 1041,
+    "sha256": "1de5a6042da98daa20e8e66970b04c3856ae93513e553ce9bca10fabb7d8a23d"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-1/samples.jsonl",
+    "bytes": 8113,
+    "sha256": "055f4c7a3130d3ebebd6a3f40b3c25fb2ec7399d610e14d5110b8ec1b96fda2f"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-2/measurement.json",
+    "bytes": 1043,
+    "sha256": "e0fbc6134b08be88b1b9764611e309bfaef5a525c5cb81ee32c7755e62555250"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-2/samples.jsonl",
+    "bytes": 8119,
+    "sha256": "7f7d0eb5ce5c15cc7756c655fb6f20beeffb5618f437c7e2db10b338791de40a"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-3/measurement.json",
+    "bytes": 2798,
+    "sha256": "888724a995cab0a75ddcfe81b3ef007c13a0ece6e9b65edfa76ba70de8f5cb9b"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-3/samples.jsonl",
+    "bytes": 7992,
+    "sha256": "67cd32de54edebab8a4d12b9922b7d9c699acc858dc9ea8630326ebb130ee986"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-4/measurement.json",
+    "bytes": 2797,
+    "sha256": "e7b45e0abddbef94ef100725e28fdf584c9a1b1c4123404a2ed45672aec166d1"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-4/samples.jsonl",
+    "bytes": 8114,
+    "sha256": "9292f971ee9475fdcfb87fe831ada74f8448e759d6db2008bc6ca7a84d9e393b"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-5/measurement.json",
+    "bytes": 2798,
+    "sha256": "2c3356fb27f675bb74a379eedfda677736d897b9e73c5c8490b6c98fa0b05841"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/native-dcc822-5/samples.jsonl",
+    "bytes": 8284,
+    "sha256": "aae120d4dea7267173c907034219c83db2365ec1dab201a1db8bc51109b92e0e"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-1/measurement.json",
+    "bytes": 892,
+    "sha256": "4752e80e8050cbe88fbb263dd429ab5b9ef780777ffaeb18320307758aa71ea9"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-1/samples.json",
+    "bytes": 53855,
+    "sha256": "0f802a84ddc33596a8a57264b55d6a1a44e3425027c71f2e1b06ed2d00646688"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-2/measurement.json",
+    "bytes": 893,
+    "sha256": "3411e15ba41d918c63072e91d9e7bc90e75e937f5e488715b04aa5ddb3fbd296"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-2/samples.json",
+    "bytes": 46947,
+    "sha256": "3ada53abdd8d866587175e8e03ebcf0fc236d0702fc8bf73aa74d99cfb49dbba"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-3/measurement.json",
+    "bytes": 892,
+    "sha256": "7a349578e00c2522110c6cec31e39b881e21fd2b10702db87f80d5ed1c3ba1e7"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-3/samples.json",
+    "bytes": 48068,
+    "sha256": "9a398ca7f5f271f7e5637c2ca2242e19ab253fb0c7821e38f1cc903fae1307e0"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-4/measurement.json",
+    "bytes": 892,
+    "sha256": "6db9c1b134e1975e1c9e7a7b1143979472e29cb2ddef98a29be85f6475e4d1a1"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-4/samples.json",
+    "bytes": 51641,
+    "sha256": "2c4c0af3f96d8727bd77b7b37ab07d4b222ccd09c0e90f30fd30904442af72cc"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-5/measurement.json",
+    "bytes": 892,
+    "sha256": "bbb4e539854b8fdef13ad0e5faea022cd8996546f1a484c4e427fde0e495f9bd"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-80d36e-5/samples.json",
+    "bytes": 50445,
+    "sha256": "8d4de8ba04f4acb214e3ea15f60b2be1402be94166970504f016414f1db77d12"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-1/measurement.json",
+    "bytes": 1028,
+    "sha256": "5f502681179e60c14bc64d4e1f32db642f003a58492bf3845f6be9f9e8a453ff"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-1/samples.jsonl",
+    "bytes": 48778,
+    "sha256": "3213821d83522a083ec9febd5ed791200be8f26ef8cc955b31083545af05f4ef"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-2/measurement.json",
+    "bytes": 1039,
+    "sha256": "7042de6ec0847272fec405915ad39be1d637f4c3474a9d07d3b581c3358def58"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-2/samples.jsonl",
+    "bytes": 48469,
+    "sha256": "e9e2a821f3809c054fa42195d3c0b6c77af77d074b0bfbff86910c9b844e5f29"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-3/measurement.json",
+    "bytes": 2794,
+    "sha256": "a6a5e788fe723a057bd041d2c976b21db177acf8f0e2fc61452f68efb00e5f67"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-3/samples.jsonl",
+    "bytes": 49715,
+    "sha256": "0c890617eb30d5b6d3bf8a8996a59298c6d5240555e80da8aeb29a904b2eda97"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-4/measurement.json",
+    "bytes": 2782,
+    "sha256": "51b4fbadac74d4b846b82e0069db2e1b7e625e327c02b3780718f90712d0782d"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-4/samples.jsonl",
+    "bytes": 48364,
+    "sha256": "93c3e98c430a85c948673e126d11bd627a2a291182a3417aa4b46d118fe4fdfa"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-5/measurement.json",
+    "bytes": 2795,
+    "sha256": "c6226e13477012175f4141cd7fd4ed68de38ae09d5ca12f761952d2faf543b61"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/assisted-weakness/python-dcc822-5/samples.jsonl",
+    "bytes": 49913,
+    "sha256": "2e6293c0e1e41e28dde4ef273e5811645a10647145ff65e2a9b325945aaa8259"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/506ceb-1/measurement.json",
+    "bytes": 885,
+    "sha256": "da752b334b3f49447a0995d7179b0e8e0f6f2580cc8e8f3908f4a7adec6bf018"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/506ceb-1/samples.json",
+    "bytes": 45453,
+    "sha256": "af09edab6c858ed6957e01e1cdbaeba7fb22a8748e4b3c79ec5f3dfc46dee1bd"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-1/measurement.json",
+    "bytes": 888,
+    "sha256": "40cf58290bdaa96e7e0c92b15c58ec1effa130a4a838fcee20157c047094e5f5"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-1/samples.json",
+    "bytes": 8983,
+    "sha256": "dd5fd7659999efc10e6f2f52ccd289b20962bf8cc071a13e083513ce3b873192"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-2/measurement.json",
+    "bytes": 889,
+    "sha256": "b28cd27aff31b1e4f71d0042607981ef05f97d7146d65c30e1aad9ac888ce55b"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-2/samples.json",
+    "bytes": 8962,
+    "sha256": "50bdfef51837b4851e1f772b62219ac81becaff84f26311e23cb63ad008742e5"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-3/measurement.json",
+    "bytes": 887,
+    "sha256": "995759bb534fd95048512fd41ac9c81509239b3593643dfc2b720e9fa8bac33f"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-3/samples.json",
+    "bytes": 8627,
+    "sha256": "7be4ae4ec85dc430484ef9252b14c8b35331c30f5d4e2260075bf264da5e9fc6"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-4/measurement.json",
+    "bytes": 889,
+    "sha256": "7cd9d0c94b1f387d17817f53279cab756dca32d49a1fea2a6c3b8e144c9e835e"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-4/samples.json",
+    "bytes": 8491,
+    "sha256": "e217efa32965e2681eb9a65a4b591a1b11dd58b8fe9a9ab7cb244a04161e704f"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-5/measurement.json",
+    "bytes": 887,
+    "sha256": "0da44b9cd54f38c0c6276fe66b65f3a298610724f9fae72d40e9469fd146f944"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-80d36e-5/samples.json",
+    "bytes": 8547,
+    "sha256": "77490c30502726fe4d3c23425e12db9bba1e4fe57f1a66f8c1f1e449712a2ba4"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-1/measurement.json",
+    "bytes": 1036,
+    "sha256": "1acb724b8f2d134bfc21c4a4ff7a5abf952bc9cf511f14840f025e232679f023"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-1/samples.jsonl",
+    "bytes": 8403,
+    "sha256": "8d9a432b07686e23822f84603219180a8b78fa4cb71db5ae84b9eab3e5b892d2"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-2/measurement.json",
+    "bytes": 1036,
+    "sha256": "0ed2b11c11f031a54eec18da63327cd4f19b5c5bbc4cb079ad6427b11ff009bb"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-2/samples.jsonl",
+    "bytes": 8163,
+    "sha256": "434c79519fc4ae2967c1f022f028514a545f22db5ce93cbf38447d6dce8ace9a"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-3/measurement.json",
+    "bytes": 1035,
+    "sha256": "df45ca5aad55ee9cded12159a8ac83137b7cde9048c3b9737d79441f5564c135"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-3/samples.jsonl",
+    "bytes": 8409,
+    "sha256": "22169320fa20996b3fbdb45a99ea1a6be19a00b92e5ad1c38713bafae325824e"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-4/measurement.json",
+    "bytes": 1036,
+    "sha256": "35b4563d99465937bf2bc5d1b96440525d3e1ac83fd04913d0bcee77494a15b5"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-4/samples.jsonl",
+    "bytes": 8223,
+    "sha256": "e05d896ef9c9bbe7b4630a0c936129452bb803d9ff5964ac60e232af3b807ee6"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-5/measurement.json",
+    "bytes": 1035,
+    "sha256": "6e1f5806b5a84d54190677cef6bb6c83eb96ecb3492792e4cc53d4ad034823cc"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/native-dcc822-5/samples.jsonl",
+    "bytes": 8347,
+    "sha256": "aabdb1b616e31080fee8a14189665cf28e242d8c40e8d7865cb44a445979b325"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-1/measurement.json",
+    "bytes": 884,
+    "sha256": "8bf4b3c8ffef4d6007b9c5c8bc4169e95f749ce8a718bd7332053979a74bedfc"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-1/samples.json",
+    "bytes": 51215,
+    "sha256": "966daab5730641c246a21e4b881b1d22db63ef245200cc646c5e18611c203080"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-2/measurement.json",
+    "bytes": 886,
+    "sha256": "d963319293522d5aef111bf36b35cceb66dab203a5c4eb0cb37e0667569d484b"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-2/samples.json",
+    "bytes": 52590,
+    "sha256": "0470f18ee4b0a14ee91b8f5529f3d8d07f6591012d5dc3db3f2e3087cf39c5d2"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-3/measurement.json",
+    "bytes": 886,
+    "sha256": "12ee9b58bdc7d435c197bc75f7fb0fa9d89d0f1887c6659292374a5e54238080"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-3/samples.json",
+    "bytes": 50854,
+    "sha256": "18c7b71b2a1eb433a7fa3c1db4182d68a8b8e02b65f48b9deb601c4ca2f13738"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-4/measurement.json",
+    "bytes": 887,
+    "sha256": "af9995e8b4e41c1fe1c1e098ed53f4e3721fd3598563870f2f33a336d4ae7986"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-4/samples.json",
+    "bytes": 50662,
+    "sha256": "9c393514d8f092f3d4f971880361b76237992a884886b5eebaa39e54750b3235"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-5/measurement.json",
+    "bytes": 885,
+    "sha256": "662dcd562e3aded16213757231e982e1ee2fc3edec00f862d32c50e952b4efa4"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-80d36e-5/samples.json",
+    "bytes": 50557,
+    "sha256": "3176a53d588ffb51e81ee8d932de1ccf58f3713e87cbbb011f5c5167705d7626"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-1/measurement.json",
+    "bytes": 1032,
+    "sha256": "ddd22d460877f26151bb570107ff6f36ecf1c347d3552eed37152823f76ab7b4"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-1/samples.jsonl",
+    "bytes": 50764,
+    "sha256": "857918b0e0154e5210f6fc2a7598ccbbd0b1307a5280a54d94139e7cf3718a4b"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-2/measurement.json",
+    "bytes": 1034,
+    "sha256": "4216981169e6e3ce5e0c2ed009eeb2088011062ba23334d75c434fbfeb09c934"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-2/samples.jsonl",
+    "bytes": 49022,
+    "sha256": "014232ad3d30c5e6513b86b02e3561dcf15bd025ef7f7c1eab72cba64a949613"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-3/measurement.json",
+    "bytes": 1033,
+    "sha256": "f60aab3437335945e15fc0e549aa29d786b3038a091dd82a9d46a73456ee8d0c"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-3/samples.jsonl",
+    "bytes": 49404,
+    "sha256": "748d6ba5f584fe9317090bba04a5c4432a142ef9a357a1b5832b9c3ca2675748"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-4/measurement.json",
+    "bytes": 1033,
+    "sha256": "857c7cb25674a6a8e216600c02a4cb72af05cb4e7ef159c042700ab179294d6b"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-4/samples.jsonl",
+    "bytes": 51060,
+    "sha256": "a1367146e69fcea9f2f8ea2357c3d56cb0a43e59c1eb5dbe41f8fb28436f4a41"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-5/measurement.json",
+    "bytes": 1030,
+    "sha256": "9552f12cc93e9eef1bc8618486defc1463fd3fbe829477e322c247bf7a3deef2"
+  },
+  {
+    "path": "target/ashpost-evidence/benchmarks/canine-liar/python-dcc822-5/samples.jsonl",
+    "bytes": 49265,
+    "sha256": "31ad458e532e3eddcb0e004f05964cbf46b3214d1bf9ccee5653ff995a1158e9"
+  },
+  {
+    "path": "target/ashpost-evidence/python-baseline-ash.py",
+    "bytes": 41657,
+    "sha256": "38ddee500e7e880f8c67d19e7a8cad3917b5836af4e42be5472c60b5045849c1"
+  },
+  {
+    "path": "target/ashpost-evidence/python-baseline-ashpost.py",
+    "bytes": 40489,
+    "sha256": "7c9aa06cbca1019fb557ef1be5cb19c0e56f9e905099ea8bc191c2f836a620a0"
+  },
+  {
+    "path": "target/ashpost-evidence/rq-runs/cgroup-samples.json",
+    "bytes": 1490997,
+    "sha256": "0cd00103af07fca4eaf654bc00f6703e3fee16a8fc175be91c0d061dae7ba9ed"
+  }
+]

@@ -82,3 +82,19 @@ Evidence: [package tracker](work-packages/20260908-hillslope-watbal-native-001/t
 [standalone timings](work-packages/20260908-hillslope-watbal-native-001/artifacts/benchmark-summary.json),
 and `tests/wepp_interchange/test_hillslope_watbal.py`. These are measured
 fixture-specific results, not a general speedup claim.
+
+## Native AshPost integration (2026-09-08)
+`confirmed`: `wepppyo3.wepp_interchange.ashpost_to_parquet` streams existing
+Float64 model outputs into the five AshPost 1.0 datasets and compact recurrence
+mappings. WEPPpy owns manifest discovery, bounded model scheduling, NoDb,
+documentation and catalog updates. Individual files use the existing ParquetSink.
+
+Both small model fixtures and OR-202 match frozen Python tables and mappings;
+small-model facades and generated documentation also match. Five warm runs per
+mode/model measured about 82% lower incremental memory and 83% lower runtime;
+see the [benchmark summary](work-packages/20260908-ashpost-native-001/artifacts/small-benchmark-summary.json).
+The real 12-worker RQ sequence completed OR-202 then canine-liar at 4.43 GiB
+peak, with zero OOM or restarts. These are fixture-specific observations.
+The [tracker](work-packages/20260908-ashpost-native-001/tracker.md) and
+[release manifest](work-packages/20260908-ashpost-native-001/artifacts/release-integration-manifest.json)
+record final validation and source/binary provenance. No deployment is claimed.

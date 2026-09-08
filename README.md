@@ -191,6 +191,13 @@ They validate positive, unique sub-field identity and require the filename's
 `H<n>` token to equal `sub_field_id`. The six ordinary writer signatures and
 schemas are unchanged.
 
+`confirmed`: `ashpost_to_parquet` streams hillslope ash outputs into the existing
+five AshPost datasets and compact recurrence mappings. Paired WEPPpy uses
+bounded model scheduling and requires this kernel. The real 12-worker OR-202
+RQ sequence completed at 4.43 GiB peak under 12 GiB; both ash models preserve
+output parity. See the [AshPost evidence](docs/work-packages/20260908-ashpost-native-001/artifacts/execution-results.md)
+for the measured fixtures, individual-file writer scope and release status.
+
 ### `wepppyo3.swat_interchange`
 
 - `swat_outputs_to_parquet(...)`

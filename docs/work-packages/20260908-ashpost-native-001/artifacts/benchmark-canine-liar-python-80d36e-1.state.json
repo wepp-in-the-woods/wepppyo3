@@ -1,0 +1,22 @@
+{
+  "mode": "python",
+  "fixture": "canine-liar",
+  "label": "80d36e-1",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:09:43.979528055Z",
+    "FinishedAt": "2026-09-08T20:09:57.012127878Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 327311360,
+  "threshold_stop": false,
+  "command_exit": 0
+}

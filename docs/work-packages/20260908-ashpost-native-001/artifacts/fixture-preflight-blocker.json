@@ -1,0 +1,17 @@
+{
+  "observed_utc": "2026-09-08T18:27:38.451987+00:00",
+  "label": "Ran",
+  "host": "forest",
+  "native_revision": "8fc2afa91775825a8f6901d63bc7a0d957bdf146",
+  "wepppy_revision": "abebd09239f398af7627924c4c000ff3229a01ee",
+  "source": "/wc1/runs/ca/canine-liar",
+  "model": "multi",
+  "meta": null,
+  "fire_years": null,
+  "ash_directory_entries": [],
+  "wepp_output_entries": [],
+  "ash_nodb_sha256": "b6fa96095a26cab9a5ced16056b67dc38eb6cb5a2c02c0a72d007b7b07d452a4",
+  "latest_ash_failure": "[2026-09-08T18:10:36.402260Z] run_ash_rq failed\nTraceback (most recent call last):\n  File \"/workdir/wepppy/wepppy/rq/exception_logging.py\", line 57, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workdir/wepppy/wepppy/rq/project_rq.py\", line 2466, in run_ash_rq\n    _run_with_directory_roots_lock(\n  File \"/workdir/wepppy/wepppy/rq/project_rq.py\", line 893, in _run_with_directory_roots_lock\n    return callback()\n           ^^^^^^^^^^\n  File \"/workdir/wepppy/wepppy/rq/project_rq.py\", line 2464, in _run_ash\n    ash.run_ash(fire_date, ini_white_ash_depth_mm, ini_black_ash_depth_mm)\n  File \"/workdir/wepppy/wepppy/nodb/mods/ash_transport/ash.py\", line 736, in run_ash\n    hill_wat_df = load_hill_wat_dataframe(\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workdir/wepppy/wepppy/wepp/interchange/hill_wat_interchange.py\", line 255, in load_hill_wat_dataframe\n    raise FileNotFoundError(wat_path)\nFileNotFoundError: /wc1/runs/ca/canine-liar/wepp/output/interchange/H.wat.parquet\n\n",
+  "source_modified": false,
+  "hpc_noninteractive_ssh": "passed"
+}

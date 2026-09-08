@@ -1,0 +1,20 @@
+{
+  "name": "ashpost-rq-acceptance-241a8c06c6",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:13:12.732300565Z",
+    "FinishedAt": "2026-09-08T20:37:17.923940512Z"
+  },
+  "stopped": false,
+  "exit": 0,
+  "restarts": 0,
+  "external_observed_peak": 4744290304
+}

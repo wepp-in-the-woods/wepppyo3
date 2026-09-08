@@ -1,0 +1,158 @@
+{
+  "canine-liar": {
+    "paths": [
+      "/workdir/wepppyo3/target/ashpost-evidence/rq-runs/parity-canine-liar-python-bad8baf6",
+      "/workdir/wepppyo3/target/ashpost-evidence/rq-runs/parity-canine-liar-native-309d5312"
+    ],
+    "files": [
+      {
+        "name": "H44_ash.parquet",
+        "rows": 14460,
+        "exact_values": true,
+        "python_sha256": "2aa8bf697b9146fd144508d850ba7e93dd64101bd9a264aea0b6afc38f7c7455",
+        "native_sha256": "2aa8bf697b9146fd144508d850ba7e93dd64101bd9a264aea0b6afc38f7c7455"
+      },
+      {
+        "name": "H46_ash.parquet",
+        "rows": 14948,
+        "exact_values": true,
+        "python_sha256": "3b329b4a74e7b4bb0d33d12e50d1fd621bc04142a7b03dcd90305e86e95a4821",
+        "native_sha256": "3b329b4a74e7b4bb0d33d12e50d1fd621bc04142a7b03dcd90305e86e95a4821"
+      },
+      {
+        "name": "H50_ash.parquet",
+        "rows": 11928,
+        "exact_values": true,
+        "python_sha256": "5ba42f5fc798494677d60c02c3f4ea7b47625e2084dfcea87a948d99947e9afa",
+        "native_sha256": "5ba42f5fc798494677d60c02c3f4ea7b47625e2084dfcea87a948d99947e9afa"
+      },
+      {
+        "name": "H51_ash.parquet",
+        "rows": 13899,
+        "exact_values": true,
+        "python_sha256": "5d3b5ac92a81972a3035c0e64ed0f7d8ac37ae5a3a03497c4a3c92e0199ccee0",
+        "native_sha256": "5d3b5ac92a81972a3035c0e64ed0f7d8ac37ae5a3a03497c4a3c92e0199ccee0"
+      },
+      {
+        "name": "H52_ash.parquet",
+        "rows": 11799,
+        "exact_values": true,
+        "python_sha256": "57358a09537a22b1a1adff4c339f8340624df798e2ac0fc4b033dafbaef3d12e",
+        "native_sha256": "57358a09537a22b1a1adff4c339f8340624df798e2ac0fc4b033dafbaef3d12e"
+      },
+      {
+        "name": "H53_ash.parquet",
+        "rows": 15220,
+        "exact_values": true,
+        "python_sha256": "06ad58902d4b7f1a0c0ed70fc5aea20a38446c49c913597d9eb28bd3bcf35921",
+        "native_sha256": "06ad58902d4b7f1a0c0ed70fc5aea20a38446c49c913597d9eb28bd3bcf35921"
+      },
+      {
+        "name": "H55_ash.parquet",
+        "rows": 14570,
+        "exact_values": true,
+        "python_sha256": "fa499bdaf4eb215d8b8fb4f072c621dd101fd1e6123b7f9afe5611fc5946196e",
+        "native_sha256": "fa499bdaf4eb215d8b8fb4f072c621dd101fd1e6123b7f9afe5611fc5946196e"
+      },
+      {
+        "name": "H56_ash.parquet",
+        "rows": 15175,
+        "exact_values": true,
+        "python_sha256": "7d624f253ddcc240ae94c662e09de8e47c738c439a1638c3a8803375031466a4",
+        "native_sha256": "7d624f253ddcc240ae94c662e09de8e47c738c439a1638c3a8803375031466a4"
+      },
+      {
+        "name": "H58_ash.parquet",
+        "rows": 11676,
+        "exact_values": true,
+        "python_sha256": "3ccc3b7c8af822588a1ba955cfe8c734cf7ed7f374a117c4b89e11e405b60285",
+        "native_sha256": "3ccc3b7c8af822588a1ba955cfe8c734cf7ed7f374a117c4b89e11e405b60285"
+      },
+      {
+        "name": "H61_ash.parquet",
+        "rows": 11026,
+        "exact_values": true,
+        "python_sha256": "04cfda6a6a560fc919d1cf29029138c9e6c255499a1be748593d1460d1bb04e3",
+        "native_sha256": "04cfda6a6a560fc919d1cf29029138c9e6c255499a1be748593d1460d1bb04e3"
+      }
+    ]
+  },
+  "assisted-weakness": {
+    "paths": [
+      "/workdir/wepppyo3/target/ashpost-evidence/rq-runs/parity-assisted-weakness-python-15e2339b",
+      "/workdir/wepppyo3/target/ashpost-evidence/rq-runs/parity-assisted-weakness-native-6a5274eb"
+    ],
+    "files": [
+      {
+        "name": "H44_ash.parquet",
+        "rows": 14468,
+        "exact_values": true,
+        "python_sha256": "b8dcca023d2d5eb8b53bd1c56340da2dad236c50f6788e5dda08d167d1d5b51c",
+        "native_sha256": "b8dcca023d2d5eb8b53bd1c56340da2dad236c50f6788e5dda08d167d1d5b51c"
+      },
+      {
+        "name": "H46_ash.parquet",
+        "rows": 14948,
+        "exact_values": true,
+        "python_sha256": "2c94b81480a8e45ad8a825f60496b0145df6edeb71681d29be39e2e4568ab283",
+        "native_sha256": "2c94b81480a8e45ad8a825f60496b0145df6edeb71681d29be39e2e4568ab283"
+      },
+      {
+        "name": "H50_ash.parquet",
+        "rows": 10158,
+        "exact_values": true,
+        "python_sha256": "ade25b33ffde2f6fafb0dc64fed7a8f1edaacba171e690fda299ba068bdf01bb",
+        "native_sha256": "ade25b33ffde2f6fafb0dc64fed7a8f1edaacba171e690fda299ba068bdf01bb"
+      },
+      {
+        "name": "H51_ash.parquet",
+        "rows": 13398,
+        "exact_values": true,
+        "python_sha256": "5da391746436b511345d710029f3337e53b8cd67dac182bf9cf4d26d2d696738",
+        "native_sha256": "5da391746436b511345d710029f3337e53b8cd67dac182bf9cf4d26d2d696738"
+      },
+      {
+        "name": "H52_ash.parquet",
+        "rows": 11046,
+        "exact_values": true,
+        "python_sha256": "43977c456974635bb02de588df59a6c95ccc40963825e58f31d547d7b00b4c0a",
+        "native_sha256": "43977c456974635bb02de588df59a6c95ccc40963825e58f31d547d7b00b4c0a"
+      },
+      {
+        "name": "H53_ash.parquet",
+        "rows": 15204,
+        "exact_values": true,
+        "python_sha256": "008cd7d72259533d41900c39b31964fbd1f208afb44400e7fda356807e2ca6fb",
+        "native_sha256": "008cd7d72259533d41900c39b31964fbd1f208afb44400e7fda356807e2ca6fb"
+      },
+      {
+        "name": "H55_ash.parquet",
+        "rows": 13265,
+        "exact_values": true,
+        "python_sha256": "6c8e6c5a3e4426535715cad03f095978cd49db3f38b97f27dc951377d2adc1ce",
+        "native_sha256": "6c8e6c5a3e4426535715cad03f095978cd49db3f38b97f27dc951377d2adc1ce"
+      },
+      {
+        "name": "H56_ash.parquet",
+        "rows": 15150,
+        "exact_values": true,
+        "python_sha256": "028686946f24034dd86df19a2e64ea28542e89d0e5572860d61a9d3755127585",
+        "native_sha256": "028686946f24034dd86df19a2e64ea28542e89d0e5572860d61a9d3755127585"
+      },
+      {
+        "name": "H58_ash.parquet",
+        "rows": 10824,
+        "exact_values": true,
+        "python_sha256": "c46c38c8a83ba35bf8881568914b7a4d837434d58f50c4a7893a9884de1ca8ed",
+        "native_sha256": "c46c38c8a83ba35bf8881568914b7a4d837434d58f50c4a7893a9884de1ca8ed"
+      },
+      {
+        "name": "H61_ash.parquet",
+        "rows": 9375,
+        "exact_values": true,
+        "python_sha256": "8b58b9d335481c3ed7a2d2b28210dea19568080491cfbc324d8764f50e239616",
+        "native_sha256": "8b58b9d335481c3ed7a2d2b28210dea19568080491cfbc324d8764f50e239616"
+      }
+    ]
+  }
+}

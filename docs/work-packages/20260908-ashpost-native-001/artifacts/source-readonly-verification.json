@@ -1,0 +1,10 @@
+{
+  "OR_202_files_verified": 1115,
+  "OR_202_mismatches": [],
+  "small_files_verified": 42,
+  "small_mismatches": [],
+  "source_host": "hpc",
+  "source_root": "/tank/kubernetes/weppcloud/weppcloud-wc1/pvc-d4c5528b-3204-438b-909a-61af286d6fea/batch/nasa-roses-202608-psbs/runs/OR-202",
+  "checked": "2026-09-08",
+  "meaning": "Source NoDb and Parquet inputs still match frozen snapshots after candidate acceptance; read-only verification."
+}

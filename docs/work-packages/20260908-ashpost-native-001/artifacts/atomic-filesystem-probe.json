@@ -1,0 +1,18 @@
+[
+  {
+    "root": "/workdir/wepppyo3/target/ashpost-evidence",
+    "returncode": 0,
+    "errno": 0,
+    "error": null,
+    "a": "new",
+    "b": "old"
+  },
+  {
+    "root": "/wc1",
+    "returncode": -1,
+    "errno": 22,
+    "error": "Invalid argument",
+    "a": "old",
+    "b": "new"
+  }
+]

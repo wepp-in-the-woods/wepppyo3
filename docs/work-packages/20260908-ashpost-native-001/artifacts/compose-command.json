@@ -1,0 +1,10 @@
+[
+  "wctl",
+  "run",
+  "--no-deps",
+  "--name",
+  "ashpost-rq-acceptance-241a8c06c6",
+  "rq-worker",
+  "/opt/venv/bin/python",
+  "/workdir/wepppyo3/docs/work-packages/20260908-ashpost-native-001/artifacts/ashpost_acceptance.py"
+]

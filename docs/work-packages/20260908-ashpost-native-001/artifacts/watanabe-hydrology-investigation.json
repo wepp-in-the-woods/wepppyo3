@@ -1,0 +1,52 @@
+{
+  "pre_native_python": {
+    "vs_saved_ashpost": {
+      "bad_rows": 7,
+      "max_absolute_difference": 0.0603221798241228
+    },
+    "vs_current_upstream": {
+      "bad_rows": 0,
+      "max_absolute_difference": 3.1086244689504383e-15
+    }
+  },
+  "current_native": {
+    "vs_saved_ashpost": {
+      "bad_rows": 7,
+      "max_absolute_difference": 0.060322179824123134
+    },
+    "vs_current_upstream": {
+      "bad_rows": 0,
+      "max_absolute_difference": 0.0
+    }
+  },
+  "saved_upstream": {
+    "vs_saved_ashpost": {
+      "bad_rows": 7,
+      "max_absolute_difference": 0.060322179824123134
+    },
+    "vs_current_upstream": {
+      "bad_rows": 0,
+      "max_absolute_difference": 0.0
+    }
+  },
+  "mtime_ns": {
+    "ash/post/watershed_daily.parquet": 1788891095621241036,
+    "wepp/output/interchange/totalwatsed3.parquet": 1788891096976249027
+  },
+  "baseflow_options": {
+    "gwstorage": 0.0,
+    "bfcoeff": 0.04,
+    "dscoeff": 0.0
+  },
+  "ash_omitted_for_hydrology_isolation": true,
+  "upstream_python_source_sha256": "85355a02b700fe3c8d8dbac1407dbdb8e541f38c3ea087e9361dba4445b67af3",
+  "upstream_python_revision": "3c51780f50e2599ef72b03214c35bf20538e55c4",
+  "ashpost_revision": "abebd09239f398af7627924c4c000ff3229a01ee",
+  "native_module_sha256": "fe5b2c156b361181fe52004399a6ce131b3b43f92797ae744350d6e9f5713917",
+  "label": "Ran",
+  "interpretation": {
+    "confirmed": "Both upstream implementations match current saved totalwatsed3 Streamflow within tolerance; neither matches seven saved AshPost original-streamflow values. RQ calls totalwatsed3 after Ash.run_ash/AshPost, matching file timestamps.",
+    "inference": "Saved AshPost consumed an earlier totalwatsed3 generation. Its exact upstream bytes and calculation history were not captured, so the origin of those seven earlier values is unproven.",
+    "excluded": "Not evidence of a new AshPost Rust parity failure; no AshPost Rust implementation exists. Native totalwatsed3 ash metrics do not alter its Streamflow formula."
+  }
+}

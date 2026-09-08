@@ -1,0 +1,26 @@
+{
+  "uid": 1000,
+  "gid": 993,
+  "root": "/wc1",
+  "operations": {
+    "regular_file_flock": "passed",
+    "directory_flock": "passed",
+    "hardlink_backups": "passed",
+    "intermediate_visible_set": [
+      "new",
+      "old"
+    ],
+    "rollback_visible_set": [
+      "old",
+      "old"
+    ],
+    "restored_mode": "0o640",
+    "rename_directory_to_absent": "passed",
+    "rename_directory_over_empty": "passed",
+    "symlink_separate_reads_across_flip": [
+      "old",
+      "complete"
+    ]
+  },
+  "probe_directory_removed": true
+}

@@ -1,34 +1,21 @@
 # Tracker: bounded ash modeling and native AshPost
 
-- Status: `READY`
+- Status: `IN_PROGRESS` (operator-confirmed simple scope)
 - Execution host: `forest`
 - Primary repository: `/workdir/wepppyo3`
 - Integration repository: `/workdir/wepppy`
 - Security impact: `high`; independent review required
 
 ## Progress
-
-- [x] Production OOM boundary characterized from Kubernetes, RQ, logs, and
-  persisted artifacts.
-- [x] Srivastava, Watanabe dynamic, and production-scale fixtures selected.
-- [x] Package, active ExecPlan, execution prompt, and evidence directory
-  scaffolded.
-- [ ] Verify clean Forest checkouts, exact revisions, fixture paths, models,
-  schemas, checksums, and writable disposable destinations.
-- [ ] Freeze both Python model/output/facade oracles and reproduce the OR-202
-  12 GiB failure without mutating source data.
-- [ ] Freeze the native API, multi-file transaction, and bounded scheduler
-  contracts before implementation.
-- [ ] Implement streaming Rust AshPost, tests, and py312 release refresh.
-- [ ] Integrate required native AshPost and bounded hillslope scheduling in
-  WEPPpy.
-- [ ] Pass parity, edge, atomicity, timing, memory, repeatability, and real
-  Compose RQ gates.
-- [ ] Complete broad validation and independent correctness, QA, performance,
-  and security reviews.
-- [ ] Commit/push both repositories in native-first order and verify clean
-  remotes and LFS objects.
-
+- [x] Production failure, repository revisions, fixture models/schemas and hashes recorded; source inputs remain unchanged after acceptance.
+- [x] Both Python model/output/facade oracles frozen; OR-202 Python post completed in the controlled 12 GiB baseline.
+- [x] Native API and bounded scheduler contracts frozen under the accepted individual-file writer scope.
+- [x] Streaming Rust AshPost, edge tests and canonical py312 release implemented.
+- [x] Required native AshPost and bounded hillslope scheduling integrated in WEPPpy.
+- [x] Both model and OR-202 parity, five-run small benchmarks, eight-call memory audit and real sequential Compose RQ gates pass.
+- [x] Independent correctness, QA, performance and security reviews have no unresolved medium/high finding; final release binding remains to verify.
+- [x] Full WEPPpy suite passed: 7,742 passed, 72 skipped; documentation/provenance checks pass.
+- [ ] Commit/push native-first and verify clean remote checkouts and LFS objects.
 ## Incident evidence
 
 - Production job: `8eb973ed-d7e6-4b5d-be24-b371237cea1e`.
@@ -39,6 +26,14 @@
   loads, concatenates, deep-copies, and rereads the watershed.
 
 ## Decisions
+
+- Operator-confirmed scope (2026-09-08): use the existing hillslope interchange
+  -> totalwatsed3 individual-file/aggregate-reader pattern. No new multi-file
+  transaction, all-five staging barrier, rollback/recovery system, generation
+  storage, migration, or NFS-specific mechanism. Earlier assistant proposals
+  are superseded; they are not prerequisites or review gates.
+- Fresh Python/native parity uses the same frozen inputs. Watanabe historical
+  upstream drift is recorded, not treated as an AshPost implementation failure.
 
 - Decision: fix both the producer lifetime and AshPost aggregation boundaries.
   Rationale: native post-processing must not leave unnecessary watershed-sized
@@ -53,7 +48,16 @@
   Rationale: preserve production evidence and avoid duplicating large data.
 
 ## Handoff
+Implementation and acceptance are complete: 139 installed native tests,
+98 + 17 Rust tests, both model parity fixtures, OR-202 standalone parity,
+five warm measurements per small mode/model, eight consecutive native calls,
+and both real RQ jobs pass. Full-workflow peak was 4.43 GiB under 12 GiB;
+there were no OOM events or restarts. Source hash verification found no changes
+in 1,115 OR-202 NoDb/Parquet files and 42 small-fixture records.
 
-Dispatch `prompts/execute.md` on Forest. The executing agent must keep
-`prompts/active/execplan.md` and this tracker current. No registry publication or
-openwepp.org deployment is authorized by this package.
+Native-first commit/remote verification remains active.
+See `artifacts/README.md` for evidence and `prompts/active/execplan.md` for the
+living plan. Durable decision: WEPPpy
+`docs/schemas/output-scope-contract.md#ashpost-file-production-scope`.
+No registry image publication or deployment is authorized. WEPPpy commits use
+`[skip ci]` because master pushes otherwise trigger image publication.

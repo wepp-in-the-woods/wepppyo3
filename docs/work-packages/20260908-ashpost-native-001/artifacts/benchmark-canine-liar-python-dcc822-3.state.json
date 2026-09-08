@@ -1,0 +1,22 @@
+{
+  "mode": "python",
+  "fixture": "canine-liar",
+  "label": "dcc822-3",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:22:24.645700511Z",
+    "FinishedAt": "2026-09-08T20:22:37.938557833Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 322928640,
+  "threshold_stop": false,
+  "command_exit": 0
+}

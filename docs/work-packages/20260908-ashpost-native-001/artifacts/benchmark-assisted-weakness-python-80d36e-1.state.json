@@ -1,0 +1,22 @@
+{
+  "mode": "python",
+  "fixture": "assisted-weakness",
+  "label": "80d36e-1",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:11:57.653455138Z",
+    "FinishedAt": "2026-09-08T20:12:10.91442674Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 345116672,
+  "threshold_stop": false,
+  "command_exit": 0
+}

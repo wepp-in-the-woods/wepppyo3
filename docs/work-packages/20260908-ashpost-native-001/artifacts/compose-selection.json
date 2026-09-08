@@ -1,0 +1,18 @@
+[
+  {
+    "fixture": "OR-202",
+    "wd": "/workdir/wepppyo3/target/ashpost-evidence/rq-runs/ashpost-or-202-bc4653a6c7",
+    "runid": "profile;;tmp;;ashpost-or-202-bc4653a6c7",
+    "fire_date": "8/9",
+    "white": 3.0,
+    "black": 3.0
+  },
+  {
+    "fixture": "canine-liar",
+    "wd": "/workdir/wepppyo3/target/ashpost-evidence/rq-runs/ashpost-canine-liar-bc4653a6c7",
+    "runid": "profile;;tmp;;ashpost-canine-liar-bc4653a6c7",
+    "fire_date": "8/4",
+    "white": 5.0,
+    "black": 5.0
+  }
+]

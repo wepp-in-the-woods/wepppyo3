@@ -1,0 +1,22 @@
+{
+  "mode": "python",
+  "fixture": "OR-202",
+  "label": "baseline-1",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:09:20.331474935Z",
+    "FinishedAt": "2026-09-08T20:12:28.013378006Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 9038843904,
+  "threshold_stop": false,
+  "command_exit": 0
+}

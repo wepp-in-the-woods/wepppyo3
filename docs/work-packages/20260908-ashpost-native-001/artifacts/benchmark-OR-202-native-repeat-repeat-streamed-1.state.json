@@ -1,0 +1,22 @@
+{
+  "mode": "native-repeat",
+  "fixture": "OR-202",
+  "label": "repeat-streamed-1",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:19:47.204267327Z",
+    "FinishedAt": "2026-09-08T20:22:17.765487438Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 420663296,
+  "threshold_stop": false,
+  "command_exit": 0
+}

@@ -2,12 +2,22 @@
 
 ## Status
 
-- state: ready for execution
+- state: in progress
 - date: 2026-09-08
 - execution host: `forest` via `ssh forest`
 - repositories: `/workdir/wepppyo3` and `/workdir/wepppy`
 - baseline revisions: wepppyo3 `05328ddcd0a8f91dfeae4c25f533fd69d74dd963`;
   WEPPpy `abebd09239f398af7627924c4c000ff3229a01ee`
+
+## Operator-confirmed scope
+
+The operator confirmed on 2026-09-08 that this is a memory optimization using
+the established hillslope interchange -> totalwatsed3 pattern. Write complete
+files individually using the existing writer behavior; aggregate completed
+inputs. No new multi-file transaction, all-five staging barrier, rollback or
+recovery system, generation-directory layout, migration, or NFS-specific
+publication mechanism is required. Those assistant-added proposals are
+superseded. Preserve normal failure propagation and regeneration on retry.
 
 ## Objective
 
@@ -58,6 +68,12 @@ Use the fixtures in place on Forest/HPC. Treat every source run as read-only and
 write captures and candidate outputs only under a package-owned disposable
 directory. Record source revision, configuration stem, model, input manifest,
 file sizes, row counts, schemas, and SHA-256 checksums before testing.
+
+Compare fresh unchanged-Python and native outputs on identical frozen inputs,
+including the hydrology visible at AshPost entry. Preserve historical outputs
+separately. The existing RQ workflow rebuilds totalwatsed3 after AshPost, so a
+later upstream generation need not reproduce an earlier saved post output.
+Do not change that workflow order or relax numerical tolerances.
 
 ### Srivastava single-OFE contract fixture
 
@@ -131,19 +147,21 @@ Add a narrow API to `wepppyo3.wepp_interchange`; freeze its final Python
 signature and Rust-side data contract in an artifact before implementation. It
 must:
 
-- accept a destination directory plus a bounded manifest containing each input
-  path, Topaz ID, area in hectares, and burn class;
+- accept a destination directory and ordered manifest containing input path,
+  Topaz ID, area in hectares, and burn class, plus the optional hydrology paths
+  and independent ash WEPP-ID selection needed by existing daily calculations;
 - validate that paths and metadata are one-to-one and reject duplicates,
   traversal, symlink escape, incompatible schemas, missing required columns,
   invalid IDs/classes/areas, malformed parquet, and mixed model contracts;
 - project and stream row groups or bounded record batches rather than collecting
-  all hillslope tables or all watershed days in memory;
+  watershed source tables/rows; keyed output aggregate state is allowed;
 - aggregate hillslope annual, watershed annual/daily, burn-class daily, and
   cumulative products with state bounded by the output key cardinality;
 - calculate existing return-period structures without returning full tables to
   Python;
-- stage every output in the destination filesystem, publish the complete set
-  failure-atomically, and remove temporary files on success or failure;
+- write complete parquet files individually through the existing writer pattern;
+  propagate failures normally and clean up each writer's temporary file using
+  established behavior; do not add a multi-file transaction or rollback system;
 - preserve existing schemas and Arrow metadata exactly; and
 - return compact telemetry and return-period dictionaries only.
 
@@ -173,7 +191,7 @@ manual garbage collection as the primary fix.
 - Implement and test native streaming AshPost in `wepppyo3`.
 - Integrate it as required native functionality in WEPPpy with no fallback.
 - Bound per-hillslope scheduling and promptly release inputs/results.
-- Preserve atomicity, versioning, documentation, catalog, NoDb, and RQ behavior.
+- Preserve existing file-writing, versioning, documentation, catalog, NoDb, and RQ behavior.
 - Refresh the canonical py312 native release and provenance, WEPPpy startup
   preflight, stubs, native pin, and relevant documentation.
 - Validate focused modules, the complete WEPPpy suite, and a real Forest Compose
@@ -189,6 +207,8 @@ manual garbage collection as the primary fix.
 - Changing queue topology, RQ dependency behavior, user routes, or batch retry
   policy.
 - Mutating fixture projects, the HPC batch tree, or active production jobs.
+- New multi-file transactions, rollback/recovery systems, generation-directory
+  storage, migrations, and NFS-specific publication redesign.
 - Deploying to openwepp.org. Deployment requires a later explicit request after
   workload state is checked.
 
@@ -203,7 +223,7 @@ manual garbage collection as the primary fix.
   equality.
 - Edge coverage for empty manifests, missing files/columns, null/nonfinite
   values, zero area, duplicate metadata, invalid burn classes, malformed
-  parquet, mixed schemas, atomic replacement failure, symlinks, and stale output
+  parquet, mixed schemas, ordinary write failure, symlinks, and stale output
   version removal.
 - Existing return-period dictionaries, documentation, query catalog, NoDb
   persistence, and report/UI consumers continue to work.
@@ -278,7 +298,7 @@ python3.12 -c "import wepppyo3.wepp_interchange"
 git diff --check
 
 cd /workdir/wepppy
-wctl run-pytest wepppy/nodb/mods/ash_transport/tests --maxfail=1
+wctl run-pytest tests/nodb/mods/test_ashpost_no_data.py tests/nodb/mods/test_ash_transport_run_ash.py tests/nodb/mods/test_ash_multi_year_model_alex_static.py --maxfail=1
 wctl run-pytest tests/wepp/interchange --maxfail=1
 wctl run-pytest tests/nodb --maxfail=1
 wctl run-pytest tests/rq --maxfail=1
@@ -314,18 +334,19 @@ only Cargo's test extension or a standalone benchmark.
 - OR-202 completes through the real Compose RQ path below 9 GiB with zero OOM,
   restart, abandoned job, incomplete output, or memory-growth finding.
 - A subsequent job succeeds in the same worker.
-- Atomicity, malformed input, path, schema, version, facade, documentation,
+- Existing writer behavior, malformed input, path, schema, version, facade, documentation,
   catalog, NoDb, and RQ gates pass.
 - Full validation and independent reviews have no unresolved medium/high finding.
 - Both repositories are clean, committed, pushed, and clean-checkout verified.
 
 ## Stop conditions
 
-Stop and preserve evidence if scientific or public output semantics differ,
+Stop and preserve evidence if fresh Python/native scientific or public output
+semantics differ on identical frozen inputs,
 fixture provenance cannot be verified, any source fixture would be mutated,
 candidate peak reaches 10 GiB, OR-202 OOMs or restarts, memory grows with total
 hillslopes rather than bounded in-flight/output state, native timing misses the
-gate, atomic publication can expose a partial set, a new dependency or public
+gate, successful completion leaves missing or invalid outputs, a new dependency or public
 contract change is required without approval, or remote/release provenance
 cannot be verified.
 
@@ -334,8 +355,8 @@ cannot be verified.
 - security_impact: high
 - dedicated_security_review_required: yes
 - rationale: native code will parse thousands of shared-run parquet files and
-  atomically replace a multi-file output set, while Python process scheduling
+  write individual output files, while Python process scheduling
   and shared NoDb workflow boundaries change. Review path containment, symlink
   handling, malformed parquet, allocation bounds, integer overflow, panic/error
-  translation, temporary-file permissions, atomic rollback, cancellation,
+  translation, temporary-file permissions, normal write failures, cancellation,
   worker cleanup, and failure observability.

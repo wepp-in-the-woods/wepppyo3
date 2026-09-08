@@ -1,0 +1,22 @@
+{
+  "mode": "native",
+  "fixture": "canine-liar",
+  "label": "80d36e-5",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:11:45.032805419Z",
+    "FinishedAt": "2026-09-08T20:11:57.011988159Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 243924992,
+  "threshold_stop": false,
+  "command_exit": 0
+}

@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0
+rootdir: /home/workdir/wepppyo3
+plugins: reportlog-0.4.0, libtmux-0.47.0, dash-2.9.3, cov-7.0.0, anyio-4.12.1, timeout-2.4.0
+collected 139 items
+
+tests/wepp_interchange/test_ag_fields_native_writers.py ................ [ 11%]
+........                                                                 [ 17%]
+tests/wepp_interchange/test_ashpost.py ................................  [ 40%]
+tests/wepp_interchange/test_hillslope_element_qrain_qsnow.py ...         [ 42%]
+tests/wepp_interchange/test_hillslope_soil_fixed_width.py ...            [ 44%]
+tests/wepp_interchange/test_hillslope_wat_parquet.py .                   [ 45%]
+tests/wepp_interchange/test_hillslope_watbal.py ..................       [ 58%]
+tests/wepp_interchange/test_native_parquet_writers.py .....              [ 61%]
+tests/wepp_interchange/test_segment_single_ofe_slope.py .........        [ 68%]
+tests/wepp_interchange/test_totalwatsed3.py ............................ [ 88%]
+..............                                                           [ 98%]
+tests/wepp_interchange/test_weighted_hillslope_pass.py ..                [100%]
+
+=============================== warnings summary ===============================
+../../../workdir/wepppy/.venv/lib/python3.12/site-packages/pytz/tzinfo.py:27
+  /workdir/wepppy/.venv/lib/python3.12/site-packages/pytz/tzinfo.py:27: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _epoch = datetime.utcfromtimestamp(0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 139 passed, 1 warning in 9.06s ========================

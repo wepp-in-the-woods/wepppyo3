@@ -1,0 +1,223 @@
+CRITICAL:root:Error connecting to Redis (NODB_CACHE) with pool: Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 433, in <module>
+    redis_nodb_cache_client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+CRITICAL:root:Error connecting to Redis (STATUS) with pool: Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 451, in <module>
+    redis_status_client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+CRITICAL:root:Error connecting to Redis (LOCK) with pool: Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 469, in <module>
+    redis_lock_client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+CRITICAL:root:Error connecting to Redis (LOG_LEVEL) with pool: Error 111 connecting to localhost:6379. Connection refused.
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 87, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 797, in _connect
+    raise err
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workdir/wepppy/wepppy/nodb/base.py", line 487, in <module>
+    redis_log_level_client.ping()
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 1219, in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1530, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+WARNING:matplotlib:Matplotlib created a temporary cache directory at /tmp/matplotlib-yylpsrg3 because the default path (/.config/matplotlib) is not a writable directory; it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+Error connecting to Redis: Error 111 connecting to localhost:6379. Connection refused.
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 3689 day(s); max overage 0.0485 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 1986     221              0.154361                  0.154361
+ 1986     229              0.147007                  0.147007
+ 1986     238              0.138472                  0.138472
+ 1986     239              0.137573                  0.137573
+ 1986     248              0.129232                  0.129232
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 3689 day(s); max overage 0.0485 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 1986     221              0.154361                  0.154361
+ 1986     229              0.147007                  0.147007
+ 1986     238              0.138472                  0.138472
+ 1986     239              0.137573                  0.137573
+ 1986     248              0.129232                  0.129232
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 3689 day(s); max overage 0.0485 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 1986     221              0.154361                  0.154361
+ 1986     229              0.147007                  0.147007
+ 1986     238              0.138472                  0.138472
+ 1986     239              0.137573                  0.137573
+ 1986     248              0.129232                  0.129232
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 3689 day(s); max overage 0.0485 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 1986     221              0.154361                  0.154361
+ 1986     229              0.147007                  0.147007
+ 1986     238              0.138472                  0.138472
+ 1986     239              0.137573                  0.137573
+ 1986     248              0.129232                  0.129232
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 3689 day(s); max overage 0.0485 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 1986     221              0.154361                  0.154361
+ 1986     229              0.147007                  0.147007
+ 1986     238              0.138472                  0.138472
+ 1986     239              0.137573                  0.137573
+ 1986     248              0.129232                  0.129232
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 3689 day(s); max overage 0.0485 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 1986     221              0.154361                  0.154361
+ 1986     229              0.147007                  0.147007
+ 1986     238              0.138472                  0.138472
+ 1986     239              0.137573                  0.137573
+ 1986     248              0.129232                  0.129232
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 3689 day(s); max overage 0.0485 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 1986     221              0.154361                  0.154361
+ 1986     229              0.147007                  0.147007
+ 1986     238              0.138472                  0.138472
+ 1986     239              0.137573                  0.137573
+ 1986     248              0.129232                  0.129232
+WARNING:benchmark:AshPost: corrected streamflow exceeds original on 3689 day(s); max overage 0.0485 mm. Samples:
+ year  julian  Streamflow_orig (mm)  Streamflow_ash_corr (mm)
+ 1986     221              0.154361                  0.154361
+ 1986     229              0.147007                  0.147007
+ 1986     238              0.138472                  0.138472
+ 1986     239              0.137573                  0.137573
+ 1986     248              0.129232                  0.129232
+{"mode": "native-repeat", "fixture": "OR-202", "label": "repeat-streamed-8", "wall_seconds": 501.4483166820137, "calls": [{"repetition": 1, "wall_seconds": 45.30628983897623, "before": 402239488, "after": 487002112, "stat": {"anon": "298733568", "file": "174501888", "kernel": "12591104", "kernel_stack": "1048576", "pagetables": "3813376", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "2383872", "file_writeback": "0", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "0", "active_anon": "298745856", "inactive_file": "174452736", "active_file": "0", "unevictable": "0", "slab_reclaimable": "4733808", "slab_unreclaimable": "2922096", "slab": "7655904", "workingset_refault_anon": "0", "workingset_refault_file": "0", "workingset_activate_anon": "0", "workingset_activate_file": "0", "workingset_restore_anon": "0", "workingset_restore_file": "0", "workingset_nodereclaim": "0", "pgscan": "0", "pgsteal": "0", "pgscan_kswapd": "0", "pgscan_direct": "0", "pgscan_khugepaged": "0", "pgsteal_kswapd": "0", "pgsteal_direct": "0", "pgsteal_khugepaged": "0", "pgfault": "181668", "pgmajfault": "0", "pgrefill": "0", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "452544 kB"}, {"repetition": 2, "wall_seconds": 45.32898734207265, "before": 487002112, "after": 488923136, "stat": {"anon": "299405312", "file": "176566272", "kernel": "12656640", "kernel_stack": "1048576", "pagetables": "3813376", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "12288", "file_writeback": "1126400", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "0", "active_anon": "299446272", "inactive_file": "176517120", "active_file": "0", "unevictable": "0", "slab_reclaimable": "4803840", "slab_unreclaimable": "2921832", "slab": "7725672", "workingset_refault_anon": "0", "workingset_refault_file": "0", "workingset_activate_anon": "0", "workingset_activate_file": "0", "workingset_restore_anon": "0", "workingset_restore_file": "0", "workingset_nodereclaim": "0", "pgscan": "0", "pgsteal": "0", "pgscan_kswapd": "0", "pgscan_direct": "0", "pgscan_khugepaged": "0", "pgsteal_kswapd": "0", "pgsteal_direct": "0", "pgsteal_khugepaged": "0", "pgfault": "207029", "pgmajfault": "0", "pgrefill": "0", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "452544 kB"}, {"repetition": 3, "wall_seconds": 44.83421727095265, "before": 488923136, "after": 500375552, "stat": {"anon": "308527104", "file": "178601984", "kernel": "12734464", "kernel_stack": "1048576", "pagetables": "3829760", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "151552", "file_writeback": "12288", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "0", "active_anon": "308568064", "inactive_file": "178552832", "active_file": "0", "unevictable": "0", "slab_reclaimable": "4865704", "slab_unreclaimable": "2922264", "slab": "7787968", "workingset_refault_anon": "0", "workingset_refault_file": "0", "workingset_activate_anon": "0", "workingset_activate_file": "0", "workingset_restore_anon": "0", "workingset_restore_file": "0", "workingset_nodereclaim": "0", "pgscan": "0", "pgsteal": "0", "pgscan_kswapd": "0", "pgscan_direct": "0", "pgscan_khugepaged": "0", "pgsteal_kswapd": "0", "pgsteal_direct": "0", "pgsteal_khugepaged": "0", "pgfault": "223498", "pgmajfault": "0", "pgrefill": "0", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "454608 kB"}, {"repetition": 4, "wall_seconds": 45.98701428901404, "before": 500371456, "after": 508989440, "stat": {"anon": "315060224", "file": "180690944", "kernel": "12808192", "kernel_stack": "1048576", "pagetables": "3842048", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "45056", "file_writeback": "12288", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "0", "active_anon": "315101184", "inactive_file": "180649984", "active_file": "0", "unevictable": "0", "slab_reclaimable": "4929336", "slab_unreclaimable": "2922320", "slab": "7851656", "workingset_refault_anon": "0", "workingset_refault_file": "0", "workingset_activate_anon": "0", "workingset_activate_file": "0", "workingset_restore_anon": "0", "workingset_restore_file": "0", "workingset_nodereclaim": "0", "pgscan": "0", "pgsteal": "0", "pgscan_kswapd": "0", "pgscan_direct": "0", "pgscan_khugepaged": "0", "pgsteal_kswapd": "0", "pgsteal_direct": "0", "pgsteal_khugepaged": "0", "pgfault": "231771", "pgmajfault": "0", "pgrefill": "0", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "460984 kB"}, {"repetition": 5, "wall_seconds": 45.15903104201425, "before": 508989440, "after": 529436672, "stat": {"anon": "333340672", "file": "182759424", "kernel": "12910592", "kernel_stack": "1048576", "pagetables": "3878912", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "147456", "file_writeback": "581632", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "0", "active_anon": "333381632", "inactive_file": "182718464", "active_file": "0", "unevictable": "0", "slab_reclaimable": "4991640", "slab_unreclaimable": "2922528", "slab": "7914168", "workingset_refault_anon": "0", "workingset_refault_file": "0", "workingset_activate_anon": "0", "workingset_activate_file": "0", "workingset_restore_anon": "0", "workingset_restore_file": "0", "workingset_nodereclaim": "0", "pgscan": "0", "pgsteal": "0", "pgscan_kswapd": "0", "pgscan_direct": "0", "pgscan_khugepaged": "0", "pgsteal_kswapd": "0", "pgsteal_direct": "0", "pgsteal_khugepaged": "0", "pgfault": "238181", "pgmajfault": "0", "pgrefill": "0", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "478836 kB"}, {"repetition": 6, "wall_seconds": 44.99340505700093, "before": 529436672, "after": 507977728, "stat": {"anon": "309792768", "file": "184823808", "kernel": "12926976", "kernel_stack": "1048576", "pagetables": "3833856", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "28672", "file_writeback": "569344", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "0", "active_anon": "309833728", "inactive_file": "184782848", "active_file": "0", "unevictable": "0", "slab_reclaimable": "5054600", "slab_unreclaimable": "2922320", "slab": "7976920", "workingset_refault_anon": "0", "workingset_refault_file": "0", "workingset_activate_anon": "0", "workingset_activate_file": "0", "workingset_restore_anon": "0", "workingset_restore_file": "0", "workingset_nodereclaim": "0", "pgscan": "0", "pgsteal": "0", "pgscan_kswapd": "0", "pgscan_direct": "0", "pgscan_khugepaged": "0", "pgsteal_kswapd": "0", "pgsteal_direct": "0", "pgsteal_khugepaged": "0", "pgfault": "264519", "pgmajfault": "0", "pgrefill": "0", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "455840 kB"}, {"repetition": 7, "wall_seconds": 62.810064033954404, "before": 507977728, "after": 592748544, "stat": {"anon": "313331712", "file": "265961472", "kernel": "13004800", "kernel_stack": "1048576", "pagetables": "3837952", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "12288", "file_writeback": "1355776", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "0", "active_anon": "313372672", "inactive_file": "265076736", "active_file": "843776", "unevictable": "0", "slab_reclaimable": "5128024", "slab_unreclaimable": "2922264", "slab": "8050288", "workingset_refault_anon": "0", "workingset_refault_file": "0", "workingset_activate_anon": "0", "workingset_activate_file": "0", "workingset_restore_anon": "0", "workingset_restore_file": "0", "workingset_nodereclaim": "0", "pgscan": "21760", "pgsteal": "21760", "pgscan_kswapd": "21632", "pgscan_direct": "64", "pgscan_khugepaged": "64", "pgsteal_kswapd": "21632", "pgsteal_direct": "64", "pgsteal_khugepaged": "64", "pgfault": "272721", "pgmajfault": "0", "pgrefill": "206", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "459296 kB"}, {"repetition": 8, "wall_seconds": 167.02359278104268, "before": 592748544, "after": 809869312, "stat": {"anon": "333647872", "file": "466006016", "kernel": "8900608", "kernel_stack": "1048576", "pagetables": "3878912", "sec_pagetables": "0", "percpu": "18600", "sock": "0", "vmalloc": "12288", "shmem": "40960", "zswap": "0", "zswapped": "0", "file_mapped": "40960", "file_dirty": "446464", "file_writeback": "32768", "swapcached": "0", "anon_thp": "0", "file_thp": "0", "shmem_thp": "0", "inactive_anon": "45056", "active_anon": "333643776", "inactive_file": "465911808", "active_file": "8192", "unevictable": "0", "slab_reclaimable": "980512", "slab_unreclaimable": "2922264", "slab": "3902776", "workingset_refault_anon": "0", "workingset_refault_file": "51460", "workingset_activate_anon": "0", "workingset_activate_file": "51460", "workingset_restore_anon": "0", "workingset_restore_file": "2738", "workingset_nodereclaim": "0", "pgscan": "145344", "pgsteal": "145344", "pgscan_kswapd": "144960", "pgscan_direct": "192", "pgscan_khugepaged": "192", "pgsteal_kswapd": "144960", "pgsteal_direct": "192", "pgsteal_khugepaged": "192", "pgfault": "278160", "pgmajfault": "0", "pgrefill": "5664", "pgactivate": "0", "pgdeactivate": "0", "pglazyfree": "0", "pglazyfreed": "0", "zswpin": "0", "zswpout": "0", "zswpwb": "0", "thp_fault_alloc": "0", "thp_collapse_alloc": "0", "thp_swpout": "0", "thp_swpout_fallback": "0"}, "rss": "479136 kB"}], "user_seconds": 359.45971799999995, "system_seconds": 6.275298000000001, "precall_memory": 401190912, "postcall_memory": 809869312, "sampled_peak": 809869312, "sampled_increment": 408678400, "memory_peak": 809869312, "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n", "memory_max": "12884901888\n", "samples": 344151, "uid": 1000, "gid": 993, "cpu_affinity": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "cache": "streamed source bytes before timed call; fresh container/process per sample", "sampler": "separate process, 1ms target; sampled peaks are lower bounds", "timing_scope": "Python discovery and five-table production plus compact mappings; no docs/facades"}

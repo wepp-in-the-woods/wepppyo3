@@ -1,0 +1,22 @@
+{
+  "mode": "native",
+  "fixture": "assisted-weakness",
+  "label": "dcc822-4",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:25:13.529717226Z",
+    "FinishedAt": "2026-09-08T20:25:25.488004258Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 240889856,
+  "threshold_stop": false,
+  "command_exit": 0
+}

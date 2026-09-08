@@ -1,0 +1,22 @@
+{
+  "mode": "native",
+  "fixture": "assisted-weakness",
+  "label": "80d36e-2",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-08T20:12:37.280637105Z",
+    "FinishedAt": "2026-09-08T20:12:48.181473608Z"
+  },
+  "restarts": 0,
+  "external_observed_peak": 245428224,
+  "threshold_stop": false,
+  "command_exit": 0
+}

@@ -858,3 +858,26 @@ Source base: `21989c44fe941399f5e4f2d323614463e50809d5` plus this package's
 tracked source changes. See the [release manifest](work-packages/20260908-hillslope-watbal-native-001/artifacts/release-integration-manifest.json)
 for source hashes and publication status. Image publication and deployment are
 outside this package's authorization.
+
+## Targeted AshPost refresh (2026-09-08)
+`confirmed`: the canonical py312 interchange extension exports
+`ashpost_to_parquet`. Built with Python 3.12.3, Rust/Cargo 1.92.0 and
+`PYO3_PYTHON=/usr/bin/python3.12 cargo build -p wepp_interchange_rust --release`,
+then copied to a sibling temporary file and renamed into the release tree.
+WEPPpy's required-symbol inventory and startup hash pin match.
+
+Shared-object SHA-256:
+`c6b746bb77be39d38321a365df1762fd8d88ce0522f3a51215d5bb8bfdddf248`.
+Source base: `8fc2afa91775825a8f6901d63bc7a0d957bdf146` plus this package's
+source changes. The [release manifest](work-packages/20260908-ashpost-native-001/artifacts/release-integration-manifest.json)
+binds source and package hashes, toolchain, tested image and final publication
+revisions. NumPy's scalar indirect sort semantics are ported for recurrence tie
+parity; its BSD notice is included in the crate and deployable Python package.
+
+The installed interchange suite passed 139 tests, Rust passed 98 library and
+17 writer integration tests, and real Compose RQ acceptance completed both jobs
+at 4.43 GiB peak with no OOM or restart. See the
+[tracker](work-packages/20260908-ashpost-native-001/tracker.md) for final broad-suite
+and remote-verification disposition. Registry image publication and deployment
+remain outside this package; WEPPpy commits use `[skip ci]` to prevent the
+master-push image workflow from publishing implicitly.

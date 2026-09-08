@@ -1,0 +1,76 @@
+[
+  {
+    "oracle": "/home/workdir/wepppyo3/tests/fixtures/totalwatsed3/incommensurate-stickball/totalwatsed3.parquet",
+    "actual": "/home/workdir/wepppyo3/target/totalwatsed3-evidence/incommensurate-stickball-ge44_29x/totalwatsed3.parquet",
+    "oracle_rows": 7670,
+    "actual_rows": 7670,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true,
+    "run": "incommensurate-stickball",
+    "output_sha256": "10dac7cc06611ff21b879c8d2fe24d349e3e2b69404146606a5e34d7660e9975",
+    "oracle_sha256": "40ce2dac5edd5fe2fae323df47e033e25f578c745f46eb3b567287b700f22342"
+  },
+  {
+    "oracle": "/home/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+    "actual": "/home/workdir/wepppyo3/target/totalwatsed3-evidence/throbbing-sylvan-wjz26wjo/totalwatsed3.parquet",
+    "oracle_rows": 16071,
+    "actual_rows": 16071,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true,
+    "run": "throbbing-sylvan",
+    "output_sha256": "441f9eaa580d9e5b97d9f70e65a654967da59346d2b882b7a38a40f37dbdd6b9",
+    "oracle_sha256": "261b4180bfe6839afab9b712f1235bc11af1e4afdbf3fd26a7b8dfca2069e2fa"
+  },
+  {
+    "oracle": "/workdir/wepppy/tests/wepp/interchange/fixtures/decimal-pleasing/wepp/output/interchange/totalwatsed3.parquet",
+    "actual": "/home/workdir/wepppyo3/target/totalwatsed3-evidence/decimal-pleasing-xg9lxpaf/totalwatsed3.parquet",
+    "oracle_rows": 4018,
+    "actual_rows": 4018,
+    "schema_equal": false,
+    "column_order_equal": false,
+    "missing_from_oracle": [
+      "sed_del",
+      "SoilWaterTotal",
+      "ProfileDepth",
+      "ProfilePorosityCap",
+      "ProfileFCStore",
+      "ProfileWPStore",
+      "InterceptionStorage",
+      "TSMF",
+      "QRain",
+      "QSnow",
+      "Interception"
+    ],
+    "missing_from_actual": [],
+    "differences": [
+      {
+        "column": "Runoff",
+        "mismatches": 703,
+        "max_abs": 0.10679043695848467,
+        "first_row": 66,
+        "actual": 0.0,
+        "oracle": 0.007150628735222308
+      },
+      {
+        "column": "Streamflow",
+        "mismatches": 703,
+        "max_abs": 0.10679043695848467,
+        "first_row": 66,
+        "actual": 1.2871254125440612,
+        "oracle": 1.2942760412792838
+      }
+    ],
+    "passed": false,
+    "run": "decimal-pleasing",
+    "output_sha256": "e7c6e2f0a37093a59540dff0b67bbb44a25f9abdea6e145a6bd65d4c37809550",
+    "oracle_sha256": "410c40c7de8c2ab50799a416b4655a6b3838ed1d65fe686a382cb8c83613c6f5"
+  }
+]

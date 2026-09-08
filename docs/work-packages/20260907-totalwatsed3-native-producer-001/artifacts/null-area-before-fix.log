@@ -1,0 +1,48 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_frozen_contract[null_area] ________________________
+
+native = <built-in function totalwatsed3_to_parquet>
+tmp_path = PosixPath('/tmp/pytest-of-roger/pytest-2/test_frozen_contract_null_area0')
+case = 'null_area'
+
+    @pytest.mark.parametrize('case', CASES)
+    def test_frozen_contract(native, tmp_path, case):
+        source = FIXTURES / 'contracts' / case
+        options = json.loads((source / 'case.json').read_text())
+        options['ash_inputs'] = [(str(source / path), *metadata) for path, *metadata in options['ash_inputs']]
+        out = tmp_path / 'totalwatsed3.parquet'
+        summary = produce(native, source, out, **options)
+>       assert_parity(source / 'totalwatsed3.parquet', out)
+
+tests/wepp_interchange/test_totalwatsed3.py:63:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/wepp_interchange/test_totalwatsed3.py:39: in assert_parity
+    np.testing.assert_array_equal(a.is_null().to_numpy(), o.is_null().to_numpy(), err_msg=name)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = (<built-in function eq>, array([ True,  True,  True]), array([False, False, False]))
+kwds = {'err_msg': 'TSMF', 'header': 'Arrays are not equal', 'strict': False, 'verbose': True}
+
+    @wraps(func)
+    def inner(*args, **kwds):
+        with self._recreate_cm():
+>           return func(*args, **kwds)
+                   ^^^^^^^^^^^^^^^^^^^
+E           AssertionError:
+E           Arrays are not equal
+E           TSMF
+E           Mismatched elements: 3 / 3 (100%)
+E            x: array([ True,  True,  True])
+E            y: array([False, False, False])
+
+/usr/lib/python3.12/contextlib.py:81: AssertionError
+=============================== warnings summary ===============================
+tests/wepp_interchange/test_totalwatsed3.py::test_frozen_contract[null_area]
+  /workdir/wepppy/.venv/lib/python3.12/site-packages/pytz/tzinfo.py:27: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _epoch = datetime.utcfromtimestamp(0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/wepp_interchange/test_totalwatsed3.py::test_frozen_contract[null_area]
+1 failed, 28 deselected, 1 warning in 0.81s

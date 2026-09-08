@@ -1,0 +1,12 @@
+73 0.755 441098240
+146 1.214 453644288
+293 2.091 441475072
+586 3.869 470810624
+2344 13.675 559550464
+5860 33.533 974950400
+PEAK_RATIO 2.070790993875278
+Traceback (most recent call last):
+  File "/home/workdir/wepppyo3/target/totalwatsed3-evidence/run_review_scales.py", line 15, in <module>
+    assert ratio<=1.5, 'package scaling stop condition'
+           ^^^^^^^^^^
+AssertionError: package scaling stop condition

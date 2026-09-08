@@ -817,3 +817,27 @@ Recommended fields:
 
 Until that exists, claims about binary provenance should be labeled as
 `inference` or `hypothesis` unless supported by separate deployment records.
+
+## Targeted totalwatsed3 release refresh (2026-09-07)
+
+`confirmed`: the wepp_interchange shared object was rebuilt with Python 3.12.3
+and Rust 1.92.0, then copied to a sibling staging path and atomically renamed into
+`release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so`.
+The release __init__.py exports totalwatsed3_to_parquet. The paired WEPPpy startup
+hash and required API inventory were updated together.
+
+```sh
+PYO3_PYTHON=/usr/bin/python3.12 cargo build --release -p wepp_interchange_rust
+```
+
+SHA-256: `bf21f5e5aea9a7c690b7f48926d74f8bb412269d4127b74a166a1e0ef598a354`.
+Source base is 3123547e677eb113dd64c43024eda20a06505796 plus the
+work-package changes recorded in this release commit. Exact source hashes, image identity and build details are
+in [native-build.json](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/native-build.json);
+release/facade hashes are in [release-integration-manifest.json](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/release-integration-manifest.json).
+
+Installed release tests pass 89 cases. The real Forest Compose startup verified
+the hash and all required APIs before running the native-only RQ stage under
+12 GiB. See [workflow evidence](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/forest-compose-integration.md).
+This records the local paired release build; publication and production rollout
+are not claimed.

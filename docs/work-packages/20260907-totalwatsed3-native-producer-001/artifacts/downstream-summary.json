@@ -1,0 +1,34 @@
+[
+  {
+    "suite": "tests/wepp/reports",
+    "exit_code": 0
+  },
+  {
+    "suite": "tests/rq/test_wepp_rq_stage_post.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "tests/rq/test_batch_rq_retry_selection.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "tests/rq/test_culvert_rq_nodir_guards.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "tests/nodb/test_batch_runner_watar.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "tests/tools/test_migrations_parquet_backfill.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "tests/query_engine/test_activate.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "tests/query_engine/test_core.py",
+    "exit_code": 0
+  }
+]

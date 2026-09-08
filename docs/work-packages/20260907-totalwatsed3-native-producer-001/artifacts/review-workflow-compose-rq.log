@@ -1,0 +1,29 @@
+INFO:wctl2:docker compose run --no-deps --name totalwatsed3-review-acceptance rq-worker /opt/venv/bin/python /workdir/wepppyo3/target/totalwatsed3-evidence/review-workflow/totalwatsed3_acceptance.py
+time="2026-09-07T22:37:26-07:00" level=warning msg="Found orphan containers (wepppy-f-esri) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container totalwatsed3-review-acceptance Creating
+ Container totalwatsed3-review-acceptance Created
+>>> WEPPpyo3 interchange import OK: /workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+>>> WEPPpyo3 interchange SHA256: bf21f5e5aea9a7c690b7f48926d74f8bb412269d4127b74a166a1e0ef598a354
+[2026-09-08 05:37:43,495] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+05:37:45 Worker rq:worker:totalwatsed3-acceptance-0722900b500a started with PID 7, version 1.16.2
+05:37:45 Subscribing to channel rq:pubsub:totalwatsed3-acceptance-0722900b500a
+05:37:45 *** Listening on totalwatsed3-acceptance-0722900b500a...
+05:37:45 Cleaning registries for queue: totalwatsed3-acceptance-0722900b500a
+05:37:45 totalwatsed3-acceptance-0722900b500a: wepppy.rq.wepp_rq_stage_post._build_totalwatsed3_rq('profile;;tmp;;totalwatsed3-5860-0722900b500a') (552862d0-d3ac-449c-a0f6-ea3addc0fa3b)
+Starting job 552862d0-d3ac-449c-a0f6-ea3addc0fa3b
+Finished job 552862d0-d3ac-449c-a0f6-ea3addc0fa3b
+05:38:22 totalwatsed3-acceptance-0722900b500a: Job OK (552862d0-d3ac-449c-a0f6-ea3addc0fa3b)
+05:38:22 Result is kept for 3600 seconds
+05:38:22 totalwatsed3-acceptance-0722900b500a: totalwatsed3_acceptance.downstream('profile;;tmp;;totalwatsed3-5860-0722900b500a') (14076b27-3118-4593-b830-c082dd6870ac)
+Starting job 14076b27-3118-4593-b830-c082dd6870ac
+Finished job 14076b27-3118-4593-b830-c082dd6870ac
+05:38:22 totalwatsed3-acceptance-0722900b500a: Job OK (14076b27-3118-4593-b830-c082dd6870ac)
+05:38:22 Result is kept for 3600 seconds
+05:38:22 totalwatsed3-acceptance-0722900b500a: wepppy.rq.wepp_rq_stage_post._build_totalwatsed3_rq('profile;;tmp;;totalwatsed3-586-0722900b500a') (bf761902-3538-4247-bec8-470154cc4f50)
+Starting job bf761902-3538-4247-bec8-470154cc4f50
+Finished job bf761902-3538-4247-bec8-470154cc4f50
+05:38:27 totalwatsed3-acceptance-0722900b500a: Job OK (bf761902-3538-4247-bec8-470154cc4f50)
+05:38:27 Result is kept for 3600 seconds
+05:38:27 Worker rq:worker:totalwatsed3-acceptance-0722900b500a: done, quitting
+05:38:27 Unsubscribing from channel rq:pubsub:totalwatsed3-acceptance-0722900b500a
+COMPOSE_RQ_ACCEPTANCE {"queue": "totalwatsed3-acceptance-0722900b500a", "worker": "totalwatsed3-acceptance-0722900b500a", "jobs": [{"id": "552862d0-d3ac-449c-a0f6-ea3addc0fa3b", "status": "finished", "exception": null}, {"id": "14076b27-3118-4593-b830-c082dd6870ac", "status": "finished", "exception": null}, {"id": "bf761902-3538-4247-bec8-470154cc4f50", "status": "finished", "exception": null}], "runids": ["profile;;tmp;;totalwatsed3-5860-0722900b500a", "profile;;tmp;;totalwatsed3-586-0722900b500a"], "run_paths": ["/workdir/wepppyo3/target/totalwatsed3-evidence/review-workflow/rq-runs/totalwatsed3-5860-0722900b500a", "/workdir/wepppyo3/target/totalwatsed3-evidence/review-workflow/rq-runs/totalwatsed3-586-0722900b500a"], "uid": 1000, "gid": 993, "groups": [993], "umask": "0o22", "cpu_affinity": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "WEPPPY_NCPU": "12", "memory_max": "12884901888", "memory_peak_bytes": 903184384, "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"}

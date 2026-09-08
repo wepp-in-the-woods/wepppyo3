@@ -1,0 +1,47 @@
+[
+  {
+    "path": "compact-cargo-test.log",
+    "raw_sha256": "8f20c09c573d235d64295b6d92151c9e4ecf25bbcbc190557e61c17e4af2f349",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "compact-repeat.log",
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "compose-rq.log",
+    "raw_sha256": "d85a622a9311e657ac535e17c5c4e1446a7c558b1a313efc0c8d59424b9dc908",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "before-preview-fix-compose-rq.log",
+    "raw_sha256": "46299b41feca39e6cef854b8de700f9632d56bc8154b50355e6e93575c14323a",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "vulture.log",
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "cargo-test.log",
+    "raw_sha256": "8f20c09c573d235d64295b6d92151c9e4ecf25bbcbc190557e61c17e4af2f349",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "generated-interchange-readme.md",
+    "raw_sha256": "f753467fc3b1a6581b613b42b05cf6957d0a38762d091389c3737739206b0ff5",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "review-rust-tests.log",
+    "raw_sha256": "33df5ac08119daae5daa8be1c374c3221aad260e7bf99e34cf4052df58a2eb22",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  },
+  {
+    "path": "review-workflow-compose-rq.log",
+    "raw_sha256": "577602634cee18d0ae8a2842baeaa5cf9a5fb0478138bdb11cbffc069a9ae157",
+    "normalization": "trim trailing whitespace and extra EOF blank lines; raw capture retained under target/"
+  }
+]

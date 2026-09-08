@@ -56,3 +56,15 @@ claims easier to publish and maintain.
 - Use evidence labels for every performance or adoption claim.
 - Do not promote a module to `production-critical` solely because it has a shared object; require WEPPpy callsite evidence and a clear contract.
 - Record fallback behavior explicitly. Fallback can be intentional, but it must not be described as the same posture as a required production path.
+
+## Native totalwatsed3 release and WEPPpy integration
+
+`confirmed`: `totalwatsed3_to_parquet` is exported by the py312 release and
+required by WEPPpy. The facade preserves paths, options, metadata and output
+schema while Rust owns table computation and atomic publication. Installed
+release tests pass 89 cases; the public facade matches 25 frozen oracles.
+The final controlled host-prewarm 5,860/586 peak ratio is 1.43983; a mixed-cache
+2.07079 observation is retained separately. The final real Forest Compose RQ
+workflow, including bounded README previews and a subsequent job, peaks at
+861.34 MiB. Independent correctness, QA and security reviews pass. Repository
+and image publication are proceeding; no production rollout is claimed. See the [disposition](work-packages/20260907-totalwatsed3-native-producer-001/artifacts/final-disposition.md).

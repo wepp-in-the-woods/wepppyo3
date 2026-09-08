@@ -1,0 +1,637 @@
+[
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/absent_soil_element/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/absent_soil_element/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/absent_soil_element/totalwatsed3.parquet",
+    "bytes": 60063,
+    "sha256": "2ef3c5b43785d6dac4f3bbaa6f4aa33145d18a60d5ed7c8edb8a394821b11882"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_days/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_days/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_days/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_days/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_days/ash/H1_ash.parquet",
+    "bytes": 2491,
+    "sha256": "f8d671a6dcc2d76bca3171ed38e38bd91da87742a5cbf3e12bc60e1a0192a7f5"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_days/ash/H2_ash.parquet",
+    "bytes": 2491,
+    "sha256": "f8d671a6dcc2d76bca3171ed38e38bd91da87742a5cbf3e12bc60e1a0192a7f5"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_days/totalwatsed3.parquet",
+    "bytes": 60597,
+    "sha256": "3b24471cf964cbff2ab29eb35b3e97cb012fa38cebc678c39a93b345d698a1e5"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_year0/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_year0/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_year0/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_year0/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_year0/ash/H1_ash.parquet",
+    "bytes": 3493,
+    "sha256": "20ee580e652317c4fdf9c0a8ebc9279f2657f054a32154325e950940797180bc"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_year0/ash/H2_ash.parquet",
+    "bytes": 3493,
+    "sha256": "20ee580e652317c4fdf9c0a8ebc9279f2657f054a32154325e950940797180bc"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_nan_year0/totalwatsed3.parquet",
+    "bytes": 60597,
+    "sha256": "3b24471cf964cbff2ab29eb35b3e97cb012fa38cebc678c39a93b345d698a1e5"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_no_year0/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_no_year0/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_no_year0/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_no_year0/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_no_year0/ash/H1_ash.parquet",
+    "bytes": 2458,
+    "sha256": "8d688aeafbd4782f689b9506dadba48a402cc0afbfb9f1c96f10d530d745d738"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_no_year0/ash/H2_ash.parquet",
+    "bytes": 2458,
+    "sha256": "8d688aeafbd4782f689b9506dadba48a402cc0afbfb9f1c96f10d530d745d738"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_no_year0/totalwatsed3.parquet",
+    "bytes": 60645,
+    "sha256": "f4000e5587349cf2dd3d0077fb36652d94c71f39d0bc4d754ca300c6e7afd1f8"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_types/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_types/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_types/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_types/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_types/ash/H1_ash.parquet",
+    "bytes": 2709,
+    "sha256": "cd9785f59e07505f95e1c2e52ccb95547acd3436fbecaaa9a2c21d645e9747f3"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_types/ash/H2_ash.parquet",
+    "bytes": 2709,
+    "sha256": "cd9785f59e07505f95e1c2e52ccb95547acd3436fbecaaa9a2c21d645e9747f3"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/ash_types/totalwatsed3.parquet",
+    "bytes": 60597,
+    "sha256": "3b24471cf964cbff2ab29eb35b3e97cb012fa38cebc678c39a93b345d698a1e5"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/duplicate_joins/H.element.parquet",
+    "bytes": 4243,
+    "sha256": "84b017888f4d4af9da6486c76b3c1d000020f9b1271c66a11522b5da2738935d"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/duplicate_joins/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/duplicate_joins/H.soil.parquet",
+    "bytes": 5842,
+    "sha256": "72a6c43b580c0c95867e7bbe1346adc25f08319780249ceb3071e4b41855edfb"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/duplicate_joins/H.wat.parquet",
+    "bytes": 22124,
+    "sha256": "5c47c182a52f6b6c6d967d7b13df6feb514c804cdc81e84f8e8a0f93429ea438"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/duplicate_joins/totalwatsed3.parquet",
+    "bytes": 60428,
+    "sha256": "cc1716a69dcaa9eb05ec5caea3ec6f11db3186766fca21a44efccbbb0200a3e3"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_inputs/H.element.parquet",
+    "bytes": 1516,
+    "sha256": "dee147320aaf9883b34e9dd71b94ae6737a0f2c73fbec10e7386d411d56a0281"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_inputs/H.pass.parquet",
+    "bytes": 2552,
+    "sha256": "4c34ee6efb6c336945107280efaecd3c53eed693457929ed7ded4cf6ea7fdf73"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_inputs/H.soil.parquet",
+    "bytes": 1542,
+    "sha256": "104e3ec796e3591a09b70c0c186a5d1294646eb78450d2bc5d1eaec74080bb4a"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_inputs/H.wat.parquet",
+    "bytes": 4838,
+    "sha256": "4d55dbc0fd91bb7f211d206098f573b7bd133207dc64b3a38e18f1bc85c13bb1"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_inputs/totalwatsed3.parquet",
+    "bytes": 25327,
+    "sha256": "3f018442ac43bfd5175eefa52b0f2dea5572badd2c6050b271748e6aab001460"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_pass/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_pass/H.pass.parquet",
+    "bytes": 2552,
+    "sha256": "4c34ee6efb6c336945107280efaecd3c53eed693457929ed7ded4cf6ea7fdf73"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_pass/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_pass/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_pass/totalwatsed3.parquet",
+    "bytes": 60186,
+    "sha256": "5260aafa77e54886c0d7e974541c9812e40922081079d587fd076c7870bfc642"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_subset/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_subset/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_subset/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_subset/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/empty_subset/totalwatsed3.parquet",
+    "bytes": 25327,
+    "sha256": "3f018442ac43bfd5175eefa52b0f2dea5572badd2c6050b271748e6aab001460"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/infinite_interception/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/infinite_interception/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/infinite_interception/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/infinite_interception/H.wat.parquet",
+    "bytes": 22042,
+    "sha256": "7c1a6178480b779683f7864828b860e57908066b3d57db37f91e29f175204f46"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/infinite_interception/totalwatsed3.parquet",
+    "bytes": 60319,
+    "sha256": "f0e58cdf46b5682dcecd9f5e761fcf85d11156def2560592b8e8f19e47aa4fc0"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/legacy/H.element.parquet",
+    "bytes": 4218,
+    "sha256": "37749f93ae8fcb610fd345e085d7e8144616fa6ae7cd5fcb8e0123fc4242205d"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/legacy/H.pass.parquet",
+    "bytes": 7729,
+    "sha256": "9114b86e56141d137308ff07d7d5ba81c9a3ded60f72fa58aae4f9b4ce8358d9"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/legacy/H.soil.parquet",
+    "bytes": 5750,
+    "sha256": "53c2e4fcb1d464673f728771048964bf2fdc9962832c114f2437fd72264c7445"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/legacy/H.wat.parquet",
+    "bytes": 22026,
+    "sha256": "c618523b379653a3adb42925030343e49979a0aaf478fdc4e65ac8e587499d1d"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/legacy/totalwatsed3.parquet",
+    "bytes": 60306,
+    "sha256": "46794f016bdaa69743fec8264460a0dff24d45956653ed473893b3a11ef09b3d"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/mixed_groups/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "12cc4edd68549887fb64ff5c90c2c66c5b7bbad3e112924031a6f0362c989238"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/mixed_groups/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/mixed_groups/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "d1074a377ed83f3ff175b6642b032de8dadf84ef7bb3c38acfed26d6e1da4ba3"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/mixed_groups/H.wat.parquet",
+    "bytes": 22084,
+    "sha256": "8ba78c0523404dc513f806000048ba3d033e0ebecdbe001c0442ae0682c9ed3f"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/mixed_groups/totalwatsed3.parquet",
+    "bytes": 60386,
+    "sha256": "69716c4ac672558a0faafb72da2ea7f22a9da002c948c128033317e27f42cb55"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/no_ofe/H.element.parquet",
+    "bytes": 3801,
+    "sha256": "3ffda242217aa5e67183e3512630cc386b8da6c23afc5bc5c8d89194c09f2ccb"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/no_ofe/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/no_ofe/H.soil.parquet",
+    "bytes": 5227,
+    "sha256": "5dc483dcd25e13865bd567339db73be4918adf5fe312ca4063a4d6ab6bd619de"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/no_ofe/H.wat.parquet",
+    "bytes": 21497,
+    "sha256": "451eb0e7450b8cb995dfcbaae19ecfd1fb575af1cf12acad41c08ce12b65237b"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/no_ofe/totalwatsed3.parquet",
+    "bytes": 60063,
+    "sha256": "aa2a17b94d2e6abc9c5cf17405d5a4932aaf448f26734616aa7bf1a77cd9ac27"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/normal/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/normal/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/normal/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/normal/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/normal/totalwatsed3.parquet",
+    "bytes": 60306,
+    "sha256": "46794f016bdaa69743fec8264460a0dff24d45956653ed473893b3a11ef09b3d"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_area/H.element.parquet",
+    "bytes": 3291,
+    "sha256": "fa73b91af21daae07b2ee43eb78eb14055bd99c4f752d6e76743b49cde912c0d"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_area/H.pass.parquet",
+    "bytes": 6025,
+    "sha256": "4cddb1f06e7a4e79f7bf987c7f023eafe5e6431f73004e2f96b527284b5fdcaa"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_area/H.soil.parquet",
+    "bytes": 3300,
+    "sha256": "b7baa5fa76953d55872cf550871b1aa2021f0324b0bd16b01dcfdf4b857d9ee0"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_area/H.wat.parquet",
+    "bytes": 12057,
+    "sha256": "83191bf650e5f0e8e06de30fe659006fd61f00632e73b2b9f9af60f58caac734"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_area/totalwatsed3.parquet",
+    "bytes": 60306,
+    "sha256": "3f2fbbd76f66fac0e798e70679badfa661a907a8991b9612b39d354161f41098"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_lateral/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_lateral/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_lateral/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_lateral/H.wat.parquet",
+    "bytes": 21782,
+    "sha256": "2317fe5fef93efbaf0e8d5a2e9ad13f075e26b887ab6467b4737b1c8e9d444c6"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_lateral/totalwatsed3.parquet",
+    "bytes": 60307,
+    "sha256": "db9e78416eaf930c527209d2f69027118b09674bf1a8b3e2f79615bad74301b0"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_pass_class/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_pass_class/H.pass.parquet",
+    "bytes": 7589,
+    "sha256": "22c74f27d82f4a50a52524a90141cef9ea82875258c082261117bbcfc86591a6"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_pass_class/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_pass_class/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_pass_class/totalwatsed3.parquet",
+    "bytes": 60277,
+    "sha256": "32ff788fc88fcabdb4049ceb61d31e2415dbaeab64459262aa684bf70931ce5f"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_single_ofe_lateral/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_single_ofe_lateral/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_single_ofe_lateral/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_single_ofe_lateral/H.wat.parquet",
+    "bytes": 21770,
+    "sha256": "c9bd1b1551d19b0d41b3bef82a28acca56a194ff3425d04c382be652ea24c99d"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_single_ofe_lateral/totalwatsed3.parquet",
+    "bytes": 59806,
+    "sha256": "a7159485e0040ff06b3228736cec31f06067fe5822144920405a33e4c2587073"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_soil_element/H.element.parquet",
+    "bytes": 3851,
+    "sha256": "508036a62d5f08f485818a3cdeb8d2ad0ec9609d698f6328b3e33e1ce99dcff6"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_soil_element/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_soil_element/H.soil.parquet",
+    "bytes": 5535,
+    "sha256": "c20d08e5bbabe1e097a1177533c2d4d5e28cae50086bad9994e7683a0717eee2"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_soil_element/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/null_soil_element/totalwatsed3.parquet",
+    "bytes": 60015,
+    "sha256": "e8be6a84bbf5244f0c2b7f5e1dc1b09081acbc65e5e512259c51c3df44383d4d"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_missing/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_missing/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_missing/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_missing/H.wat.parquet",
+    "bytes": 16887,
+    "sha256": "03937dcb422a9f646dc2a3364447849b4963317c419e8b0b7a1fb7bc3f379a5e"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_missing/totalwatsed3.parquet",
+    "bytes": 59724,
+    "sha256": "c5cd00311459b78479d86d951370f553cca73bd7bbdc0d137bed348627cd5153"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_null/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_null/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_null/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_null/H.wat.parquet",
+    "bytes": 20047,
+    "sha256": "8e9ffcb42a7eb42b5cff544418fcd278dcf1073de4c02167b68b894465502c89"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/optional_null/totalwatsed3.parquet",
+    "bytes": 59756,
+    "sha256": "0657a5e62ebc66e87c1e1b4d2d6c73544f3935c8ceacb303a1cd201c6dad2031"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/subset/H.element.parquet",
+    "bytes": 4239,
+    "sha256": "29dfccafc7d5fc305c90fb128dfd479ca1e83abcdb6ded8b7ef3fe3b23479b30"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/subset/H.pass.parquet",
+    "bytes": 7783,
+    "sha256": "1c1358396b049ccf4400fb31fa0f1bfc7f82da3bbced7047d0e5532baa2e1034"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/subset/H.soil.parquet",
+    "bytes": 5826,
+    "sha256": "4220e1955c284395b47b962cf7432d8f5764c9ea293f3a83d6c43e21d04a52ac"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/subset/H.wat.parquet",
+    "bytes": 22101,
+    "sha256": "38e66007d10def424b9ba0b5c68b25bd0e77d02024d084444581dc9690cae54c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/contracts/subset/totalwatsed3.parquet",
+    "bytes": 60305,
+    "sha256": "d0619d8cb17e5cdd408a108df57bc2d3dda148cb9487adf3f44406af28b0a002"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/decimal-pleasing/totalwatsed3.parquet",
+    "bytes": 670329,
+    "sha256": "e7c6e2f0a37093a59540dff0b67bbb44a25f9abdea6e145a6bd65d4c37809550"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/incommensurate-stickball/H.element.parquet",
+    "bytes": 1404015,
+    "sha256": "d2e4ad9857de1b202022ee5db9cd919a9f938cb706760da5ec2c06d3f32bddaf"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/incommensurate-stickball/H.pass.parquet",
+    "bytes": 10220960,
+    "sha256": "53b272bd1dfee2169ae2680cee26d32e561b1f6486fcaec753e64f33ce3cec75"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/incommensurate-stickball/H.soil.parquet",
+    "bytes": 16281551,
+    "sha256": "3f724eaf85777668b4d6d12487402d3aeab78f5f1ea07889e43b4e218b941f3a"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/incommensurate-stickball/H.wat.parquet",
+    "bytes": 28590445,
+    "sha256": "3f10ff9f094484e82ef806818279a1565b2d9e4325c0a18b93810e2ae7da173b"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/incommensurate-stickball/totalwatsed3.parquet",
+    "bytes": 1305733,
+    "sha256": "40ce2dac5edd5fe2fae323df47e033e25f578c745f46eb3b567287b700f22342"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/throbbing-sylvan/H.element.parquet",
+    "bytes": 13109322,
+    "sha256": "e90c25de7764d69edb630acf6cb8510886da4ca9c7712bdbd08ef77bb30fcdc9"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/throbbing-sylvan/H.pass.parquet",
+    "bytes": 192344012,
+    "sha256": "abc5a61f8de2cb0d775a2f1deb8ee7f5feca57f130190efac1937342de085974"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/throbbing-sylvan/H.soil.parquet",
+    "bytes": 95126144,
+    "sha256": "654bd84a46c7241f72a11d413b12d8211aa68b46cc0befabbe712169a6b4892e"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/throbbing-sylvan/H.wat.parquet",
+    "bytes": 169477490,
+    "sha256": "303707b3997b0d2a9335e315bba27279f75713a0cdf185c30b8436a74aa5068c"
+  },
+  {
+    "path": "tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+    "bytes": 2941016,
+    "sha256": "261b4180bfe6839afab9b712f1235bc11af1e4afdbf3fd26a7b8dfca2069e2fa"
+  }
+]

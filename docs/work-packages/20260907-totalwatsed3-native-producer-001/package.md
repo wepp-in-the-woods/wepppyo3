@@ -2,7 +2,7 @@
 
 ## Status
 
-- state: ready
+- state: in_progress
 - date: 2026-09-07
 - execution host: `forest` via `ssh forest`
 - repositories: `/workdir/wepppyo3` and `/workdir/wepppy`
@@ -307,10 +307,66 @@ new dependency or output-contract change outside this package.
 
 ## Security impact
 
-- security_impact: medium
+- security_impact: high
 - dedicated_security_review_required: yes
 - rationale: production-native code parses multi-gigabyte files and atomically
   replaces shared-run artifacts. Review path validation, temporary-file
   placement, symlink behavior, malformed Parquet handling, bounded allocation,
   panic/error translation, and failure-atomic publication. Fixture manifests
   must contain no credentials or user-sensitive metadata.
+
+## Approved single-OFE oracle authority (2026-09-07)
+
+The user approved designating the captured current-producer output as the
+single-OFE parity oracle and resuming execution, while preserving the old
+WEPPpy fixture. The active oracle is now
+`tests/fixtures/totalwatsed3/decimal-pleasing/totalwatsed3.parquet` in wepppyo3,
+SHA-256 `e7c6e2f0a37093a59540dff0b67bbb44a25f9abdea6e145a6bd65d4c37809550`.
+Input files continue to come from the unchanged WEPPpy decimal-pleasing fixture.
+The new oracle was captured from WEPPpy revision
+`3c51780f50e2599ef72b03214c35bf20538e55c4`, with gwstorage=0, bfcoeff=0.04,
+dscoeff=0, and no ash. It preserves current PASS-runoff semantics and all
+79 columns. Reverting to the older WAT-Q runoff formula was rejected because
+this package is a faithful extraction of current production behavior.
+The old 68-column fixture remains historical evidence, not the native parity
+authority. No numerical tolerance or other package gate changes.
+
+## Accepted timing disposition (2026-09-07)
+
+The user explicitly accepted the measured 107.18% native/Python median on the
+586-hillslope fixture (exact ratio 107.1821%, native 3.784380 s, Python 3.530796 s).
+This satisfies the timing disposition for this candidate and authorizes continued
+execution. It is a scoped acceptance of the measured result, not a general
+relaxation of correctness, memory, scaling, worst-run, or workflow gates.
+Remaining contract corrections and integration should not materially regress
+this accepted performance. Retain the measurement and original 105% target as
+evidence rather than reclassifying the original measurement as a target pass.
+
+## Scaling optimization request (2026-09-07)
+
+The user requested reducing the measured 1.7906-times memory ratio toward 1.5.
+This authorizes profiling and implementation improvements under the existing
+parity and resource limits. Compact source metadata now measures 1.45178 times;
+see artifacts/scaling-optimization.md. The original fixture, output contracts,
+and failed measurements are preserved. No scaling threshold was relaxed.
+
+## Release/integration authorization (2026-09-07)
+
+After the optimized 1.45178 scaling ratio and 107.6614% timing recheck were
+reported, the user directed: "build the release and integrate in wepppy".
+Proceed with that measured candidate; retain the original targets and measured
+results as evidence. Add the mandatory paired Docker startup hash/API update to
+the write set. Integration also requires bounding interchange README previews:
+the native output succeeded, but the old full-table preview read OOM-killed the
+12 GiB RQ work horse. Read schema plus the existing three preview rows instead;
+no artifact schema, formulas, or documentation contents are intentionally changed.
+
+## Review and container publication authorization (2026-09-07)
+
+The user requested completing review and container publication. Finish the
+independent review gates, publish the native repository and verify remote LFS
+retrieval, then pin that native commit in WEPPpy
+`.github/workflows/publish-weppcloud-image.yml`. Publish WEPPpy on its existing
+master branch through the canonical GHCR workflow and verify the immutable image
+contains the paired native release and facade. This extends publication scope to
+the common runtime image; production deployment remains outside this package.

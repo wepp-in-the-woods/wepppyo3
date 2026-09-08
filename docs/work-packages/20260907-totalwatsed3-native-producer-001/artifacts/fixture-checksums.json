@@ -1,0 +1,140 @@
+[
+  {
+    "run": "incommensurate-stickball",
+    "file": "H.pass.parquet",
+    "source": "/wc1/runs/in/incommensurate-stickball/wepp/output/interchange/H.pass.parquet",
+    "bytes": 10220960,
+    "sha256": "53b272bd1dfee2169ae2680cee26d32e561b1f6486fcaec753e64f33ce3cec75",
+    "expected_sha256": "53b272bd1dfee2169ae2680cee26d32e561b1f6486fcaec753e64f33ce3cec75",
+    "match": true,
+    "rows": 521560,
+    "row_groups": 68,
+    "schema_sha256": "6f4390034c5ca65dbb65c19fd1e6da2d5af4c6294a0a4c80c8b31a30baca2d58"
+  },
+  {
+    "run": "incommensurate-stickball",
+    "file": "H.wat.parquet",
+    "source": "/wc1/runs/in/incommensurate-stickball/wepp/output/interchange/H.wat.parquet",
+    "bytes": 28590445,
+    "sha256": "3f10ff9f094484e82ef806818279a1565b2d9e4325c0a18b93810e2ae7da173b",
+    "expected_sha256": "3f10ff9f094484e82ef806818279a1565b2d9e4325c0a18b93810e2ae7da173b",
+    "match": true,
+    "rows": 1840800,
+    "row_groups": 68,
+    "schema_sha256": "44ea3b99665762d88d86567c04ebf8122d0a99673ba7ab860098ba96ec597527",
+    "hillslopes": 68,
+    "ofe_distribution": {
+      "4": 6,
+      "1": 9,
+      "5": 30,
+      "2": 12,
+      "3": 11
+    },
+    "simulation_days": 7670,
+    "year_min": 1990,
+    "year_max": 2010
+  },
+  {
+    "run": "incommensurate-stickball",
+    "file": "H.soil.parquet",
+    "source": "/wc1/runs/in/incommensurate-stickball/wepp/output/interchange/H.soil.parquet",
+    "bytes": 16281551,
+    "sha256": "3f724eaf85777668b4d6d12487402d3aeab78f5f1ea07889e43b4e218b941f3a",
+    "expected_sha256": "3f724eaf85777668b4d6d12487402d3aeab78f5f1ea07889e43b4e218b941f3a",
+    "match": true,
+    "rows": 1840800,
+    "row_groups": 68,
+    "schema_sha256": "dcd08d32b9fd7cb087c09e48ab46ca9df508fd466a956a9008c6e43bd538e452"
+  },
+  {
+    "run": "incommensurate-stickball",
+    "file": "H.element.parquet",
+    "source": "/wc1/runs/in/incommensurate-stickball/wepp/output/interchange/H.element.parquet",
+    "bytes": 1404015,
+    "sha256": "d2e4ad9857de1b202022ee5db9cd919a9f938cb706760da5ec2c06d3f32bddaf",
+    "expected_sha256": "d2e4ad9857de1b202022ee5db9cd919a9f938cb706760da5ec2c06d3f32bddaf",
+    "match": true,
+    "rows": 121350,
+    "row_groups": 68,
+    "schema_sha256": "9db5a93a4d7a4a7a0d3b99a3859f0175360a4712383834a89eb84b5b41ab99ec"
+  },
+  {
+    "run": "incommensurate-stickball",
+    "file": "totalwatsed3.parquet",
+    "source": "/wc1/runs/in/incommensurate-stickball/wepp/output/interchange/totalwatsed3.parquet",
+    "bytes": 1305733,
+    "sha256": "40ce2dac5edd5fe2fae323df47e033e25f578c745f46eb3b567287b700f22342",
+    "expected_sha256": "40ce2dac5edd5fe2fae323df47e033e25f578c745f46eb3b567287b700f22342",
+    "match": true,
+    "rows": 7670,
+    "row_groups": 1,
+    "schema_sha256": "68474b642614608a31f4aee93265cf517b34df68a99967f71136cd4d4f44263f"
+  },
+  {
+    "run": "throbbing-sylvan",
+    "file": "H.pass.parquet",
+    "source": "/wc1/runs/th/throbbing-sylvan/wepp/output/interchange/H.pass.parquet",
+    "bytes": 192344012,
+    "sha256": "abc5a61f8de2cb0d775a2f1deb8ee7f5feca57f130190efac1937342de085974",
+    "expected_sha256": "abc5a61f8de2cb0d775a2f1deb8ee7f5feca57f130190efac1937342de085974",
+    "match": true,
+    "rows": 9417606,
+    "row_groups": 586,
+    "schema_sha256": "b9a885c87310ef3163a81ddfe5346945be4c26bfc2cde4c8191fe9a6a1b51153"
+  },
+  {
+    "run": "throbbing-sylvan",
+    "file": "H.wat.parquet",
+    "source": "/wc1/runs/th/throbbing-sylvan/wepp/output/interchange/H.wat.parquet",
+    "bytes": 169477490,
+    "sha256": "303707b3997b0d2a9335e315bba27279f75713a0cdf185c30b8436a74aa5068c",
+    "expected_sha256": "303707b3997b0d2a9335e315bba27279f75713a0cdf185c30b8436a74aa5068c",
+    "match": true,
+    "rows": 9417606,
+    "row_groups": 586,
+    "schema_sha256": "0dda961bc0657cde8400cfb8f82697cafd9f706da0103429d6df4d3fe0ee74be",
+    "hillslopes": 586,
+    "ofe_distribution": {
+      "1": 586
+    },
+    "simulation_days": 16071,
+    "year_min": 1980,
+    "year_max": 2023
+  },
+  {
+    "run": "throbbing-sylvan",
+    "file": "H.soil.parquet",
+    "source": "/wc1/runs/th/throbbing-sylvan/wepp/output/interchange/H.soil.parquet",
+    "bytes": 95126144,
+    "sha256": "654bd84a46c7241f72a11d413b12d8211aa68b46cc0befabbe712169a6b4892e",
+    "expected_sha256": "654bd84a46c7241f72a11d413b12d8211aa68b46cc0befabbe712169a6b4892e",
+    "match": true,
+    "rows": 9417606,
+    "row_groups": 586,
+    "schema_sha256": "6bf2e29200da8c60ce913e762c20c231490227b7400c914717e05d0322d7e835"
+  },
+  {
+    "run": "throbbing-sylvan",
+    "file": "H.element.parquet",
+    "source": "/wc1/runs/th/throbbing-sylvan/wepp/output/interchange/H.element.parquet",
+    "bytes": 13109322,
+    "sha256": "e90c25de7764d69edb630acf6cb8510886da4ca9c7712bdbd08ef77bb30fcdc9",
+    "expected_sha256": "e90c25de7764d69edb630acf6cb8510886da4ca9c7712bdbd08ef77bb30fcdc9",
+    "match": true,
+    "rows": 790032,
+    "row_groups": 586,
+    "schema_sha256": "765cac506f1437b4f8a7de07897879663fa4e5e0cb663ccacd077effc6ac4bf4"
+  },
+  {
+    "run": "throbbing-sylvan",
+    "file": "totalwatsed3.parquet",
+    "source": "/wc1/runs/th/throbbing-sylvan/wepp/output/interchange/totalwatsed3.parquet",
+    "bytes": 2941016,
+    "sha256": "261b4180bfe6839afab9b712f1235bc11af1e4afdbf3fd26a7b8dfca2069e2fa",
+    "expected_sha256": "261b4180bfe6839afab9b712f1235bc11af1e4afdbf3fd26a7b8dfca2069e2fa",
+    "match": true,
+    "rows": 16071,
+    "row_groups": 1,
+    "schema_sha256": "68474b642614608a31f4aee93265cf517b34df68a99967f71136cd4d4f44263f"
+  }
+]

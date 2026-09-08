@@ -1,3 +1,4 @@
+from .wepp_interchange_rust import totalwatsed3_to_parquet
 from .wepp_interchange_rust import watershed_pass_to_parquet
 from .wepp_interchange_rust import watershed_pass_cli_hint
 from .wepp_interchange_rust import watershed_soil_to_parquet
@@ -32,6 +33,7 @@ from .wepp_interchange_rust import segment_single_ofe_slope
 from .wepp_interchange_rust import segment_single_ofe_slope_at_breakpoints
 
 __all__ = [
+    "totalwatsed3_to_parquet",
     "watershed_pass_to_parquet",
     "watershed_pass_cli_hint",
     "watershed_soil_to_parquet",

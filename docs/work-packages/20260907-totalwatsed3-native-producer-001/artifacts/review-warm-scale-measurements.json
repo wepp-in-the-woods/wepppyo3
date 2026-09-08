@@ -1,0 +1,536 @@
+[
+  {
+    "hillslopes": 73,
+    "source": "/evidence/scales/73",
+    "folder": "/evidence/scale-73-zgf0ebvn",
+    "input_bytes": 58254931,
+    "initial_baseline_bytes": 125689856,
+    "memory_peak_bytes": 442908672,
+    "incremental_peak_upper_bound_bytes": 317218816,
+    "peak_includes_warmup": true,
+    "peak_before_python_or_comparison": true,
+    "observations": [
+      {
+        "execution": 0,
+        "wall_seconds": 0.7511595289688557,
+        "user_seconds": 4.672155,
+        "system_seconds": 0.7044930000000003,
+        "baseline_before_bytes": 168734720,
+        "baseline_after_bytes": 154738688,
+        "stat_before": {
+          "anon": 156569600,
+          "file": 2174976,
+          "kernel": 8273920
+        },
+        "stat_after": {
+          "anon": 140910592,
+          "file": 4345856,
+          "kernel": 8392704
+        },
+        "summary": {
+          "rows_written": 16071,
+          "candidate_records": 16071,
+          "accepted_records": 16071,
+          "rejected_records": 0,
+          "row_groups": 2,
+          "elapsed_ms": 750,
+          "schema_version": "1",
+          "output_paths": [
+            "/evidence/scale-73-zgf0ebvn/native-0.parquet"
+          ]
+        }
+      }
+    ],
+    "oracle_method": "Python producer on exact subset inputs",
+    "parity": [
+      {
+        "oracle": "/evidence/scale-73-zgf0ebvn/totalwatsed3.parquet",
+        "actual": "/evidence/scale-73-zgf0ebvn/native-0.parquet",
+        "oracle_rows": 16071,
+        "actual_rows": 16071,
+        "schema_equal": true,
+        "column_order_equal": true,
+        "missing_from_oracle": [],
+        "missing_from_actual": [],
+        "differences": [],
+        "passed": true
+      }
+    ],
+    "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "memory_max": "12884901888",
+    "temporary_files": []
+  },
+  {
+    "hillslopes": 146,
+    "source": "/evidence/scales/146",
+    "folder": "/evidence/scale-146-ky1ehwc1",
+    "input_bytes": 114711675,
+    "initial_baseline_bytes": 125435904,
+    "memory_peak_bytes": 442912768,
+    "incremental_peak_upper_bound_bytes": 317476864,
+    "peak_includes_warmup": true,
+    "peak_before_python_or_comparison": true,
+    "observations": [
+      {
+        "execution": 0,
+        "wall_seconds": 1.229672254063189,
+        "user_seconds": 9.229733,
+        "system_seconds": 1.3544019999999999,
+        "baseline_before_bytes": 156573696,
+        "baseline_after_bytes": 158535680,
+        "stat_before": {
+          "anon": 144621568,
+          "file": 2404352,
+          "kernel": 8302592
+        },
+        "stat_after": {
+          "anon": 144257024,
+          "file": 4804608,
+          "kernel": 8433664
+        },
+        "summary": {
+          "rows_written": 16071,
+          "candidate_records": 16071,
+          "accepted_records": 16071,
+          "rejected_records": 0,
+          "row_groups": 2,
+          "elapsed_ms": 1229,
+          "schema_version": "1",
+          "output_paths": [
+            "/evidence/scale-146-ky1ehwc1/native-0.parquet"
+          ]
+        }
+      }
+    ],
+    "oracle_method": "Python producer on exact subset inputs",
+    "parity": [
+      {
+        "oracle": "/evidence/scale-146-ky1ehwc1/totalwatsed3.parquet",
+        "actual": "/evidence/scale-146-ky1ehwc1/native-0.parquet",
+        "oracle_rows": 16071,
+        "actual_rows": 16071,
+        "schema_equal": true,
+        "column_order_equal": true,
+        "missing_from_oracle": [],
+        "missing_from_actual": [],
+        "differences": [],
+        "passed": true
+      }
+    ],
+    "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "memory_max": "12884901888",
+    "temporary_files": []
+  },
+  {
+    "hillslopes": 293,
+    "source": "/evidence/scales/293",
+    "folder": "/evidence/scale-293-07bi79j4",
+    "input_bytes": 234511812,
+    "initial_baseline_bytes": 125759488,
+    "memory_peak_bytes": 450154496,
+    "incremental_peak_upper_bound_bytes": 324395008,
+    "peak_includes_warmup": true,
+    "peak_before_python_or_comparison": true,
+    "observations": [
+      {
+        "execution": 0,
+        "wall_seconds": 2.0976770190754905,
+        "user_seconds": 18.082539999999998,
+        "system_seconds": 2.580788,
+        "baseline_before_bytes": 176963584,
+        "baseline_after_bytes": 180736000,
+        "stat_before": {
+          "anon": 164646912,
+          "file": 2576384,
+          "kernel": 8314880
+        },
+        "stat_after": {
+          "anon": 166391808,
+          "file": 5148672,
+          "kernel": 8437760
+        },
+        "summary": {
+          "rows_written": 16071,
+          "candidate_records": 16071,
+          "accepted_records": 16071,
+          "rejected_records": 0,
+          "row_groups": 2,
+          "elapsed_ms": 2097,
+          "schema_version": "1",
+          "output_paths": [
+            "/evidence/scale-293-07bi79j4/native-0.parquet"
+          ]
+        }
+      }
+    ],
+    "oracle_method": "Python producer on exact subset inputs",
+    "parity": [
+      {
+        "oracle": "/evidence/scale-293-07bi79j4/totalwatsed3.parquet",
+        "actual": "/evidence/scale-293-07bi79j4/native-0.parquet",
+        "oracle_rows": 16071,
+        "actual_rows": 16071,
+        "schema_equal": true,
+        "column_order_equal": true,
+        "missing_from_oracle": [],
+        "missing_from_actual": [],
+        "differences": [],
+        "passed": true
+      }
+    ],
+    "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "memory_max": "12884901888",
+    "temporary_files": []
+  },
+  {
+    "hillslopes": 586,
+    "source": "/evidence/scales/586",
+    "folder": "/evidence/scale-586-tiet4gbx",
+    "input_bytes": 470056968,
+    "initial_baseline_bytes": 126083072,
+    "memory_peak_bytes": 473591808,
+    "incremental_peak_upper_bound_bytes": 347508736,
+    "peak_includes_warmup": true,
+    "peak_before_python_or_comparison": true,
+    "observations": [
+      {
+        "execution": 0,
+        "wall_seconds": 3.878702617948875,
+        "user_seconds": 36.398317000000006,
+        "system_seconds": 4.912630000000001,
+        "baseline_before_bytes": 171163648,
+        "baseline_after_bytes": 167084032,
+        "stat_before": {
+          "anon": 158134272,
+          "file": 2928640,
+          "kernel": 8396800
+        },
+        "stat_after": {
+          "anon": 150929408,
+          "file": 5853184,
+          "kernel": 8486912
+        },
+        "summary": {
+          "rows_written": 16071,
+          "candidate_records": 16071,
+          "accepted_records": 16071,
+          "rejected_records": 0,
+          "row_groups": 2,
+          "elapsed_ms": 3878,
+          "schema_version": "1",
+          "output_paths": [
+            "/evidence/scale-586-tiet4gbx/native-0.parquet"
+          ]
+        }
+      },
+      {
+        "execution": 1,
+        "wall_seconds": 3.8525549069745466,
+        "user_seconds": 36.50591300000001,
+        "system_seconds": 4.64944,
+        "baseline_before_bytes": 167084032,
+        "baseline_after_bytes": 195018752,
+        "stat_before": {
+          "anon": 150929408,
+          "file": 5853184,
+          "kernel": 8486912
+        },
+        "stat_after": {
+          "anon": 175894528,
+          "file": 8523776,
+          "kernel": 8593408
+        },
+        "summary": {
+          "rows_written": 16071,
+          "candidate_records": 16071,
+          "accepted_records": 16071,
+          "rejected_records": 0,
+          "row_groups": 2,
+          "elapsed_ms": 3852,
+          "schema_version": "1",
+          "output_paths": [
+            "/evidence/scale-586-tiet4gbx/native-1.parquet"
+          ]
+        }
+      },
+      {
+        "execution": 2,
+        "wall_seconds": 3.8745474779279903,
+        "user_seconds": 36.67993999999999,
+        "system_seconds": 4.777268000000001,
+        "baseline_before_bytes": 195018752,
+        "baseline_after_bytes": 188575744,
+        "stat_before": {
+          "anon": 175894528,
+          "file": 8523776,
+          "kernel": 8593408
+        },
+        "stat_after": {
+          "anon": 166899712,
+          "file": 11702272,
+          "kernel": 8683520
+        },
+        "summary": {
+          "rows_written": 16071,
+          "candidate_records": 16071,
+          "accepted_records": 16071,
+          "rejected_records": 0,
+          "row_groups": 2,
+          "elapsed_ms": 3874,
+          "schema_version": "1",
+          "output_paths": [
+            "/evidence/scale-586-tiet4gbx/native-2.parquet"
+          ]
+        }
+      }
+    ],
+    "oracle_method": "approved original oracle",
+    "parity": [
+      {
+        "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+        "actual": "/evidence/scale-586-tiet4gbx/native-0.parquet",
+        "oracle_rows": 16071,
+        "actual_rows": 16071,
+        "schema_equal": true,
+        "column_order_equal": true,
+        "missing_from_oracle": [],
+        "missing_from_actual": [],
+        "differences": [],
+        "passed": true
+      },
+      {
+        "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+        "actual": "/evidence/scale-586-tiet4gbx/native-1.parquet",
+        "oracle_rows": 16071,
+        "actual_rows": 16071,
+        "schema_equal": true,
+        "column_order_equal": true,
+        "missing_from_oracle": [],
+        "missing_from_actual": [],
+        "differences": [],
+        "passed": true
+      },
+      {
+        "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+        "actual": "/evidence/scale-586-tiet4gbx/native-2.parquet",
+        "oracle_rows": 16071,
+        "actual_rows": 16071,
+        "schema_equal": true,
+        "column_order_equal": true,
+        "missing_from_oracle": [],
+        "missing_from_actual": [],
+        "differences": [],
+        "passed": true
+      }
+    ],
+    "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "memory_max": "12884901888",
+    "temporary_files": []
+  },
+  {
+    "hillslopes": 2344,
+    "source": "/evidence/scales/2344",
+    "folder": "/evidence/scale-2344-7h2fi31k",
+    "input_bytes": 1888438000,
+    "initial_baseline_bytes": 126283776,
+    "memory_peak_bytes": 534208512,
+    "incremental_peak_upper_bound_bytes": 407924736,
+    "peak_includes_warmup": true,
+    "peak_before_python_or_comparison": true,
+    "observations": [
+      {
+        "execution": 0,
+        "wall_seconds": 13.499178553000093,
+        "user_seconds": 147.57795900000002,
+        "system_seconds": 2.024851,
+        "baseline_before_bytes": 253100032,
+        "baseline_after_bytes": 288825344,
+        "stat_before": {
+          "anon": 239947776,
+          "file": 2928640,
+          "kernel": 8519680
+        },
+        "stat_after": {
+          "anon": 272506880,
+          "file": 5853184,
+          "kernel": 8601600
+        },
+        "summary": {
+          "rows_written": 16071,
+          "candidate_records": 16071,
+          "accepted_records": 16071,
+          "rejected_records": 0,
+          "row_groups": 2,
+          "elapsed_ms": 13498,
+          "schema_version": "1",
+          "output_paths": [
+            "/evidence/scale-2344-7h2fi31k/native-0.parquet"
+          ]
+        }
+      }
+    ],
+    "oracle_method": "approved oracle with volume/mass/area fields multiplied by 4; depths/concentrations/dates unchanged",
+    "parity": [
+      {
+        "oracle": "/evidence/scale-2344-7h2fi31k/scaled-oracle.parquet",
+        "actual": "/evidence/scale-2344-7h2fi31k/native-0.parquet",
+        "oracle_rows": 16071,
+        "actual_rows": 16071,
+        "schema_equal": true,
+        "column_order_equal": true,
+        "missing_from_oracle": [],
+        "missing_from_actual": [],
+        "differences": [],
+        "passed": true
+      }
+    ],
+    "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "memory_max": "12884901888",
+    "temporary_files": []
+  },
+  {
+    "hillslopes": 5860,
+    "source": "/evidence/scales/5860",
+    "folder": "/evidence/scale-5860-7yoz4m4i",
+    "input_bytes": 4721206180,
+    "initial_baseline_bytes": 125857792,
+    "memory_peak_bytes": 681893888,
+    "incremental_peak_upper_bound_bytes": 556036096,
+    "peak_includes_warmup": true,
+    "peak_before_python_or_comparison": true,
+    "observations": [
+      {
+        "execution": 0,
+        "wall_seconds": 33.783901058021,
+        "user_seconds": 372.791736,
+        "system_seconds": 4.560760000000001,
+        "baseline_before_bytes": 622735360,
+        "baseline_after_bytes": 636264448,
+        "stat_before": {
+          "anon": 609845248,
+          "file": 2932736,
+          "kernel": 8695808
+        },
+        "stat_after": {
+          "anon": 619802624,
+          "file": 5857280,
+          "kernel": 8802304
+        },
+        "summary": {
+          "rows_written": 16071,
+          "candidate_records": 16071,
+          "accepted_records": 16071,
+          "rejected_records": 0,
+          "row_groups": 2,
+          "elapsed_ms": 33783,
+          "schema_version": "1",
+          "output_paths": [
+            "/evidence/scale-5860-7yoz4m4i/native-0.parquet"
+          ]
+        }
+      }
+    ],
+    "oracle_method": "approved oracle with volume/mass/area fields multiplied by 10; depths/concentrations/dates unchanged",
+    "parity": [
+      {
+        "oracle": "/evidence/scale-5860-7yoz4m4i/scaled-oracle.parquet",
+        "actual": "/evidence/scale-5860-7yoz4m4i/native-0.parquet",
+        "oracle_rows": 16071,
+        "actual_rows": 16071,
+        "schema_equal": true,
+        "column_order_equal": true,
+        "missing_from_oracle": [],
+        "missing_from_actual": [],
+        "differences": [],
+        "passed": true
+      }
+    ],
+    "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "memory_max": "12884901888",
+    "temporary_files": []
+  }
+]

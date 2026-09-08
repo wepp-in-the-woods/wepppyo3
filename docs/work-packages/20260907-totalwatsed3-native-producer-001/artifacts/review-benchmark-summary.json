@@ -1,0 +1,24 @@
+{
+  "incommensurate-stickball": {
+    "medians_seconds": {
+      "python": 0.96213116904255,
+      "native": 0.8287498500430956
+    },
+    "native_percent_python": 86.13688826522618,
+    "native_peak_bytes": 475688960,
+    "python_peak_bytes": 497885184,
+    "native_worst_seconds": 0.8797311190282926,
+    "all_parity": true
+  },
+  "throbbing-sylvan": {
+    "medians_seconds": {
+      "python": 3.6292470580665395,
+      "native": 3.868492285022512
+    },
+    "native_percent_python": 106.59214495811781,
+    "native_peak_bytes": 457904128,
+    "python_peak_bytes": 1008013312,
+    "native_worst_seconds": 3.877187867066823,
+    "all_parity": true
+  }
+}

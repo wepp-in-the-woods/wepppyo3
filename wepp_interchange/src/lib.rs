@@ -44,9 +44,63 @@ mod pass;
 mod schema;
 mod soil;
 mod tc_out;
+mod totalwatsed;
+mod totalwatsed_schema;
 
 use crate::errors::InterchangeError;
 use crate::schema::VersionInfo;
+
+#[pyfunction]
+#[pyo3(signature = (pass_path, wat_path, output_path, gwstorage, bfcoeff, dscoeff, version_major, version_minor, soil_path=None, element_path=None, wepp_ids=None, ash_inputs=None, pandas_metadata=None))]
+fn totalwatsed3_to_parquet(
+    py: Python<'_>,
+    pass_path: String,
+    wat_path: String,
+    output_path: String,
+    gwstorage: f64,
+    bfcoeff: f64,
+    dscoeff: f64,
+    version_major: u32,
+    version_minor: u32,
+    soil_path: Option<String>,
+    element_path: Option<String>,
+    wepp_ids: Option<Vec<i64>>,
+    ash_inputs: Option<Vec<totalwatsed::AshInput>>,
+    pandas_metadata: Option<String>,
+) -> PyResult<PyObject> {
+    let version = VersionInfo::new(version_major, version_minor);
+    let pass = PathBuf::from(pass_path);
+    let wat = PathBuf::from(wat_path);
+    let output = PathBuf::from(output_path);
+    let soil = soil_path.map(PathBuf::from);
+    let element = element_path.map(PathBuf::from);
+    let start = Instant::now();
+    let summary = py
+        .allow_threads(|| {
+            totalwatsed::produce(
+                &pass,
+                &wat,
+                &output,
+                gwstorage,
+                bfcoeff,
+                dscoeff,
+                &version,
+                soil.as_deref(),
+                element.as_deref(),
+                wepp_ids,
+                &ash_inputs.unwrap_or_default(),
+                pandas_metadata.as_deref(),
+            )
+        })
+        .map_err(to_py_err)?;
+    Ok(build_summary_dict(
+        start.elapsed().as_millis() as u64,
+        summary.rows_written,
+        summary.row_groups,
+        version_major,
+        vec![output.display().to_string()],
+    ))
+}
 
 #[pyfunction]
 #[pyo3(signature = (ebe_path, output_path, version_major, version_minor, cli_calendar_path=None, start_year=None, legacy_element_id=None, chan_path=None, chunk_rows=None, compression="snappy"))]
@@ -1066,6 +1120,7 @@ fn segment_single_ofe_slope_at_breakpoints(
 
 #[pymodule]
 fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(totalwatsed3_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_pass_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_pass_cli_hint, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_soil_to_parquet, m)?)?;

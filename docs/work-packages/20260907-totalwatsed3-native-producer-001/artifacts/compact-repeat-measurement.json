@@ -1,0 +1,453 @@
+{
+  "hillslopes": 586,
+  "source": "/evidence/scales/586",
+  "folder": "/evidence/repeat-586-fovy9b_1",
+  "input_bytes": 470056968,
+  "initial_baseline_bytes": 124968960,
+  "memory_peak_bytes": 495763456,
+  "incremental_peak_upper_bound_bytes": 370794496,
+  "peak_includes_warmup": true,
+  "peak_before_python_or_comparison": true,
+  "observations": [
+    {
+      "execution": 0,
+      "wall_seconds": 3.8212829100666568,
+      "user_seconds": 35.765511,
+      "system_seconds": 4.781126,
+      "baseline_before_bytes": 152907776,
+      "baseline_after_bytes": 179978240,
+      "stat_before": {
+        "anon": 140709888,
+        "file": 2928640,
+        "kernel": 8388608
+      },
+      "stat_after": {
+        "anon": 164859904,
+        "file": 5853184,
+        "kernel": 8507392
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3821,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-0.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 1,
+      "wall_seconds": 3.7711030460195616,
+      "user_seconds": 35.84673500000001,
+      "system_seconds": 4.569453000000001,
+      "baseline_before_bytes": 179978240,
+      "baseline_after_bytes": 176840704,
+      "stat_before": {
+        "anon": 164859904,
+        "file": 5853184,
+        "kernel": 8507392
+      },
+      "stat_after": {
+        "anon": 157773824,
+        "file": 8777728,
+        "kernel": 8593408
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3770,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-1.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 2,
+      "wall_seconds": 3.8029187029460445,
+      "user_seconds": 35.94704899999999,
+      "system_seconds": 4.545367000000001,
+      "baseline_before_bytes": 176840704,
+      "baseline_after_bytes": 184999936,
+      "stat_before": {
+        "anon": 157773824,
+        "file": 8777728,
+        "kernel": 8593408
+      },
+      "stat_after": {
+        "anon": 163401728,
+        "file": 11702272,
+        "kernel": 8683520
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3802,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-2.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 3,
+      "wall_seconds": 3.79011708998587,
+      "user_seconds": 35.74258600000002,
+      "system_seconds": 4.72832,
+      "baseline_before_bytes": 184999936,
+      "baseline_after_bytes": 184205312,
+      "stat_before": {
+        "anon": 163401728,
+        "file": 11702272,
+        "kernel": 8683520
+      },
+      "stat_after": {
+        "anon": 159260672,
+        "file": 14626816,
+        "kernel": 8773632
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3789,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-3.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 4,
+      "wall_seconds": 3.7677389819873497,
+      "user_seconds": 35.69519200000002,
+      "system_seconds": 4.6766320000000015,
+      "baseline_before_bytes": 184205312,
+      "baseline_after_bytes": 178249728,
+      "stat_before": {
+        "anon": 159260672,
+        "file": 14626816,
+        "kernel": 8773632
+      },
+      "stat_after": {
+        "anon": 150466560,
+        "file": 17551360,
+        "kernel": 8855552
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3767,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-4.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 5,
+      "wall_seconds": 3.7927970479940996,
+      "user_seconds": 35.88824999999997,
+      "system_seconds": 4.550075,
+      "baseline_before_bytes": 178249728,
+      "baseline_after_bytes": 186781696,
+      "stat_before": {
+        "anon": 150466560,
+        "file": 17551360,
+        "kernel": 8855552
+      },
+      "stat_after": {
+        "anon": 156516352,
+        "file": 20475904,
+        "kernel": 8957952
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3792,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-5.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 6,
+      "wall_seconds": 3.787116865045391,
+      "user_seconds": 35.72824800000001,
+      "system_seconds": 4.686900999999999,
+      "baseline_before_bytes": 186781696,
+      "baseline_after_bytes": 188309504,
+      "stat_before": {
+        "anon": 156516352,
+        "file": 20475904,
+        "kernel": 8957952
+      },
+      "stat_after": {
+        "anon": 154578944,
+        "file": 23400448,
+        "kernel": 9039872
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3786,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-6.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 7,
+      "wall_seconds": 3.779798368923366,
+      "user_seconds": 35.70347700000002,
+      "system_seconds": 4.697798999999996,
+      "baseline_before_bytes": 188309504,
+      "baseline_after_bytes": 197980160,
+      "stat_before": {
+        "anon": 154578944,
+        "file": 23400448,
+        "kernel": 9039872
+      },
+      "stat_after": {
+        "anon": 161251328,
+        "file": 26324992,
+        "kernel": 9121792
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3779,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-7.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 8,
+      "wall_seconds": 3.771927919005975,
+      "user_seconds": 35.973284999999976,
+      "system_seconds": 4.498863,
+      "baseline_before_bytes": 197980160,
+      "baseline_after_bytes": 206397440,
+      "stat_before": {
+        "anon": 161251328,
+        "file": 26324992,
+        "kernel": 9121792
+      },
+      "stat_after": {
+        "anon": 166281216,
+        "file": 29249536,
+        "kernel": 9248768
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3771,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-8.parquet"
+        ]
+      }
+    },
+    {
+      "execution": 9,
+      "wall_seconds": 3.7739467200590298,
+      "user_seconds": 35.789488000000006,
+      "system_seconds": 4.698408999999998,
+      "baseline_before_bytes": 206397440,
+      "baseline_after_bytes": 201695232,
+      "stat_before": {
+        "anon": 166281216,
+        "file": 29249536,
+        "kernel": 9248768
+      },
+      "stat_after": {
+        "anon": 158531584,
+        "file": 32174080,
+        "kernel": 9297920
+      },
+      "summary": {
+        "rows_written": 16071,
+        "candidate_records": 16071,
+        "accepted_records": 16071,
+        "rejected_records": 0,
+        "row_groups": 2,
+        "elapsed_ms": 3773,
+        "schema_version": "1",
+        "output_paths": [
+          "/evidence/repeat-586-fovy9b_1/native-9.parquet"
+        ]
+      }
+    }
+  ],
+  "oracle_method": "approved original oracle",
+  "parity": [
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-0.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-1.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-2.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-3.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-4.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-5.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-6.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-7.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-8.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    },
+    {
+      "oracle": "/workdir/wepppyo3/tests/fixtures/totalwatsed3/throbbing-sylvan/totalwatsed3.parquet",
+      "actual": "/evidence/repeat-586-fovy9b_1/native-9.parquet",
+      "oracle_rows": 16071,
+      "actual_rows": 16071,
+      "schema_equal": true,
+      "column_order_equal": true,
+      "missing_from_oracle": [],
+      "missing_from_actual": [],
+      "differences": [],
+      "passed": true
+    }
+  ],
+  "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "memory_max": "12884901888",
+  "temporary_files": []
+}

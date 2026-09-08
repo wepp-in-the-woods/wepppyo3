@@ -1,0 +1,22 @@
+[
+  {
+    "path": "wepppy/wepp/interchange/README.md",
+    "exit_code": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n"
+  },
+  {
+    "path": "wepppy/wepp/interchange/README.totalwatsed3.md",
+    "exit_code": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n"
+  },
+  {
+    "path": "wepppy/wepp/interchange/wepppyo3-interchange-spec.md",
+    "exit_code": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n"
+  },
+  {
+    "path": "docs/dev-notes/totalwatsed3-native-release.md",
+    "exit_code": 0,
+    "output": "\u2705 1 files validated, 0 errors, 0 warnings\n"
+  }
+]

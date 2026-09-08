@@ -1,0 +1,123 @@
+{
+  "release_sha256": "bf21f5e5aea9a7c690b7f48926d74f8bb412269d4127b74a166a1e0ef598a354",
+  "python_pyarrow_version": "16.1.0",
+  "cases": [
+    {
+      "case": "truncated_footer",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Parquet error: Parquet error: Invalid Parquet file. Corrupt footer"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "invalid_magic",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Parquet error: Parquet error: Invalid Parquet file. Corrupt footer"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "missing_required_metric",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Arrow error: Schema error: Unable to get field named \"runvol\". Valid fields: [\"wepp_id\", \"year\", \"sim_day_index\", \"julian\", \"month\", \"day_of_month\", \"water_year\", \"sbrunv\", \"tdet\", \"tdep\", \"sedcon_1\", \"sedcon_2\", \"sedcon_3\", \"sedcon_4\", \"sedcon_5\"]"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "string_metric",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Parquet error: unsupported totalwatsed3 numeric type: Utf8"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "null_date_key",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Parquet error: null, nonintegral or out-of-range totalwatsed3 key"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "fractional_date_key",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Parquet error: null, nonintegral or out-of-range totalwatsed3 key"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "input_exact_alias",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Parquet error: totalwatsed3 output must not alias an input"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "input_relative_alias",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Parquet error: totalwatsed3 output must not alias an input"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "input_symlink_alias",
+      "passed": true,
+      "error": {
+        "type": "RuntimeError",
+        "message": "Parquet error: totalwatsed3 output must not alias an input"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "unrelated_output_symlink",
+      "passed": true,
+      "error": {
+        "type": "OSError",
+        "message": "I/O error at \"/tmp/totalwatsed-security-dvzyyjhm/totalwatsed3.parquet\": Parquet output target exists and is not a regular file"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "dangling_output_symlink",
+      "passed": true,
+      "error": {
+        "type": "OSError",
+        "message": "I/O error at \"/tmp/totalwatsed-security-s5a3uxfi/totalwatsed3.parquet\": Parquet output target exists and is not a regular file"
+      },
+      "inputs_unchanged": true,
+      "staging_leak": false
+    },
+    {
+      "case": "hardlink_output",
+      "passed": true,
+      "error": null,
+      "inputs_unchanged": true,
+      "staging_leak": false
+    }
+  ]
+}

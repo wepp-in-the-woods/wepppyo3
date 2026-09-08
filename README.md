@@ -129,6 +129,11 @@ Deterministic-order contract:
 
 ### `wepppyo3.wepp_interchange`
 
+`confirmed`: `totalwatsed3_to_parquet` is included in the current py312 release
+and required by the paired WEPPpy daily-watershed facade. The Forest 12 GiB
+Compose RQ workflow passes after bounding documentation previews. See the
+[release disposition](docs/work-packages/20260907-totalwatsed3-native-producer-001/artifacts/final-disposition.md).
+
 - `watershed_pass_to_parquet(...)`
 - `watershed_pass_cli_hint(pass_path)`
 - `watershed_soil_to_parquet(...)`

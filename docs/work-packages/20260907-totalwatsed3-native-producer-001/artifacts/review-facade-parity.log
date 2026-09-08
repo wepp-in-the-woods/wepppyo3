@@ -1,0 +1,2 @@
+INFO:wctl2:docker compose exec weppcloud env PYTHONPATH=/workdir/wepppy:/workdir/wepppyo3/release/linux/py312 /opt/venv/bin/python /workdir/wepppyo3/docs/work-packages/20260907-totalwatsed3-native-producer-001/artifacts/facade_parity.py
+Public facade parity passed: 25

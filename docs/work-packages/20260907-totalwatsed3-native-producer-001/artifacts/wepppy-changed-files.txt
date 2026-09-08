@@ -1,0 +1,12 @@
+docker/wepppyo3-interchange-preflight.py
+docs/dev-notes/totalwatsed3-native-release.md
+tests/docker/unit/test_wepppyo3_interchange_startup_contract.py
+tests/wepp/interchange/test_interchange_documentation.py
+tests/wepp/interchange/test_rust_interchange.py
+tests/wepp/interchange/test_totalwatsed3.py
+wepppy/wepp/interchange/README.md
+wepppy/wepp/interchange/README.totalwatsed3.md
+wepppy/wepp/interchange/_rust_interchange.py
+wepppy/wepp/interchange/interchange_documentation.py
+wepppy/wepp/interchange/totalwatsed3.py
+wepppy/wepp/interchange/wepppyo3-interchange-spec.md

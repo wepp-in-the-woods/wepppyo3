@@ -1,0 +1,40 @@
+{
+  "source_build_manifest": "native-build.json",
+  "release_build_command": "PYO3_PYTHON=/usr/bin/python3.12 cargo build --release -p wepp_interchange_rust",
+  "files": [
+    {
+      "path": "/workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/__init__.py",
+      "bytes": 3427,
+      "sha256": "bcc73fe8d2b99effb779e22bf70de23bc5ca9720b72dbc8771e247171ed8952c"
+    },
+    {
+      "path": "/workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so",
+      "bytes": 14855232,
+      "sha256": "0e681131bde2790af53e1cda9d7292aba99a1aa1debb5cc71b3ee8c84956ba2f"
+    },
+    {
+      "path": "/workdir/wepppy/docker/wepppyo3-interchange-preflight.py",
+      "bytes": 2981,
+      "sha256": "eb37922f081e4f57a479025c63160a97c57ee75b5ac209d3951470d9d2fcc9e7"
+    },
+    {
+      "path": "/workdir/wepppy/wepppy/wepp/interchange/totalwatsed3.py",
+      "bytes": 21945,
+      "sha256": "03f8f512dc00c62ffde1a6b510b6770ed4193e58cd6013e808d67d807451fc17"
+    },
+    {
+      "path": "/workdir/wepppy/wepppy/wepp/interchange/interchange_documentation.py",
+      "bytes": 6821,
+      "sha256": "8fe86e062fba579273332e756f686d8c69176865e7b7bb0873623b31f1e283a8"
+    },
+    {
+      "path": "/workdir/wepppy/wepppy/wepp/interchange/_rust_interchange.py",
+      "bytes": 5000,
+      "sha256": "37a4e886900c1b2f0f137216df4f3c838e7290463c001cb21a998e9428b27d66"
+    }
+  ],
+  "native_base_revision": "3123547e677eb113dd64c43024eda20a06505796",
+  "wepppy_base_revision": "3c51780f50e2599ef72b03214c35bf20538e55c4",
+  "committed": false,
+  "production_deployed": false
+}

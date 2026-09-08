@@ -1,0 +1,80 @@
+[
+  {
+    "oracle": "/evidence/edge-cases-nbqvsrz5/null_pass_class/totalwatsed3.parquet",
+    "actual": "/evidence/edge-cases-nbqvsrz5/null_pass_class/native.parquet",
+    "oracle_rows": 3,
+    "actual_rows": 3,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true,
+    "case": "null_pass_class"
+  },
+  {
+    "oracle": "/evidence/edge-cases-nbqvsrz5/infinite_interception/totalwatsed3.parquet",
+    "actual": "/evidence/edge-cases-nbqvsrz5/infinite_interception/native.parquet",
+    "oracle_rows": 3,
+    "actual_rows": 3,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true,
+    "case": "infinite_interception"
+  },
+  {
+    "oracle": "/evidence/edge-cases-nbqvsrz5/absent_soil_element/totalwatsed3.parquet",
+    "actual": "/evidence/edge-cases-nbqvsrz5/absent_soil_element/native.parquet",
+    "oracle_rows": 3,
+    "actual_rows": 3,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true,
+    "case": "absent_soil_element"
+  },
+  {
+    "oracle": "/evidence/edge-cases-nbqvsrz5/null_soil_element/totalwatsed3.parquet",
+    "actual": "/evidence/edge-cases-nbqvsrz5/null_soil_element/native.parquet",
+    "oracle_rows": 3,
+    "actual_rows": 3,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true,
+    "case": "null_soil_element"
+  },
+  {
+    "oracle": "/evidence/edge-cases-nbqvsrz5/null_single_ofe_lateral/totalwatsed3.parquet",
+    "actual": "/evidence/edge-cases-nbqvsrz5/null_single_ofe_lateral/native.parquet",
+    "oracle_rows": 3,
+    "actual_rows": 3,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true,
+    "case": "null_single_ofe_lateral"
+  },
+  {
+    "oracle": "/evidence/edge-cases-nbqvsrz5/empty_pass/totalwatsed3.parquet",
+    "actual": "/evidence/edge-cases-nbqvsrz5/empty_pass/native.parquet",
+    "oracle_rows": 3,
+    "actual_rows": 3,
+    "schema_equal": true,
+    "column_order_equal": true,
+    "missing_from_oracle": [],
+    "missing_from_actual": [],
+    "differences": [],
+    "passed": true,
+    "case": "empty_pass"
+  }
+]

@@ -1,0 +1,55 @@
+{
+  "reviewer": "independent delegated security_reviewer",
+  "date": "2026-09-07",
+  "source_sha256": {
+    "wepp_interchange/src/totalwatsed.rs": "ba295333c0a84f88c01fb2b8ee78c2a3f86f752633da65a216c0095922d4bdbd",
+    "wepp_interchange/src/totalwatsed_schema.rs": "66f0ac4e63b96a0f36cbbaee0c488af9d412d267dcfde003fc7f5c69a695134a",
+    "wepp_interchange/src/lib.rs": "c05252dafe40eef95e4dffbcad0ca4333199f3eb7ad267a008d351ff1627e174",
+    "tests/wepp_interchange/test_totalwatsed3.py": "71c4273abc401f1364b4d52b24a142d600c37f6e2d0bd0f2972c2a8914356d70",
+    "release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so": "bf21f5e5aea9a7c690b7f48926d74f8bb412269d4127b74a166a1e0ef598a354"
+  },
+  "before_fix": {
+    "release_sha256": "751004fc253fb3ef018a187217a2519c426b172f179ae04b93095cc7d0b21948",
+    "mutation": "H.wat.parquet first column total_compressed_size=-1; valid compact-Thrift footer length; statistics disabled",
+    "exception_class": "pyo3_runtime.PanicException",
+    "is_instance_of_Exception": false,
+    "message": "column start and length should not be negative",
+    "inputs_unchanged": true,
+    "prior_output_unchanged": true,
+    "staging_leaks": false,
+    "regression_test_result": "1 failed, 41 deselected, 1 warning in 0.88s"
+  },
+  "initial_guard_valid_state_regression": {
+    "release_sha256": "455eda290a6a730783db685df43e717b2437c756fcc185f0819e2de2df61427c",
+    "result": "3 failed, 39 passed, 1 warning in 8.31s",
+    "failed_cases": [
+      "empty_inputs",
+      "empty_pass",
+      "metadata_compaction_preserves_physical_reads[zstd-True]"
+    ],
+    "empty_input_first_column": {
+      "num_values": 0,
+      "data_page_offset": 0,
+      "dictionary_page_offset": 4,
+      "total_compressed_size": 15
+    }
+  },
+  "final": {
+    "release_sha256": "bf21f5e5aea9a7c690b7f48926d74f8bb412269d4127b74a166a1e0ef598a354",
+    "test_result": "42 passed, 1 warning in 8.05s",
+    "native_malformed_footer_cases": 11,
+    "additional_native_probes_passed": 12,
+    "python": "3.12.3",
+    "pyarrow": "16.1.0",
+    "security_gate": "pass",
+    "public_facade_probe": {
+      "runtime": "canonical Forest Compose weppcloud via wctl exec",
+      "pyarrow": "23.0.1",
+      "exception": "WeppInterchangeExecutionError",
+      "cause": "RuntimeError",
+      "input_and_prior_output_preserved": true,
+      "staging_leaks": false,
+      "receipt": "independent-security-facade-probe.json"
+    }
+  }
+}

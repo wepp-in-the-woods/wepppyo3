@@ -1,0 +1,24 @@
+INFO:wctl2:docker compose run --no-deps --name totalwatsed3-release-acceptance rq-worker /opt/venv/bin/python /workdir/wepppyo3/target/totalwatsed3-evidence/totalwatsed3_acceptance.py
+time="2026-09-07T21:41:36-07:00" level=warning msg="Found orphan containers (wepppy-f-esri) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container totalwatsed3-release-acceptance Creating
+ Container totalwatsed3-release-acceptance Created
+>>> WEPPpyo3 interchange import OK: /workdir/wepppyo3/release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so
+>>> WEPPpyo3 interchange SHA256: 0e681131bde2790af53e1cda9d7292aba99a1aa1debb5cc71b3ee8c84956ba2f
+[2026-09-08 04:41:53,945] WARNING in agent_auth: AGENT_JWT_SECRET not configured; falling back to SECRET_KEY for agent JWTs
+04:41:56 Worker rq:worker:totalwatsed3-acceptance-37d69c480562 started with PID 7, version 1.16.2
+04:41:56 Subscribing to channel rq:pubsub:totalwatsed3-acceptance-37d69c480562
+04:41:56 *** Listening on totalwatsed3-acceptance-37d69c480562...
+04:41:56 Cleaning registries for queue: totalwatsed3-acceptance-37d69c480562
+04:41:56 totalwatsed3-acceptance-37d69c480562: wepppy.rq.wepp_rq_stage_post._build_totalwatsed3_rq('profile;;tmp;;totalwatsed3-5860-37d69c480562') (f32fca59-75b9-4725-abc0-2cc05679b483)
+Starting job f32fca59-75b9-4725-abc0-2cc05679b483
+04:42:36 Moving job to FailedJobRegistry (Work-horse terminated unexpectedly; waitpid returned 9 (signal 9); )
+Job f32fca59-75b9-4725-abc0-2cc05679b483 Failed
+04:42:36 Worker rq:worker:totalwatsed3-acceptance-37d69c480562: done, quitting
+04:42:36 Unsubscribing from channel rq:pubsub:totalwatsed3-acceptance-37d69c480562
+Traceback (most recent call last):
+  File "/workdir/wepppyo3/target/totalwatsed3-evidence/totalwatsed3_acceptance.py", line 92, in <module>
+    main()
+  File "/workdir/wepppyo3/target/totalwatsed3-evidence/totalwatsed3_acceptance.py", line 85, in main
+    assert all(job.is_finished for job in (first, second, third)), jobs
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [{'id': 'f32fca59-75b9-4725-abc0-2cc05679b483', 'status': 'failed', 'exception': 'Work-horse terminated unexpectedly; waitpid returned 9 (signal 9); '}, {'id': '2ef3349c-4bb1-4996-91ec-67fb04c72cba', 'status': 'deferred', 'exception': None}, {'id': 'c90b5f27-6e16-44eb-a129-36d1b597e2fa', 'status': 'deferred', 'exception': None}]

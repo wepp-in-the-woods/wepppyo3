@@ -1,0 +1,10 @@
+services:
+  rq-worker:
+    image: sha256:6ac7e71030467a10e5d73dc18893cbd85c9202976d4b1b561a19dbb0d7ef2b75
+    mem_limit: 12g
+    memswap_limit: 12g
+    cpuset: "0-11"
+    environment:
+      WEPPPY_NCPU: "12"
+      PROFILE_PLAYBACK_RUN_ROOT: /workdir/wepppyo3/target/totalwatsed3-evidence/rq-runs
+      PYTHONPATH: /workdir/wepppyo3/target/totalwatsed3-evidence:/workdir/wepppy:/workdir/wepppyo3/release/linux/py312

@@ -1,0 +1,32 @@
+{
+  "incommensurate-stickball": {
+    "python_median_seconds": 0.8799925750354305,
+    "native_median_seconds": 0.8176755619933829,
+    "native_python_ratio": 0.9291846149502584,
+    "median_ratio_limit": 1.1,
+    "median_time_pass": true,
+    "max_native_seconds": 0.9892736510373652,
+    "python_peak_bytes": 490467328,
+    "native_peak_bytes": 496349184,
+    "native_memory_ratio": 1.011992350283524,
+    "all_parity_pass": true,
+    "native_under_9_gib": true
+  },
+  "throbbing-sylvan": {
+    "python_median_seconds": 3.530796003062278,
+    "native_median_seconds": 3.7843796559609473,
+    "native_python_ratio": 1.0718205335790385,
+    "median_ratio_limit": 1.05,
+    "median_time_pass": false,
+    "max_native_seconds": 3.7985646550077945,
+    "python_peak_bytes": 1008467968,
+    "native_peak_bytes": 504229888,
+    "native_memory_ratio": 0.49999593839355344,
+    "all_parity_pass": true,
+    "native_under_9_gib": true,
+    "slowest_under_115_percent": true,
+    "memory_50_percent_lower_pass": true,
+    "incremental_under_6_gib": true,
+    "timing_disposition": "operator_accepted_107.18_percent"
+  }
+}

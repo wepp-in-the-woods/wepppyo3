@@ -1,0 +1,8 @@
+............................                                             [100%]
+=============================== warnings summary ===============================
+wepppyo3/tests/wepp_interchange/test_totalwatsed3.py::test_frozen_contract[absent_soil_element]
+  /opt/venv/lib/python3.12/site-packages/pytz/tzinfo.py:27: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _epoch = datetime.utcfromtimestamp(0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+28 passed, 1 warning in 9.46s

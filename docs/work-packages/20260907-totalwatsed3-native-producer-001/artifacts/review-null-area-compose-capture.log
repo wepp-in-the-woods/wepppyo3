@@ -1,0 +1,4 @@
+INFO:wctl2:docker compose exec weppcloud env PYTHONPATH=/workdir/wepppy:/workdir/wepppyo3/release/linux/py312 /opt/venv/bin/python /workdir/wepppyo3/docs/work-packages/20260907-totalwatsed3-native-producer-001/artifacts/null_area_oracle_capture.py
+oracle.parquet {'Area': [6000.0, 6000.0, 6000.0], 'TSMF': [0.3, 0.3, 0.3], 'QRain': [0.4000000000000001, None, 0.4000000000000001], 'QSnow': [0.2, None, 0.2]}
+native.parquet {'Area': [6000.0, 6000.0, 6000.0], 'TSMF': [0.3, 0.3, 0.3], 'QRain': [0.4000000000000001, None, 0.4000000000000001], 'QSnow': [0.2, None, 0.2]}
+EVIDENCE /workdir/wepppyo3/target/totalwatsed3-evidence/independent-review-null-area-5chji7zl

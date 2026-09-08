@@ -1,0 +1,32 @@
+[
+  {
+    "job": "f32fca59-75b9-4725-abc0-2cc05679b483",
+    "state": "failed",
+    "queue": "totalwatsed3-acceptance-37d69c480562"
+  },
+  {
+    "job": "2ef3349c-4bb1-4996-91ec-67fb04c72cba",
+    "state": "deferred",
+    "queue": "totalwatsed3-acceptance-37d69c480562"
+  },
+  {
+    "job": "c90b5f27-6e16-44eb-a129-36d1b597e2fa",
+    "state": "deferred",
+    "queue": "totalwatsed3-acceptance-37d69c480562"
+  },
+  {
+    "job": "579dcdbe-c72a-4a56-b6ed-2d36cd196310",
+    "state": "finished",
+    "queue": "totalwatsed3-acceptance-0411978315aa"
+  },
+  {
+    "job": "8ad03dca-f36e-4d69-84ee-9c5d7d6c9521",
+    "state": "finished",
+    "queue": "totalwatsed3-acceptance-0411978315aa"
+  },
+  {
+    "job": "f921fc1a-9fae-46dd-96ab-92ac49b63a59",
+    "state": "finished",
+    "queue": "totalwatsed3-acceptance-0411978315aa"
+  }
+]

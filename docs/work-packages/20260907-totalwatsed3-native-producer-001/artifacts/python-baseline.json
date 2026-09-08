@@ -1,0 +1,78 @@
+[
+  {
+    "run": "incommensurate-stickball",
+    "baseflow": {
+      "gwstorage": 0.0,
+      "bfcoeff": 0.04,
+      "dscoeff": 0.0
+    },
+    "output": "/evidence/incommensurate-stickball-ge44_29x",
+    "seconds": 1.0014840209623799,
+    "baseline": 136548352,
+    "memory_peak": 499027968,
+    "schema_equal": true,
+    "rows": 7670,
+    "differences": []
+  },
+  {
+    "run": "throbbing-sylvan",
+    "baseflow": {
+      "gwstorage": 0.0,
+      "bfcoeff": 0.04,
+      "dscoeff": 0.0
+    },
+    "output": "/evidence/throbbing-sylvan-wjz26wjo",
+    "seconds": 3.577193357050419,
+    "baseline": 208306176,
+    "memory_peak": 1032622080,
+    "schema_equal": true,
+    "rows": 16071,
+    "differences": []
+  },
+  {
+    "missing_from_frozen_oracle": [
+      "sed_del",
+      "SoilWaterTotal",
+      "ProfileDepth",
+      "ProfilePorosityCap",
+      "ProfileFCStore",
+      "ProfileWPStore",
+      "InterceptionStorage",
+      "TSMF",
+      "QRain",
+      "QSnow",
+      "Interception"
+    ],
+    "extra_in_frozen_oracle": [],
+    "run": "decimal-pleasing",
+    "baseflow": {
+      "gwstorage": 0.0,
+      "bfcoeff": 0.04,
+      "dscoeff": 0.0
+    },
+    "output": "/evidence/decimal-pleasing-xg9lxpaf",
+    "seconds": 0.4823717289837077,
+    "baseline": 132034560,
+    "memory_peak": 345985024,
+    "schema_equal": false,
+    "rows": 4018,
+    "differences": [
+      {
+        "column": "Runoff",
+        "mismatches": 703,
+        "max_abs": 0.10679043695848467,
+        "first": 66,
+        "actual": 0.0,
+        "oracle": 0.007150628735222308
+      },
+      {
+        "column": "Streamflow",
+        "mismatches": 703,
+        "max_abs": 0.10679043695848467,
+        "first": 66,
+        "actual": 1.2871254125440612,
+        "oracle": 1.2942760412792838
+      }
+    ]
+  }
+]

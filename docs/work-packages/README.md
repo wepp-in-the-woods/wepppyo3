@@ -18,6 +18,11 @@ All evidence artifacts must separate:
 - `Ran:` executed command evidence.
 
 ## Package index
+- `20260908-hillslope-watbal-native-001/`
+  - Status: `ready`
+  - Purpose: replace WEPPpy's full-table pandas hillslope water-balance producer
+    with required bounded native processing and repair batch finalizer receipt
+    NoDb contention, validated through the 12 GiB Forest Compose worker path.
 - `20260907-totalwatsed3-native-producer-001/`
   - Status: `completed`
   - Purpose: replace WEPPpy's Python/DuckDB `totalwatsed3` producer with a

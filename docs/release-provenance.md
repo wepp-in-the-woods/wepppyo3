@@ -881,3 +881,18 @@ at 4.43 GiB peak with no OOM or restart. See the
 and remote-verification disposition. Registry image publication and deployment
 remain outside this package; WEPPpy commits use `[skip ci]` to prevent the
 master-push image workflow from publishing implicitly.
+
+## Targeted project-cell area mean refresh (2026-09-09)
+
+`confirmed`: raster_characteristics rebuilt from source commit
+`125edc1565a37f629889278e3560b1a0af4b44d2` using Python 3.12 and
+`PYO3_PYTHON=/usr/bin/python3.12 cargo build --release -p raster_characteristics_rust`.
+The canonical release library was installed via sibling staging, chmod 0755,
+and atomic rename. Package version is 2026.09.09. No other library changed.
+
+SHA256: `587bb3371c282296291f233d6674d4bcad65f950d966f7cd71c0162cdb279b54`.
+Release-tree real-raster tests pass 43 cases, including masks, grid errors,
+missing-area defaults, signed cancellation and large finite values. The paired
+WEPPpy package `20260909_kslast_area_weighted` records fresh Compose process
+imports and full model acceptance; consult its release_manifest.json and
+integration-verification.json for runtime evidence.

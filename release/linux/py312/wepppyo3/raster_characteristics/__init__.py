@@ -1,6 +1,7 @@
-from typing import Set, Dict, Optional
+from typing import Set, Dict, Optional, TypedDict
 
 from .raster_characteristics_rust import (
+    identify_area_weighted_mean_single_raster_key as _identify_area_weighted_mean_single_raster_key,
     count_intersecting_raster_key_pairs as _count_intersecting_raster_key_pairs,
     identify_mode_intersecting_raster_keys as _identify_mode_intersecting_raster_keys,
     identify_mode_single_raster_key as _identify_mode_single_raster_key,
@@ -219,3 +220,27 @@ def identify_median_intersecting_raster_keys(
     )
     
 identify_median_intersecting_raster_keys.__doc__ = _identify_median_intersecting_raster_keys.__doc__
+
+
+class AreaWeightedMeanResult(TypedDict):
+    mean: float
+    valid_cell_count: int
+    missing_cell_count: int
+    total_cell_count: int
+
+
+def identify_area_weighted_mean_single_raster_key(
+    key_fn: str, parameter_fn: str, ignore_channels: bool = True,
+    ignore_keys: Optional[Set[int]] = None, band_indx: int = 1,
+    default_value: Optional[float] = None,
+) -> Dict[str, AreaWeightedMeanResult]:
+    """Mean over aligned projected cells, defaulting only missing area.
+
+    Masks, nodata and nonfinite parameters are missing; finite zero/negative
+    values are valid. Missing coverage without a default raises ValueError.
+    See docs/area-weighted-raster-mean.md for grid and error contracts.
+    """
+    return _identify_area_weighted_mean_single_raster_key(
+        key_fn, parameter_fn, ignore_channels,
+        _handle_common_args(ignore_keys, band_indx), band_indx, default_value,
+    )

@@ -99,4 +99,4 @@ The [tracker](work-packages/20260908-ashpost-native-001/tracker.md) and
 [release manifest](work-packages/20260908-ashpost-native-001/artifacts/release-integration-manifest.json)
 record final validation and source/binary provenance. No deployment is claimed.
 
-Raster characteristics area-mean contract: [area-weighted raster mean](area-weighted-raster-mean.md). Implementation pending.
+Raster characteristics area-mean contract: [area-weighted raster mean](area-weighted-raster-mean.md). Implemented in the canonical py312 release; real-raster coverage is in tests/raster_characteristics/test_area_weighted_mean.py.

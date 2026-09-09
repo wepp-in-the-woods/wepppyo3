@@ -2,6 +2,8 @@
 #![allow(clippy::unwrap_or_default)]
 #![allow(clippy::useless_conversion)]
 
+mod area_mean;
+
 use pyo3::exceptions::{PyIOError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
@@ -1509,6 +1511,10 @@ fn local_mukey_geometry(
 /// This module is a container for the Python-callable functions we define
 #[pymodule]
 fn raster_characteristics_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(
+        area_mean::identify_area_weighted_mean_single_raster_key,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(count_intersecting_raster_key_pairs, m)?)?;
     m.add_function(wrap_pyfunction!(identify_mode_single_raster_key, m)?)?;
     m.add_function(wrap_pyfunction!(identify_mode_intersecting_raster_keys, m)?)?;

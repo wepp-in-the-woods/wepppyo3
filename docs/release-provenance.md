@@ -896,3 +896,15 @@ missing-area defaults, signed cancellation and large finite values. The paired
 WEPPpy package `20260909_kslast_area_weighted` records fresh Compose process
 imports and full model acceptance; consult its release_manifest.json and
 integration-verification.json for runtime evidence.
+
+### Targeted refresh: required SBS native exporter (2026-09-10)
+
+Development-only refresh from source `d6641abfe3a932826b0e161494c7eafd0ba4e8d8` with
+`PYO3_PYTHON=/usr/bin/python3.12 PYTHON_SYS_EXECUTABLE=/usr/bin/python3.12 cargo build -p sbs_map_rust --release`. Python 3.12, build GDAL 3.10.1, runtime GDAL 3.10.3.
+Atomically replaced only `sbs_map/sbs_map_rust.so`; old SHA256 `17a255f2f72dba49fa9d2d7c41125c82538227ac1b0eff1cf8cef0130fe4ea84`,
+final SHA256 `69119d84349a1e60d4290aa583c79419a0f22ecac416f3c26b60ada34a8eec45`. The final source delta filters nonfinite/fractional NoData metadata before integer conversion, preventing valid integer pixels from being masked by truncated metadata. Four Rust tests pass. The old deployed artifact exported
+source NoData as unburned; current source preserves export NoData as 255.
+Real Wallow output matches the prior Python export pixel-for-pixel, including
+geometry and NoData; native export measured 0.57 seconds versus 54.09 seconds.
+WEPPpy evidence: `docs/work-packages/20260910_sbs_native_upload/artifacts/`.
+Service reload and final focused/browser gates are tracked there.

@@ -567,6 +567,9 @@ fn nodata_to_i64(nodata: Option<Vec<f64>>) -> Vec<i64> {
     nodata
         .unwrap_or_default()
         .into_iter()
+        // SBS classes are integers; fractional/NaN metadata cannot match one.
+        // Casting these sentinels would otherwise mask an unrelated valid class.
+        .filter(|v| v.is_finite() && v.fract() == 0.0)
         .map(|v| v as i64)
         .collect()
 }
@@ -1126,4 +1129,24 @@ fn sbs_map_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reclassify_sbs_raster, m)?)?;
     m.add_function(wrap_pyfunction!(export_sbs_4class, m)?)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod nodata_tests {
+    use super::nodata_to_i64;
+
+    #[test]
+    fn metadata_does_not_truncate_into_valid_classes() {
+        assert_eq!(
+            nodata_to_i64(Some(vec![
+                f64::NAN,
+                0.5,
+                -0.5,
+                f64::INFINITY,
+                -9999.0,
+                255.0
+            ])),
+            vec![-9999, 255]
+        );
+    }
 }

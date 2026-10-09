@@ -7,6 +7,12 @@ that every module has the same operational guarantees.
 
 ## Claim Labels
 
+`confirmed` (2026-10-09): wepp_interchange reads legacy and PASS component v3
+files and preserves v3 operands through Roads additive and AgFields area-weighted
+composition. Public table schemas are unchanged; mixed-version composition is
+rejected. See [the composition contract](pass-components-v3.md) and
+[release identity](release-provenance.md#pass-components-v3-and-composition-2026-10-09).
+
 - `confirmed`: directly observed in source, release files, tests, or checked-in work-package artifacts.
 - `inference`: conclusion drawn from confirmed evidence with stated assumptions.
 - `hypothesis`: plausible future benefit or unmeasured claim.

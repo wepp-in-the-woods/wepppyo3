@@ -66,6 +66,24 @@ rebuild or replace shared objects implicitly.
 
 ## Latest Refresh Evidence (py312)
 
+### PASS components v3 and composition, 2026-10-09
+
+Source: c3d8481d1c7dcaf59dceb37d9ea2e860b89f4307 on main. Rebuilt only
+wepp_interchange_rust and atomically refreshed its canonical py312 artifact.
+SHA-256: 06319303a2337cc75a3c57eb594161565d8a2af1d58cee18c17abcfe6eea8cf8.
+This pairs with WEPP 261009. Public columns and Python signatures are unchanged.
+The reader accepts legacy and v3 PASS; composition preserves source operands.
+Mixed-version composition fails explicitly. See [contract](pass-components-v3.md).
+
+Commands: PYO3_PYTHON=/home/workdir/wepppy/.venv/bin/python and
+RUSTFLAGS='-C link-arg=-lpython3.12' with cargo test --offline -p
+wepp_interchange_rust (104 unit and 17 integration tests passed), then
+cargo build --release --offline -p wepp_interchange_rust -j4.
+Formatting and installed import/hash preflight pass. A pre-existing unused_mut
+warning in totalwatsed tests remains. No other module was rebuilt or replaced.
+WEPPpy's startup pin is updated in the coordinated release; deployment remains
+pending mutation and disturbed-parameterization studies.
+
 ### Targeted Refresh: widened hillslope SOIL OFE recovery
 
 `confirmed`: On 2026-08-03, the `wepp_interchange` shared object was rebuilt

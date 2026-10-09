@@ -44,6 +44,7 @@ mod loss;
 mod mofe;
 mod parquet;
 mod pass;
+mod pass_components;
 mod schema;
 mod soil;
 mod tc_out;

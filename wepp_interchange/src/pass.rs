@@ -72,6 +72,7 @@ struct PassReader<R: BufRead> {
     line_reader: LineReader<R>,
     buffer: Vec<f64>,
     path: PathBuf,
+    components: bool,
 }
 
 impl<R: BufRead> PassReader<R> {
@@ -80,12 +81,19 @@ impl<R: BufRead> PassReader<R> {
             line_reader: LineReader::new(reader),
             buffer: Vec::new(),
             path: path.to_path_buf(),
+            components: false,
         }
     }
 
     fn read_header(&mut self) -> Result<Vec<String>, InterchangeError> {
         let mut header_lines: Vec<String> = Vec::new();
-        while let Some((_line_no, line)) = self.line_reader.next_line()? {
+        while let Some((line_no, line)) = self.line_reader.next_line()? {
+            if line_no == 1 {
+                self.components = crate::pass_components::header(&line, &self.path)?;
+                if self.components {
+                    continue;
+                }
+            }
             if line.trim() == "BEGIN HILLSLOPE HYDROLOGY AND SEDIMENT INFORMATION" {
                 return Ok(header_lines);
             }
@@ -123,6 +131,41 @@ impl<R: BufRead> PassReader<R> {
             ));
         }
         Ok(None)
+    }
+
+    fn read_components(
+        &mut self,
+        year: i32,
+        day: i32,
+        hills: usize,
+    ) -> Result<(), InterchangeError> {
+        if !self.components {
+            return Ok(());
+        }
+        if !self.buffer.is_empty() {
+            return Err(crate::pass_components::error(
+                &self.path,
+                "extra event values",
+            ));
+        }
+        let (_, line) = self
+            .line_reader
+            .next_line()?
+            .ok_or_else(|| crate::pass_components::error(&self.path, "missing SOURCES3"))?;
+        let count = crate::pass_components::count(&line, year, day, hills, &self.path)?;
+        let mut last = 0;
+        for _ in 0..count {
+            let (_, line) = self
+                .line_reader
+                .next_line()?
+                .ok_or_else(|| crate::pass_components::error(&self.path, "missing SRC3"))?;
+            let index = crate::pass_components::source(&line, year, day, true, &self.path)?;
+            if index <= last || index > hills {
+                return Err(crate::pass_components::error(&self.path, &line));
+            }
+            last = index;
+        }
+        Ok(())
     }
 
     fn read_values(&mut self, count: usize) -> Result<Vec<f64>, InterchangeError> {
@@ -725,6 +768,7 @@ fn stage_watershed_pass_outputs(
                 };
                 let gwbfv = pass_reader.read_values(meta.nhill as usize)?;
                 let gwdsv = pass_reader.read_values(meta.nhill as usize)?;
+                pass_reader.read_components(year, julian, meta.nhill as usize)?;
 
                 for (pos, wepp_id) in meta.hillslope_ids.iter().enumerate() {
                     store.event.push(label.clone());
@@ -962,6 +1006,22 @@ mod tests {
              HILLSLOPE 1 {climate_file} 0.1 0.2 10.0 1.0 2.0 3.0 4.0\n\
              BEGIN HILLSLOPE HYDROLOGY AND SEDIMENT INFORMATION\n"
         )
+    }
+
+    #[test]
+    fn master_components_validate_dates_count_and_order() {
+        let path = Path::new("synthetic.pass");
+        for (records, ok) in [
+            ("SOURCES3 2000 1 0\n", true),
+            ("SOURCES3 2000 2 0\n", false),
+            ("SOURCES3 2000 1 1\n", false),
+            ("SOURCES3 2000 1 2\n", false),
+        ] {
+            let text = format!("WEPP_PASS_COMPONENTS 3\n{}{records}", pass_header("x.cli"));
+            let mut reader = PassReader::new(std::io::Cursor::new(text), path);
+            reader.read_header().unwrap();
+            assert_eq!(reader.read_components(2000, 1, 1).is_ok(), ok);
+        }
     }
 
     fn temporary_artifacts(path: &Path) -> Vec<PathBuf> {

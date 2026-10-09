@@ -24,6 +24,9 @@ const SUBEVENT_FLOAT_COUNT: usize = 6;
 const NOEVENT_FLOAT_COUNT: usize = 2;
 
 pub struct PassColumns {
+    // Internal only: composition must not discard the source extension.
+    pub(crate) components_v3: bool,
+    pub(crate) components: Vec<Option<[f64; 27]>>,
     pub(crate) wepp_id: Vec<i32>,
     pub(crate) event: Vec<String>,
     pub(crate) year: Vec<i16>,
@@ -61,6 +64,8 @@ pub struct PassColumns {
 impl PassColumns {
     pub(crate) fn new() -> Self {
         Self {
+            components_v3: false,
+            components: Vec::new(),
             wepp_id: Vec::new(),
             event: Vec::new(),
             year: Vec::new(),
@@ -249,6 +254,14 @@ fn hillslope_pass_to_columns_with_lookup(
     let reader = BufReader::new(file);
     let mut header_lines: Vec<String> = Vec::new();
     let mut line_iter = reader.lines();
+    let mut components = false;
+    if let Some(line) = line_iter.next() {
+        let line = line.map_err(|err| InterchangeError::io(path, err))?;
+        components = crate::pass_components::header(&line, path)?;
+        if !components {
+            header_lines.push(line);
+        }
+    }
     while header_lines.len() < 5 {
         match line_iter.next() {
             Some(Ok(line)) => header_lines.push(line),
@@ -287,6 +300,7 @@ fn hillslope_pass_to_columns_with_lookup(
             )
         })?;
     let mut out = PassColumns::new();
+    out.components_v3 = components;
 
     if header_lines.len() < 5 {
         return Ok(out);
@@ -309,6 +323,9 @@ fn hillslope_pass_to_columns_with_lookup(
             .trim()
             .to_ascii_uppercase();
         if label.is_empty() || !EVENT_LABELS.contains(&label.as_str()) {
+            if !label.is_empty() && (components || raw_line.starts_with("SRC3")) {
+                return Err(crate::pass_components::error(path, &raw_line));
+            }
             continue;
         }
 
@@ -363,6 +380,7 @@ fn hillslope_pass_to_columns_with_lookup(
             ));
         }
 
+        let mut component = None;
         let mut row = PassRow::new();
         row.event = label.clone();
         row.year = year as i16;
@@ -383,6 +401,13 @@ fn hillslope_pass_to_columns_with_lookup(
                 ));
             }
             row.fill_event(values, path, &raw_line)?;
+            if components {
+                let line = line_iter
+                    .next()
+                    .ok_or_else(|| crate::pass_components::error(path, "missing SRC3"))?
+                    .map_err(|err| InterchangeError::io(path, err))?;
+                component = crate::pass_components::record(&line, year, julian, false, path)?.1;
+            }
         } else if label == "SUBEVENT" {
             let values = &tokens[2..];
             if values.len() != SUBEVENT_FLOAT_COUNT {
@@ -414,6 +439,7 @@ fn hillslope_pass_to_columns_with_lookup(
         }
 
         row.push_into(&mut out, wepp_id);
+        out.components.push(component);
     }
 
     Ok(out)
@@ -793,6 +819,33 @@ mod tests {
             "WEPP PASS\nsimulation start year 2000\nheader 3\nheader 4\nheader 5\nNO EVENT2000 1 1.25 2.50\n",
         )
         .expect("write PASS fixture");
+    }
+
+    #[test]
+    fn components_consumed_after_complete_event() {
+        let dir = temp_dir();
+        let path = dir.join("H1.pass.dat");
+        let header = "WEPP_PASS_COMPONENTS 3\nWEPP PASS\nsimulation start year 2000\nh3\nh4\nh5\n";
+        let event = format!(
+            "EVENT   2000 1 {}\n{}\n",
+            vec!["1"; 20].join(" "),
+            vec!["1"; 4].join(" ")
+        );
+        let version = VersionInfo::new(1, 0);
+        for record in [
+            "SRC3 2000 1 0\n".to_string(),
+            format!("SRC3 2000 1 1 1 1 1 {}\n", vec!["1"; 24].join(" ")),
+        ] {
+            fs::write(&path, format!("{header}{event}{record}")).unwrap();
+            let rows = hillslope_pass_to_columns(&path, None, &version).unwrap();
+            assert_eq!(rows.len(), 1);
+            assert_eq!(rows.runvol(), &[1.0]);
+        }
+        for record in ["", "SRC3 2000 2 0\n", "SRC3 2000 1 0\nSRC3 2000 1 0\n"] {
+            fs::write(&path, format!("{header}{event}{record}")).unwrap();
+            assert!(hillslope_pass_to_columns(&path, None, &version).is_err());
+        }
+        fs::remove_dir_all(dir).unwrap();
     }
 
     fn temporary_artifacts(path: &Path) -> Vec<PathBuf> {

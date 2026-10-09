@@ -269,6 +269,7 @@ struct HydroTriangle {
 
 #[derive(Clone, Debug)]
 struct CombinedRow {
+    components: Option<[f64; 27]>,
     event: &'static str,
     year: i16,
     julian: i16,
@@ -338,16 +339,24 @@ pub fn combine_hillslope_pass_files(
     let mut combined_rows = Vec::with_capacity(by_day.len());
     for (key, row_refs) in by_day {
         let resolved_kind = resolve_day_kind(&row_refs, &sources)?;
-        combined_rows.push(combine_row_for_kind(
-            key,
-            &row_refs,
-            &sources,
-            resolved_kind,
-            strategy_kind,
-        ));
+        let mut combined =
+            combine_row_for_kind(key, &row_refs, &sources, resolved_kind, strategy_kind);
+        combined.components = combine_components(
+            row_refs
+                .iter()
+                .map(|r| (&sources[r.source_idx].columns, r.row_idx, 1.0)),
+            out_pass,
+        )?;
+        combined_rows.push(combined);
     }
 
-    write_combined_pass(out_pass, &header_lines, &combined_rows, false)?;
+    write_combined_pass(
+        out_pass,
+        &header_lines,
+        &combined_rows,
+        false,
+        sources[0].columns.components_v3,
+    )?;
     Ok(())
 }
 
@@ -403,7 +412,13 @@ pub fn combine_weighted_hillslope_pass_files(
     let temp_path = weighted_temp_path(out_pass);
 
     let result = (|| {
-        write_combined_pass(&temp_path, &output_header, &combined_rows, true)?;
+        write_combined_pass(
+            &temp_path,
+            &output_header,
+            &combined_rows,
+            true,
+            sources[0].columns.components_v3,
+        )?;
         File::open(&temp_path)
             .and_then(|file| file.sync_all())
             .map_err(|err| InterchangeError::io(&temp_path, err))?;
@@ -672,6 +687,11 @@ fn validate_weighted_calendars(sources: &[WeightedSourceData]) -> Result<(), Int
     }
     let base = &sources[0];
     for source in sources.iter().skip(1) {
+        require_same_components(
+            base.columns.components_v3,
+            source.columns.components_v3,
+            &source.source.path,
+        )?;
         if source.columns.len() != base.columns.len() {
             return Err(InterchangeError::parse(
                 &source.source.path,
@@ -813,6 +833,7 @@ fn combine_weighted_row(
 
     let metrics = weighted_input_metrics(row_idx, sources);
     let base = CombinedRow {
+        components: None,
         event: match kind {
             EventKind::NoEvent => "NO EVENT",
             EventKind::SubEvent => "SUBEVENT",
@@ -937,6 +958,12 @@ fn combine_weighted_row(
     combined.saot = fractions[2];
     combined.laot = fractions[3];
     combined.sdot = fractions[4];
+    combined.components = combine_components(
+        positive_sources
+            .iter()
+            .map(|source| (&source.columns, row_idx, source.scale)),
+        &first.source.path,
+    )?;
     Ok(combined)
 }
 
@@ -1210,7 +1237,14 @@ fn read_pass_header(path: &Path) -> Result<Vec<String>, InterchangeError> {
     let file = File::open(path).map_err(|err| InterchangeError::io(path, err))?;
     let reader = BufReader::new(file);
     let mut out = Vec::with_capacity(5);
-    for line in reader.lines().take(5) {
+    let mut lines = reader.lines();
+    if let Some(line) = lines.next() {
+        let line = line.map_err(|err| InterchangeError::io(path, err))?;
+        if !crate::pass_components::header(&line, path)? {
+            out.push(line);
+        }
+    }
+    for line in lines.take(5 - out.len()) {
         let line = line.map_err(|err| InterchangeError::io(path, err))?;
         out.push(line);
     }
@@ -1352,6 +1386,11 @@ fn validate_calendar_alignment(sources: &[SourceData]) -> Result<(), Interchange
     }
 
     for source in sources.iter().skip(1) {
+        require_same_components(
+            base_source.columns.components_v3,
+            source.columns.components_v3,
+            &source.path,
+        )?;
         let source_row_count = source.columns.len();
         if source_row_count != base_row_count {
             return Err(InterchangeError::parse(
@@ -1470,6 +1509,74 @@ where
     }
 }
 
+fn require_same_components(a: bool, b: bool, path: &Path) -> Result<(), InterchangeError> {
+    if a != b {
+        return Err(InterchangeError::parse(
+            path,
+            None,
+            "Cannot combine legacy and v3 PASS files; regenerate all sources with the same build",
+            None,
+        ));
+    }
+    Ok(())
+}
+
+fn combine_components<'a>(
+    inputs: impl Iterator<Item = (&'a PassColumns, usize, f64)>,
+    path: &Path,
+) -> Result<Option<[f64; 27]>, InterchangeError> {
+    let inputs: Vec<_> = inputs.filter(|(_, _, scale)| *scale > 0.0).collect();
+    if !inputs
+        .iter()
+        .any(|(c, i, _)| c.components.get(*i).is_some_and(Option::is_some))
+    {
+        return Ok(None);
+    }
+    // Preserve the original support weights for a single represented source.
+    if inputs.len() == 1 {
+        let (c, i, scale) = inputs[0];
+        let mut values = c.components[i].unwrap();
+        for value in &mut values[..3] {
+            *value *= scale;
+        }
+        return Ok(Some(values));
+    }
+    let mut values = [0.0; 27];
+    let mut rain = Vec::new();
+    for (columns, idx, scale) in inputs {
+        let (vr, qr) = if let Some(component) = columns.components[idx] {
+            let vs = component[2] * scale;
+            values[2] += vs;
+            let total: f64 = component[3..].iter().sum();
+            for (weight, source) in values[3..].iter_mut().zip(&component[3..]) {
+                *weight += vs * (source / total);
+            }
+            (component[0] * scale, component[1] * scale)
+        } else {
+            (columns.runvol[idx] * scale, columns.peakro[idx] * scale)
+        };
+        values[0] += vr;
+        if let Some(triangle) = build_hydro_triangle(vr, qr, columns.tcs[idx]) {
+            rain.push(triangle);
+        }
+    }
+    // Existing triangle superposition, applied only to the unsplit/rain component.
+    for time in rain.iter().flat_map(|t| [t.t_peak, t.t_end]) {
+        let flow: f64 = rain.iter().map(|t| triangle_flow_at(t, time)).sum();
+        values[1] = values[1].max(flow);
+    }
+    if values
+        .iter()
+        .any(|v| !v.is_finite() || *v < 0.0 || *v > f32::MAX as f64)
+    {
+        return Err(crate::pass_components::error(
+            path,
+            "component combination overflow",
+        ));
+    }
+    Ok(Some(values))
+}
+
 fn combine_peakro_phase1(rows: &[RowRef], sources: &[SourceData]) -> f64 {
     let mut hydro_components = Vec::new();
     for row in rows {
@@ -1575,6 +1682,7 @@ fn combine_row_for_kind(
 
     match kind {
         EventKind::NoEvent => CombinedRow {
+            components: None,
             event: "NO EVENT",
             year,
             julian,
@@ -1604,6 +1712,7 @@ fn combine_row_for_kind(
             gwdsv: sum_field(rows, sources, |cols, idx| cols.gwdsv[idx]),
         },
         EventKind::SubEvent => CombinedRow {
+            components: None,
             event: "SUBEVENT",
             year,
             julian,
@@ -1661,6 +1770,7 @@ fn combine_row_for_kind(
             };
 
             CombinedRow {
+                components: None,
                 event: "EVENT",
                 year,
                 julian,
@@ -1698,6 +1808,7 @@ fn write_combined_pass(
     header_lines: &[String],
     combined_rows: &[CombinedRow],
     legacy_five_significant: bool,
+    components_v3: bool,
 ) -> Result<(), InterchangeError> {
     if let Some(parent) = out_pass.parent() {
         fs::create_dir_all(parent).map_err(|err| InterchangeError::io(parent, err))?;
@@ -1705,6 +1816,11 @@ fn write_combined_pass(
 
     let file = File::create(out_pass).map_err(|err| InterchangeError::io(out_pass, err))?;
     let mut writer = BufWriter::new(file);
+
+    if components_v3 {
+        writeln!(writer, "WEPP_PASS_COMPONENTS 3")
+            .map_err(|err| InterchangeError::io(out_pass, err))?;
+    }
 
     for line in header_lines {
         writeln!(writer, "{line}").map_err(|err| InterchangeError::io(out_pass, err))?;
@@ -1747,6 +1863,27 @@ fn write_combined_pass(
                 out_pass,
                 legacy_five_significant,
             )?;
+            if components_v3 {
+                let mut line = format!(
+                    "SRC3 {} {} {}",
+                    row.year,
+                    row.julian,
+                    usize::from(row.components.is_some())
+                );
+                if let Some(values) = row.components {
+                    for value in values {
+                        line.push_str(&format!(" {value:.8E}"));
+                    }
+                }
+                crate::pass_components::source(
+                    &line,
+                    i32::from(row.year),
+                    i32::from(row.julian),
+                    false,
+                    out_pass,
+                )?;
+                writeln!(writer, "{line}").map_err(|err| InterchangeError::io(out_pass, err))?;
+            }
         } else if row.event == "SUBEVENT" {
             let values = [
                 row.sbrunf, row.sbrunv, row.drainq, row.drrunv, row.gwbfv, row.gwdsv,
@@ -2076,6 +2213,176 @@ mod tests {
 
     fn event_line(year: i32, julian: i32, values: [f64; 24]) -> String {
         format_line("EVENT", year, julian, &values)
+    }
+
+    fn component_fixture(path: &Path, active: bool, pure: bool) {
+        let mut fields = [0.0; 24];
+        fields[0] = 12.0;
+        fields[1] = 1.0;
+        fields[2] = 1.0;
+        fields[3] = 300.0 / 4440.9;
+        fields[4] = 300.0;
+        fields[9] = 0.02;
+        write_pass(path, &[event_line(2000, 1, fields)]);
+        let legacy = fs::read_to_string(path).unwrap();
+        let src = if active {
+            let (vr, qr, vs) = if pure {
+                (0.0, 0.0, 300.0)
+            } else {
+                (100.0, 0.01, 200.0)
+            };
+            format!(
+                "SRC3 2000 1 1 {vr} {qr} {vs} {}\n",
+                (0..24)
+                    .map(|h| if h < 12 { "1" } else { "0" })
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
+        } else {
+            "SRC3 2000 1 0\n".to_string()
+        };
+        fs::write(path, format!("WEPP_PASS_COMPONENTS 3\n{legacy}{src}")).unwrap();
+    }
+
+    #[test]
+    fn v3_single_and_additive_round_trip() {
+        let dir = make_temp_dir("v3_additive");
+        let a = dir.join("H1.pass.dat");
+        let b = dir.join("H2.pass.dat");
+        let output = dir.join("H3.pass.dat");
+        component_fixture(&a, true, false);
+        component_fixture(&b, false, false);
+        let version = VersionInfo::new(1, 0);
+        let original = hillslope_pass_to_columns(&a, None, &version).unwrap();
+        combine_hillslope_pass_files(&a, &[], &output, "phase1").unwrap();
+        let single = hillslope_pass_to_columns(&output, None, &version).unwrap();
+        assert_eq!(original.components, single.components);
+        for strategy in ["phase1", "phase4"] {
+            combine_hillslope_pass_files(&a, &[b.clone()], &output, strategy).unwrap();
+            let combined = hillslope_pass_to_columns(&output, None, &version).unwrap();
+            assert_eq!(combined.runvol[0], 600.0);
+            let c = combined.components[0].unwrap();
+            assert_eq!(c[0], 400.0);
+            assert_eq!(c[2], 200.0);
+            assert!((c[1] - 0.03).abs() < 1e-10);
+            assert!((3600.0 * c[3..].iter().sum::<f64>() / c[3] - 43200.0).abs() < 1e-6);
+        }
+        component_fixture(&b, true, true);
+        combine_hillslope_pass_files(&a, &[b], &output, "phase1").unwrap();
+        let c = hillslope_pass_to_columns(&output, None, &version)
+            .unwrap()
+            .components[0]
+            .unwrap();
+        assert_eq!(c[0], 100.0);
+        assert_eq!(c[2], 500.0);
+        assert_eq!(c[1], 0.01);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn v3_weighted_scales_and_ignores_zero_area() {
+        let dir = make_temp_dir("v3_weighted");
+        let a = dir.join("H1.pass.dat");
+        let b = dir.join("H2.pass.dat");
+        let output = dir.join("H3.pass.dat");
+        component_fixture(&a, true, false);
+        component_fixture(&b, true, true);
+        let mut sources = vec![
+            WeightedPassSource {
+                source_id: "a".into(),
+                path: a,
+                represented_area_m2: 2220.45,
+            },
+            WeightedPassSource {
+                source_id: "b".into(),
+                path: b,
+                represented_area_m2: 8881.8,
+            },
+        ];
+        combine_weighted_hillslope_pass_files(
+            &sources,
+            &output,
+            11102.25,
+            "p1.cli",
+            AG_FIELDS_STRATEGY,
+        )
+        .unwrap();
+        let version = VersionInfo::new(1, 0);
+        let combined = hillslope_pass_to_columns(&output, None, &version).unwrap();
+        let c = combined.components[0].unwrap();
+        assert_eq!(combined.runvol[0], 750.0);
+        assert!((c[0] - 50.0).abs() < 1e-7);
+        assert!((c[2] - 700.0).abs() < 1e-7);
+        assert!((c[1] - 0.005).abs() < 1e-10);
+        sources[1].represented_area_m2 = 0.0;
+        combine_weighted_hillslope_pass_files(
+            &sources,
+            &output,
+            2220.45,
+            "p1.cli",
+            AG_FIELDS_STRATEGY,
+        )
+        .unwrap();
+        let c = hillslope_pass_to_columns(&output, None, &version)
+            .unwrap()
+            .components[0]
+            .unwrap();
+        assert_eq!(c[0], 50.0);
+        assert_eq!(c[2], 100.0);
+        assert_eq!(c[3], 1.0);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn v3_inactive_and_version_mismatch() {
+        let dir = make_temp_dir("v3_versions");
+        let a = dir.join("H1.pass.dat");
+        let b = dir.join("H2.pass.dat");
+        let output = dir.join("H3.pass.dat");
+        component_fixture(&a, false, false);
+        component_fixture(&b, false, false);
+        combine_hillslope_pass_files(&a, &[b.clone()], &output, "phase1").unwrap();
+        let version = VersionInfo::new(1, 0);
+        let columns = hillslope_pass_to_columns(&output, None, &version).unwrap();
+        assert!(columns.components_v3);
+        assert_eq!(columns.components, vec![None]);
+        let text = fs::read_to_string(&b).unwrap();
+        fs::write(
+            &b,
+            text.lines()
+                .filter(|l| !l.starts_with("WEPP_PASS_COMPONENTS") && !l.starts_with("SRC3"))
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n",
+        )
+        .unwrap();
+        assert!(
+            combine_hillslope_pass_files(&a, &[b.clone()], &output, "phase1")
+                .unwrap_err()
+                .to_string()
+                .contains("same build")
+        );
+        let sources = vec![
+            WeightedPassSource {
+                source_id: "a".into(),
+                path: a,
+                represented_area_m2: 4440.9,
+            },
+            WeightedPassSource {
+                source_id: "b".into(),
+                path: b,
+                represented_area_m2: 4440.9,
+            },
+        ];
+        assert!(combine_weighted_hillslope_pass_files(
+            &sources,
+            &output,
+            8881.8,
+            "p1.cli",
+            AG_FIELDS_STRATEGY
+        )
+        .is_err());
+        fs::remove_dir_all(dir).unwrap();
     }
 
     fn subevent_line(year: i32, julian: i32, values: [f64; 6]) -> String {

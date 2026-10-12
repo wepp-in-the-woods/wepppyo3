@@ -926,3 +926,19 @@ Real Wallow output matches the prior Python export pixel-for-pixel, including
 geometry and NoData; native export measured 0.57 seconds versus 54.09 seconds.
 WEPPpy evidence: `docs/work-packages/20260910_sbs_native_upload/artifacts/`.
 Service reload and final focused/browser gates are tracked there.
+
+## SA-01 anisotropy refresh, 2026-10-12
+
+Source base `bd63094` plus `wepp_interchange/src/soil_anisotropy.rs` and its
+module export; WEPPpy contract ancestor `a94028e78`. Built with
+`PYO3_PYTHON=/usr/bin/python3.12 cargo build --release -p wepp_interchange_rust`.
+The affected shared object was copied to a same-directory temporary file and
+atomically renamed; no other native module was refreshed.
+
+SHA-256: `103f209676425ae2bcf7fbde0c31b6d7bbe9ca0a5779d766297a4af9cd92c633`.
+
+All crate tests passed (107 unit and 17 integration); the actual forest Python 3.12 import returned
+25/25/4 for 100/500/800 mm. Full forest preparation and browser receipts live in
+WEPPpy package 20261012_soil_anisotropy. This is a forest build, not production
+deployment evidence. Pair deployment with the corresponding WEPPpy feature
+and its `docker/wepppyo3-interchange-preflight.py` SHA pin. Restart importing processes after the atomic refresh.

@@ -106,3 +106,15 @@ The [tracker](work-packages/20260908-ashpost-native-001/tracker.md) and
 record final validation and source/binary provenance. No deployment is claimed.
 
 Raster characteristics area-mean contract: [area-weighted raster mean](area-weighted-raster-mean.md). Implemented in the canonical py312 release; real-raster coverage is in tests/raster_characteristics/test_area_weighted_mean.py.
+
+## Soil anisotropy input preparation (SA-01)
+
+`confirmed`: `wepppyo3.wepp_interchange.soil_anisotropy_values` accepts nested
+(depth_mm, original_optional_ratio) records and optional upper/lower overrides.
+It validates finite bounds1–100/1–10 and positive nondecreasing depths, then
+returns ratios using cumulative bottom depth <=500 mm. Unset classes preserve
+source values, including zero. It opens no files and does not mutate arguments.
+WEPPpy owns eligibility, parsing and the single prepared-file write. Native
+unit tests cover boundary depths, duplicate clipped depths, source preservation
+and invalid inputs; forest generated-file validation is retained in WEPPpy
+package20261012_soil_anisotropy. No new performance claim is made.

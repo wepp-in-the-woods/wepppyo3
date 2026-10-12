@@ -47,6 +47,7 @@ mod pass;
 mod pass_components;
 mod schema;
 mod soil;
+mod soil_anisotropy;
 mod tc_out;
 mod totalwatsed;
 mod totalwatsed_schema;
@@ -1227,6 +1228,7 @@ fn segment_single_ofe_slope_at_breakpoints(
 
 #[pymodule]
 fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(soil_anisotropy::soil_anisotropy_values, m)?)?;
     m.add_function(wrap_pyfunction!(ashpost_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_watbal_wepp_ids, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_watbal_to_parquet, m)?)?;

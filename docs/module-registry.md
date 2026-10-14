@@ -118,3 +118,15 @@ WEPPpy owns eligibility, parsing and the single prepared-file write. Native
 unit tests cover boundary depths, duplicate clipped depths, source preservation
 and invalid inputs; forest generated-file validation is retained in WEPPpy
 package20261012_soil_anisotropy. No new performance claim is made.
+
+## PRISM temperature ordering (2026-10-13)
+
+`confirmed`: the climate daily revision writer rejects invalid source temperatures
+and nonfinite temperature operands, then collapses only crossed adjusted extrema
+to their midpoint before the existing serializer. Valid values and other weather
+retain the existing transformation. A visible sibling `.temperature-ordering.log`
+records working/completed status, correction count, maximum inversion, and actual
+maximum per-extreme movement. Unrepresentable diagnostic magnitudes fail with
+InvalidData (the Python wrapper retains OSError). Public signatures are unchanged.
+WEPPpy ADR-0092 and `docs/schemas/prism-spatialization-temperature-contract.md`
+own the numerical contract; its implementation package retains consumer evidence.

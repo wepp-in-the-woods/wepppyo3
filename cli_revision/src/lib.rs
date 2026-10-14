@@ -1186,6 +1186,28 @@ fn make_rhem_storm_file(src_fn: &str, dst_fn: &str) -> PyResult<()> {
         .map_err(|e| pyo3::exceptions::PyOSError::new_err(format!("{}", e)))
 }
 
+// ADR-0092: repair spatialization-induced inversions, never source defects.
+fn ordered_spatial_temperatures(tmax: f64, tmin: f64) -> Result<(f64, f64)> {
+    if !tmax.is_finite() || !tmin.is_finite() {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            "PRISM adjusted temperatures must be finite",
+        ));
+    }
+    if tmin > tmax {
+        if !(tmin - tmax).is_finite() {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                "PRISM inversion magnitude must be finite",
+            ));
+        }
+        let midpoint = tmax / 2.0 + tmin / 2.0;
+        Ok((midpoint, midpoint))
+    } else {
+        Ok((tmax, tmin))
+    }
+}
+
 #[pyfunction]
 pub fn rust_cli_revision(
     src_fn: &str,
@@ -1197,6 +1219,27 @@ pub fn rust_cli_revision(
     hill_tmaxs: [f64; 12],
     hill_tmins: [f64; 12],
 ) -> Result<()> {
+    let mut diagnostic = File::create(format!("{}.temperature-ordering.log", dst_fn))?;
+    writeln!(
+        diagnostic,
+        "status=working source={:?} output={:?}",
+        src_fn, dst_fn
+    )?;
+    if ws_tmaxs
+        .iter()
+        .chain(ws_tmins.iter())
+        .chain(hill_tmaxs.iter())
+        .chain(hill_tmins.iter())
+        .any(|v| !v.is_finite())
+    {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            "PRISM temperature normals must be finite",
+        ));
+    }
+    let mut corrected_days: usize = 0;
+    let mut maximum_inversion_c: f64 = 0.0;
+    let mut maximum_adjustment_c: f64 = 0.0;
     // Clip ws_ppts and hill_ppts to minimum of 0.01
     for i in 0..12 {
         ws_ppts[i] = ws_ppts[i].max(0.01);
@@ -1226,17 +1269,37 @@ pub fn rust_cli_revision(
             let mut dur_f: f64 = tokens[4].parse().unwrap();
             let tp = tokens[5];
             let ip = tokens[6];
-            let mut tmax_f: f64 = tokens[7].parse().unwrap();
-            let mut tmin_f: f64 = tokens[8].parse().unwrap();
+            let mut tmax_f: f64 = tokens[7]
+                .parse()
+                .map_err(|_| Error::new(ErrorKind::InvalidData, "Invalid source Tmax"))?;
+            let mut tmin_f: f64 = tokens[8]
+                .parse()
+                .map_err(|_| Error::new(ErrorKind::InvalidData, "Invalid source Tmin"))?;
             let rad = tokens[9];
             let w_vl = tokens[10];
             let w_dir = tokens[11];
             let tdew = tokens[12];
 
+            if !tmax_f.is_finite() || !tmin_f.is_finite() || tmin_f > tmax_f {
+                return Err(Error::new(
+                    ErrorKind::InvalidData,
+                    "PRISM source temperatures must be finite and ordered",
+                ));
+            }
             let indx = (mo - 1) as usize;
             prcp_f = prcp_f * hill_ppts[indx] / ws_ppts[indx];
             tmax_f = tmax_f - ws_tmaxs[indx] + hill_tmaxs[indx];
             tmin_f = tmin_f - ws_tmins[indx] + hill_tmins[indx];
+
+            let ordered = ordered_spatial_temperatures(tmax_f, tmin_f)?;
+            if tmin_f > tmax_f {
+                corrected_days += 1;
+                maximum_inversion_c = maximum_inversion_c.max(tmin_f - tmax_f);
+                maximum_adjustment_c = maximum_adjustment_c
+                    .max((ordered.0 - tmax_f).abs())
+                    .max((ordered.1 - tmin_f).abs());
+            }
+            (tmax_f, tmin_f) = ordered;
 
             // Ensure duration > 0.0 when prcp > 0
             if prcp_f > 0.0 && dur_f == 0.0 {
@@ -1258,6 +1321,11 @@ pub fn rust_cli_revision(
         }
         line.clear();
     }
+    dst_w.flush()?;
+    let summary = format!("status=complete method=midpoint_if_inverted corrected_days={} maximum_inversion_c={} maximum_adjustment_c={}", corrected_days, maximum_inversion_c, maximum_adjustment_c);
+    writeln!(diagnostic, "{}", summary)?;
+    diagnostic.flush()?;
+    println!("{} source={:?} output={:?}", summary, src_fn, dst_fn);
     Ok(())
 }
 
@@ -1775,5 +1843,26 @@ mod tests {
         assert_eq!(result.storms_used, 2);
 
         let _ = fs::remove_file(cli_path);
+    }
+}
+
+#[cfg(test)]
+mod temperature_ordering_tests {
+    use super::*;
+
+    #[test]
+    fn midpoint_repairs_only_crossed_finite_extrema() {
+        for (a, b) in [(3.0, 1.0), (0.0, 0.0), (-2.0, -5.0)] {
+            assert_eq!(ordered_spatial_temperatures(a, b).unwrap(), (a, b));
+        }
+        for (a, b) in [(1.0, 1.5), (-5.0, -4.5), (-1.0, 1.0), (0.04, 0.06)] {
+            let (hi, lo) = ordered_spatial_temperatures(a, b).unwrap();
+            assert_eq!(hi, lo);
+            assert_eq!(hi, a / 2.0 + b / 2.0);
+            assert_eq!(format!("{:.1}", hi), format!("{:.1}", lo));
+        }
+        assert!(ordered_spatial_temperatures(-1e308, 1e308).is_err());
+        assert!(ordered_spatial_temperatures(f64::NAN, 1.0).is_err());
+        assert!(ordered_spatial_temperatures(1.0, f64::INFINITY).is_err());
     }
 }

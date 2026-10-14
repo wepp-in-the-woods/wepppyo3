@@ -942,3 +942,23 @@ All crate tests passed (107 unit and 17 integration); the actual forest Python 3
 WEPPpy package 20261012_soil_anisotropy. This is a forest build, not production
 deployment evidence. Pair deployment with the corresponding WEPPpy feature
 and its `docker/wepppyo3-interchange-preflight.py` SHA pin. Restart importing processes after the atomic refresh.
+
+## Targeted PRISM temperature ordering refresh (2026-10-13)
+
+`confirmed`: built climate source commit `d3e51c2badd2cb30a6bcb2e2f7a3881a8b3b908c` with
+Python 3.12.3, Rust/Cargo 1.92.0 and
+`PYO3_PYTHON=/usr/bin/python3.12 PYTHON_SYS_EXECUTABLE=/usr/bin/python3.12 cargo build --release -p cli_revision_rust`.
+Atomically refreshed only `climate/cli_revision_rust.so` using sibling staging
+and mode 0755. SHA-256: `da1c323a7fa95f147b825a0fa38cfb006ef4f8319b489eb6f77ac7c4f49f7882`.
+Previous SHA-256: `98988e98022d1bdf56865c044c544830c3d4d639a0e6279c9ac6c6c15e70118c`.
+
+Crate tests pass 23; fresh WEPPcloud Compose processes import the release-tree
+artifact and pass 80 focused Python tests. WEPPpy work package
+`20261013_prism_temperature_ordering` retains exact import identity, 24-case
+comparisons, generated/consumed climate hashes, real raster-backed project
+validation, fresh WEPP outputs, timings, and broad-gate dispositions. The rule
+also rejects unrepresentable diagnostic magnitudes before completing outputs.
+This is development acceptance. No services were restarted and no production
+deployment or existing project rebuild is implied. Pair rollout with the
+corresponding WEPPpy Python writers; restart importing processes through the
+existing deployment procedure when rollout is separately authorized.

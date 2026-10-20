@@ -1,0 +1,11 @@
+{
+  "source_base": "54d0867",
+  "wepppy_checkpoint": "14c7eebb1",
+  "source_sha256": "0a45929c64bf30f23f1546e7efcd3f28eae01497d746491a3e01cfa6c73ad0cc",
+  "binary": "release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so",
+  "binary_sha256": "1cb2cec6ecba762362d117982d448b397c900b9c3a1be742a0c3bbea16e3e62b",
+  "build_command": "PYO3_PYTHON=/usr/bin/python3.12 cargo build --release -p wepp_interchange_rust",
+  "scope": "WAT/PASS descriptions only; names, types, units and values unchanged",
+  "python_native_tests": 163,
+  "production_deployed": false
+}

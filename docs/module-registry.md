@@ -146,3 +146,12 @@ legacy `wat_path` is retained as a call argument but never used as a fallback.
 Full PASS totals reconcile to the supplied baseline; unavailable totals/baselines
 cannot publish numeric corrections. See [release manifest](mofe-water-release-20261020.json)
 and WEPPpy's current hillslope-water aggregation contract for consumer semantics.
+
+## Water output documentation metadata (2026-10-20)
+
+Confirmed: WAT/PASS descriptive metadata now distinguishes local OFE area,
+terminal physical runoff and threshold-filtered PASS delivery. Existing machine
+unit labels remain unchanged; descriptions flag inherited sediment-fraction
+label defects. No numerical behavior or API changes. Rebuilt py312 interchange
+SHA-256 `1cb2cec6ecba762362d117982d448b397c900b9c3a1be742a0c3bbea16e3e62b`; 163 native Python tests passed.
+See [release evidence](water-documentation-release-20261020.json). No production deployment.

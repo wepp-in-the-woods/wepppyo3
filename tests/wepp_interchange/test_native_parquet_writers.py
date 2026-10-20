@@ -182,14 +182,14 @@ def test_hillslope_bulk_writers_publish_versioned_empty_parquet(tmp_path: Path) 
     pass_schema = pq.read_schema(tmp_path / "H.pass.parquet")
     assert pass_schema.field("clot").metadata == {
         b"units": b"m^3/s",
-        b"description": b"Friction flow 1",
+        b"description": b"Clay sediment fraction (dimensionless); legacy m^3/s unit label is incorrect",
     }
     assert pass_schema.field("slot").metadata == {
         b"units": b"%",
-        b"description": b"% of exiting sediment in the silt size class",
+        b"description": b"Silt sediment fraction (dimensionless); legacy percent unit label is incorrect",
     }
     assert pass_schema.field("gwbfv").metadata == {
-        b"description": b"Groundwater baseflow"
+        b"description": b"Daily groundwater baseflow volume in m^3; legacy machine-unit metadata absent"
     }
     soil_schema = pq.read_schema(tmp_path / "H.soil.parquet")
     assert soil_schema.field("TSMF").metadata == {

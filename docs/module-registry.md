@@ -81,7 +81,12 @@ and immutable image publication are verified, including image-contained RQ at
 `confirmed`: `wepppyo3.wepp_interchange` exports bounded distinct-ID discovery
 and a compact Topaz/year cache writer, consumed by WEPPpy's
 `wepppy/wepp/reports/hillslope_watbal.py`. It keeps first area per WEPP/OFE,
-compensated independent flux sums, nullable output types, and sorted keys.
+compensated flux sums, nullable output types, and sorted keys. ET components
+and Dp use daily local OFE area weighting before annual summation, including
+native IDs mapped to one Topaz ID. Single-OFE hills retain bounded annual state;
+exact integer row-group bounds can avoid the preliminary geometry scan.
+Other row-group layouts use a projected key scan. Summaries carry
+`hillslope_watbal_aggregation=mofe-area-v1`; invalid areas fail explicitly.
 The required-native boundary has no full-source pandas fallback.
 
 Evidence: [package tracker](work-packages/20260908-hillslope-watbal-native-001/tracker.md),

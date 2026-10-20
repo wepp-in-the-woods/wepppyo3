@@ -248,3 +248,21 @@ def test_malformed_metadata_fails_without_panic_or_publication(native, tmp_path,
     assert output.read_bytes() == b'prior generation'
     assert {path: path.read_bytes() for path in inputs_before} == inputs_before
     assert not list(tmp_path.glob('.*.wepp-*'))
+
+
+def test_local_flux_area_oracle_remains_correct(native, tmp_path):
+    """Control for the separate report/export fixes; raw components stay m3."""
+    source = FIXTURES / 'contracts/normal'
+    frame = pq.read_table(source/'H.wat.parquet').to_pandas()
+    for name, values in {'Area':{1:250.,2:750.}, 'Ep':{1:1.,2:4.},
+                         'Es':{1:.5,2:1.}, 'Er':{1:.5,2:1.}, 'Dp':{1:4.,2:8.}}.items():
+        frame[name] = frame.ofe_id.map(values)
+    wat = tmp_path/'H.wat.parquet'; frame.to_parquet(wat,index=False)
+    output = tmp_path/'totalwatsed3.parquet'
+    native(str(source/'H.pass.parquet'),str(wat),str(output),0.,.04,0.,1,2)
+    result = pq.read_table(output)
+    np.testing.assert_allclose(result['ET'].to_numpy(),5.)
+    np.testing.assert_allclose(result['Percolation'].to_numpy(),7.)
+    # Two 1000 m2 hills: weighted depths * total area / 1000 -> m3.
+    np.testing.assert_allclose(result['Ep'].to_numpy(),6.5)
+    np.testing.assert_allclose(result['Dp'].to_numpy(),14.)

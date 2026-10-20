@@ -962,3 +962,23 @@ This is development acceptance. No services were restarted and no production
 deployment or existing project rebuild is implied. Pair rollout with the
 corresponding WEPPpy Python writers; restart importing processes through the
 existing deployment procedure when rollout is separately authorized.
+
+## Hillslope local-water area correction (2026-10-20)
+
+`confirmed`: refreshed only the interchange library from source base
+`0515272453e36fe071c7812fb9d8ca2cf1642d08` plus the bounded hillslope summary
+changes. [Build manifest](mofe-area-release-20261020.json) records source-file
+and binary hashes, toolchain, build command, and release tests. The semantic
+marker is `mofe-area-v1`; the Python facade must reject an obsolete writer when
+rebuilding corrected summaries.
+
+SHA-256: `669579b0e95bc035ce318b1ea49e288b10c20fcbf3e9e7e78739f46931a5be02`.
+The canonical py312 library was replaced by sibling staging and atomic rename.
+Rust passed 107 unit and 17 writer tests; release-library Python hillslope and
+TotalWatSed controls passed 72 tests. WEPPpy package
+`20261020_mofe_et_dp_area_weighting` records whole-project volume/area parity,
+report/export/browser readbacks, cache migration, and performance receipts.
+Pair the native commit with WEPPpy's startup pin and image source ref. Restart
+importing services through the existing deployment procedure when rollout is
+authorized. Development validation does not imply production deployment or
+bulk regeneration of historical project caches.

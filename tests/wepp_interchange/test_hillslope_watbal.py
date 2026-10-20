@@ -23,7 +23,7 @@ def native():
 
 def source(tmp_path, **replace):
     data = dict(wepp_id=[2, 1, 1, 1], ofe_id=[1, 1, 1, 2], water_year=[2001, 2000, 2000, 2001],
-                Area=[20., 10., 99., 5.], P=[1., 2., None, 4.], Dp=[.1]*4, QOFE=[.2]*4,
+                sim_day_index=[1, 1, 2, 1], Area=[20., 10., 99., 5.], P=[1., 2., None, 4.], Dp=[.1]*4, QOFE=[.2]*4,
                 latqcc=[.3]*4, Ep=[.4]*4, Es=[.5]*4, Er=[.6]*4)
     data.update(replace)
     path = tmp_path/'H.wat.parquet'
@@ -46,24 +46,26 @@ def test_merged_topaz_first_ofe_area_and_separate_flux_sums(native, tmp_path):
     assert table['WaterYear'].to_pylist() == [2000, 2001]
     assert table['Area_m2'].to_pylist() == [35., 35.]
     assert table['Precipitation (mm)'].to_pylist() == [2., 5.]
-    np.testing.assert_allclose(table['Transpiration + Evaporation (mm)'].to_numpy(), [3., 3.])
+    np.testing.assert_allclose(table['Transpiration + Evaporation (mm)'].to_numpy(), [3., 1.5])
     assert all(f.nullable for f in table.schema)
 
 
 @pytest.mark.parametrize('missing', [None, float('nan')])
-def test_null_ofe_excluded_from_area_but_retains_flux(native, tmp_path, missing):
+def test_null_ofe_fails_without_publishing(native, tmp_path, missing):
     path = source(tmp_path, ofe_id=[1., missing, 1., 2.])
     out = tmp_path/'summary.parquet'
-    invoke(native, path, out)
-    assert pq.read_table(out)['Area_m2'].to_pylist() == [124., 124.]
-    assert pq.read_table(out)['Precipitation (mm)'].to_pylist() == [2., 5.]
+    with pytest.raises(ValueError):
+        invoke(native, path, out)
+    assert not out.exists()
 
 
-def test_null_and_nan_first_area_are_zero(native, tmp_path):
-    path = source(tmp_path, Area=[None, float('nan'), 99., 5.])
+@pytest.mark.parametrize('area', [None, float('nan'), 0., -1., float('inf')])
+def test_invalid_area_fails_without_publishing(native, tmp_path, area):
+    path = source(tmp_path, Area=[area, 10., 99., 5.])
     out = tmp_path/'summary.parquet'
-    invoke(native, path, out)
-    assert pq.read_table(out)['Area_m2'].to_pylist() == [5., 5.]
+    with pytest.raises(ValueError):
+        invoke(native, path, out)
+    assert not out.exists()
 
 
 def test_empty_null_schema(native, tmp_path):
@@ -116,7 +118,7 @@ def test_output_alias_symlink_directory_and_missing_parent(native, tmp_path):
 def test_late_evaporation_overflow_removes_stage(native, tmp_path):
     path = source(tmp_path, Ep=[8e307, 8e307, 0., 0.], Es=[8e307, 8e307, 0., 0.], Er=[8e307, 8e307, 0., 0.])
     out = tmp_path/'summary.parquet';out.write_bytes(b'prior cache')
-    with pytest.raises(ValueError, match='evaporation overflow'):
+    with pytest.raises(ValueError, match='overflow'):
         invoke(native, path, out)
     assert out.read_bytes() == b'prior cache'
     assert sorted(p.name for p in tmp_path.iterdir()) == ['H.wat.parquet', 'summary.parquet']
@@ -153,3 +155,61 @@ def test_existing_cache_permissions_preserved(native, tmp_path, mode):
     out.write_bytes(b'old');out.chmod(mode)
     invoke(native,path,out)
     assert stat.S_IMODE(out.stat().st_mode) == mode
+
+
+def test_unequal_area_daily_oracle_and_merged_ids(native, tmp_path):
+    path = source(tmp_path, wepp_id=[1, 2, 1, 2], ofe_id=[1]*4,
+        water_year=[2001]*4, sim_day_index=[1, 1, 2, 2],
+        Area=[250., 750.]*2, Ep=[1., 4.]*2, Es=[.5, 1.]*2,
+        Er=[.5, 1.]*2, Dp=[4., 8.]*2)
+    out = tmp_path/'summary.parquet'
+    invoke(native, path, out)
+    row = pq.read_table(out).to_pylist()[0]
+    assert row['Area_m2'] == 1000.
+    assert row['Transpiration + Evaporation (mm)'] == 10.
+    assert row['Percolation (mm)'] == 14.
+    assert pq.read_schema(out).metadata[b'hillslope_watbal_aggregation'] == b'mofe-area-v1'
+
+
+def test_single_ofe_fast_path_matches_equal_state_subdivision(native, tmp_path):
+    path = source(tmp_path, wepp_id=[1,1,2,2],ofe_id=[1]*4,water_year=[2001]*4,
+        sim_day_index=[1,2,1,2],Area=[1000.,1000.,2000.,2000.],
+        Ep=[1.,4.]*2,Es=[.5,1.]*2,Er=[.5,1.]*2,Dp=[4.,8.]*2)
+    out = tmp_path/'summary.parquet'
+    invoke(native,path,out,{1:101,2:202})
+    single = pq.read_table(out).to_pandas()
+    np.testing.assert_allclose(single['Transpiration + Evaporation (mm)'],[8.,8.])
+    np.testing.assert_allclose(single['Percolation (mm)'],[12.,12.])
+    frame = pq.read_table(path).to_pandas(); frame.Area *= .5
+    part = frame.copy(); part.ofe_id = 2
+    import pandas as pd
+    pd.concat([frame,part],ignore_index=True).to_parquet(path,index=False)
+    invoke(native,path,out,{1:101,2:202})
+    split = pq.read_table(out).to_pandas()
+    for column in ['Area_m2','Transpiration + Evaporation (mm)','Percolation (mm)']:
+        np.testing.assert_allclose(single[column],split[column])
+
+
+def test_sparse_day_is_normalized_before_annual_sum(native,tmp_path):
+    path = source(tmp_path,wepp_id=[1]*4,ofe_id=[1,2,1,1],water_year=[2001]*4,
+        sim_day_index=[1,1,2,3],Area=[250.,750.,250.,250.],
+        Ep=[1.,4.,1.,1.],Es=[.5,1.,.5,.5],Er=[.5,1.,.5,.5],Dp=[4.,8.,4.,4.])
+    out = tmp_path/'summary.parquet';invoke(native,path,out)
+    row = pq.read_table(out).to_pylist()[0]
+    assert row['Transpiration + Evaporation (mm)'] == 9.
+    assert row['Percolation (mm)'] == 15.
+
+
+@pytest.mark.parametrize('statistics', [True, False])
+@pytest.mark.parametrize('mapping', [{1:101,2:202}, {1:101,2:101}])
+def test_row_group_geometry_proof_matches_scan(native,tmp_path,statistics,mapping):
+    path=source(tmp_path,wepp_id=[1,2,1,2],ofe_id=[1]*4,water_year=[2001]*4,
+        sim_day_index=[1,1,2,2],Area=[250.,750.]*2,
+        Ep=[1.,4.]*2,Es=[.5,1.]*2,Er=[.5,1.]*2,Dp=[4.,8.]*2)
+    table=pq.read_table(path)
+    out=tmp_path/'summary.parquet'
+    invoke(native,path,out,mapping)
+    expected=pq.read_table(out)
+    pq.write_table(table,path,row_group_size=1,write_statistics=statistics)
+    invoke(native,path,out,mapping)
+    assert pq.read_table(out).equals(expected)

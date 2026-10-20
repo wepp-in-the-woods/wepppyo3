@@ -1,5 +1,5 @@
 //! Bounded hillslope/year water-balance cache producer. WEPPpy owns mapping policy.
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fs::File;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -8,13 +8,14 @@ use arrow_array::*;
 use arrow_schema::{DataType, Field, Schema};
 use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 use parquet::arrow::ProjectionMask;
+use parquet::file::statistics::Statistics;
 use pyo3::exceptions::{PyKeyError, PyOSError, PyValueError};
 use pyo3::PyResult;
 
 use crate::arrow_support::Chunk;
 use crate::parquet::ParquetSink;
 
-const INPUT: [&str; 11] = [
+const INPUT: [&str; 12] = [
     "wepp_id",
     "ofe_id",
     "water_year",
@@ -26,6 +27,7 @@ const INPUT: [&str; 11] = [
     "Es",
     "Er",
     "Area",
+    "sim_day_index",
 ];
 const OUTPUT: [&str; 8] = [
     "TopazID",
@@ -221,6 +223,96 @@ pub fn wepp_ids(path: &Path) -> PyResult<Vec<i64>> {
     Ok(ids.into_iter().collect())
 }
 
+// A narrow geometry scan lets single-OFE hills retain bounded annual state.
+// Their daily weighted depth is exactly the raw depth; only MOFE hills need
+// daily denominators. Count after translation so merged IDs cannot take this path.
+fn ofe_counts(path: &Path, mapping: &HashMap<i64, i64>) -> PyResult<HashMap<i64, usize>> {
+    let mut seen = HashSet::new();
+    let mut counts = HashMap::new();
+    // Canonical single-OFE files have one hill per row group. Exact integer
+    // bounds can prove their unique geometry without a second row scan.
+    // Other layouts still use the projected scan below; all values are
+    // validated again in the main aggregation pass.
+    let builder =
+        ParquetRecordBatchReaderBuilder::try_new(File::open(path).map_err(io)?).map_err(invalid)?;
+    let schema = builder.parquet_schema();
+    let key_indices: Option<Vec<_>> = ["wepp_id", "ofe_id"]
+        .iter()
+        .map(|name| {
+            let field = builder.schema().field_with_name(name).ok()?;
+            if !matches!(
+                field.data_type(),
+                DataType::Int8 | DataType::Int16 | DataType::Int32 | DataType::Int64
+            ) {
+                return None;
+            }
+            schema
+                .columns()
+                .iter()
+                .position(|c| c.path().string() == *name)
+        })
+        .collect();
+    if let Some(indices) = key_indices {
+        let pairs: Option<Vec<(i64, i64)>> = builder
+            .metadata()
+            .row_groups()
+            .iter()
+            .map(|group| {
+                let constant = |index| {
+                    let stats = group.column(index).statistics()?;
+                    if stats.null_count_opt() != Some(0)
+                        || !stats.min_is_exact()
+                        || !stats.max_is_exact()
+                    {
+                        return None;
+                    }
+                    match stats {
+                        Statistics::Int32(s) if s.min_opt()? == s.max_opt()? => {
+                            Some(i64::from(*s.min_opt()?))
+                        }
+                        Statistics::Int64(s) if s.min_opt()? == s.max_opt()? => Some(*s.min_opt()?),
+                        _ => None,
+                    }
+                };
+                Some((constant(indices[0])?, constant(indices[1])?))
+            })
+            .collect();
+        if let Some(pairs) = pairs {
+            for (wepp, ofe) in pairs {
+                if seen.insert((wepp, ofe)) {
+                    let topaz = mapping
+                        .get(&wepp)
+                        .ok_or_else(|| PyKeyError::new_err(wepp))?;
+                    *counts.entry(*topaz).or_insert(0) += 1;
+                }
+            }
+            return Ok(counts);
+        }
+    }
+    for batch in reader(path, &["wepp_id", "ofe_id"])? {
+        let batch = batch.map_err(invalid)?;
+        let wepp_column = batch
+            .column_by_name("wepp_id")
+            .ok_or_else(|| invalid("missing WEPP key"))?;
+        let ofe_column = batch
+            .column_by_name("ofe_id")
+            .ok_or_else(|| invalid("missing OFE key"))?;
+        for row in 0..batch.num_rows() {
+            let wepp = key(wepp_column.as_ref(), row, false)?
+                .ok_or_else(|| invalid("missing WEPP key"))?;
+            let ofe =
+                key(ofe_column.as_ref(), row, false)?.ok_or_else(|| invalid("missing OFE key"))?;
+            if seen.insert((wepp, ofe)) {
+                let topaz = mapping
+                    .get(&wepp)
+                    .ok_or_else(|| PyKeyError::new_err(wepp))?;
+                *counts.entry(*topaz).or_insert(0) += 1;
+            }
+        }
+    }
+    Ok(counts)
+}
+
 pub fn produce(
     path: &Path,
     output: &Path,
@@ -241,7 +333,9 @@ pub fn produce(
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
         Err(e) => return Err(io(e)),
     };
+    let ofe_counts = ofe_counts(path, mapping)?;
     let mut flux: HashMap<(i64, i64), [Sum; 7]> = HashMap::new();
+    let mut daily: HashMap<(i64, i64, i64), [Sum; 5]> = HashMap::new();
     let mut areas = BTreeMap::new();
     let mut input_rows = 0;
     for batch in reader(path, &INPUT)? {
@@ -254,28 +348,53 @@ pub fn produce(
                     .ok_or_else(|| invalid(format!("missing {name}")))
             })
             .collect::<PyResult<Vec<_>>>()?;
-        let numeric = columns[3..]
+        let numeric = columns[3..11]
             .iter()
             .map(|a| metrics(a.as_ref()))
             .collect::<PyResult<Vec<_>>>()?;
         for row in 0..batch.num_rows() {
             let wepp =
                 key(columns[0].as_ref(), row, false)?.ok_or_else(|| invalid("missing WEPP key"))?;
-            let ofe = key(columns[1].as_ref(), row, true)?;
+            let ofe =
+                key(columns[1].as_ref(), row, false)?.ok_or_else(|| invalid("missing OFE key"))?;
+            let day = key(columns[11].as_ref(), row, false)?
+                .ok_or_else(|| invalid("missing simulation day key"))?;
             let year =
                 key(columns[2].as_ref(), row, false)?.ok_or_else(|| invalid("missing year key"))?;
             let topaz = *mapping
                 .get(&wepp)
                 .ok_or_else(|| PyKeyError::new_err(wepp))?;
-            if let Some(ofe) = ofe {
-                areas.entry((wepp, ofe)).or_insert(numeric[7][row]);
+            let area = number(columns[10].as_ref(), row)?;
+            if !area.is_finite() || area <= 0.0 {
+                return Err(invalid("hillslope watbal Area must be finite and positive"));
             }
+            areas.entry((wepp, ofe)).or_insert(area);
             let sums = flux.entry((topaz, year)).or_default();
-            for i in 0..7 {
+            // Routed/nonlocal fields retain their historical annual sums.
+            for i in [0, 2, 3] {
                 sums[i].add(numeric[i][row])?;
             }
+            if ofe_counts.get(&topaz) == Some(&1) {
+                for i in [1, 4, 5, 6] {
+                    sums[i].add(numeric[i][row])?;
+                }
+                continue;
+            }
+            let day_sums = daily.entry((topaz, year, day)).or_default();
+            for (target, source) in [1, 4, 5, 6].iter().enumerate() {
+                day_sums[target].add(numeric[*source][row] * area)?;
+            }
+            day_sums[4].add(area)?;
         }
         input_rows += batch.num_rows();
+    }
+    // Divide once per represented hill/day, then sum daily depths over time.
+    // This also combines translated native IDs before spatial normalization.
+    for ((topaz, year, _day), sums) in daily {
+        let annual = flux.entry((topaz, year)).or_default();
+        for (source, target) in [1, 4, 5, 6].iter().enumerate() {
+            annual[*target].add(sums[source].value / sums[4].value)?;
+        }
     }
     let ofe_keys = areas.len();
     let mut hill_areas: BTreeMap<i64, Sum> = BTreeMap::new();
@@ -313,6 +432,9 @@ pub fn produce(
             })
             .collect::<Vec<_>>(),
     );
+    schema
+        .metadata
+        .insert("hillslope_watbal_aggregation".into(), "mofe-area-v1".into());
     if let Some(metadata) = pandas_metadata {
         schema.metadata.insert("pandas".into(), metadata.into());
     }

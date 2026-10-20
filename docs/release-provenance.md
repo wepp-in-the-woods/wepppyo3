@@ -982,3 +982,13 @@ Pair the native commit with WEPPpy's startup pin and image source ref. Restart
 importing services through the existing deployment procedure when rollout is
 authorized. Development validation does not imply production deployment or
 bulk regeneration of historical project caches.
+
+## Physical MOFE water accounting refresh (2026-10-20)
+
+`confirmed`: [build manifest](mofe-water-release-20261020.json) binds the
+source files and py312 interchange artifact, SHA-256 `9afdfe2ceac7bc98ca85573fdb3c80216f2379a37ae3b5a4a67e2f52d71b6138`.
+The native suite passes 163 tests; the prior crate suite passed 107 unit and
+17 writer tests. The semantic marker is `mofe-water-v2`; pair with WEPPpy's
+physical-WAT report/daily/export/Ash consumers and startup hash/source pins.
+Atomic sibling replacement refreshed only the development release tree.
+No production rollout or historical regeneration is implied.

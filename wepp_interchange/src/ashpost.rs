@@ -758,39 +758,50 @@ fn add_hydrology(
     let mut runoff: BTreeMap<(i64, i64), Sum> = BTreeMap::new();
     let mut runoff_nan = HashSet::new();
     if !ids.is_empty() {
-        if let Some(path) = wat {
-            let path = contained(root, path)?;
-            let selected = ids.iter().copied().collect::<HashSet<_>>();
-            let names = ["wepp_id", "year", "julian", "QOFE", "Area"]
-                .iter()
-                .map(|s| s.to_string())
-                .collect::<Vec<_>>();
-            scan(&path, &names, |b| {
-                let cols = names
-                    .iter()
-                    .map(|n| column(b, n))
-                    .collect::<PyResult<Vec<_>>>()?;
-                for r in 0..b.num_rows() {
-                    if !selected.contains(&key(number(cols[0], r)?, "WEPP ID")?) {
-                        continue;
-                    }
-                    let k = (
-                        key(number(cols[1], r)?, "year")?,
-                        key(number(cols[2], r)?, "julian")?,
-                    );
+        let path = contained(root, wat.ok_or_else(|| invalid("AshPost requires H.pass runoff source"))?)?;
+        let selected = ids.iter().copied().collect::<HashSet<_>>();
+        let names = ["wepp_id", "year", "julian", "runvol"].iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        let mut seen = HashSet::new();
+        let mut total: BTreeMap<(i64, i64), Sum> = BTreeMap::new();
+        let mut total_unavailable = HashSet::new();
+        scan(&path, &names, |b| {
+            let cols = names.iter().map(|n| column(b, n)).collect::<PyResult<Vec<_>>>()?;
+            for r in 0..b.num_rows() {
+                let native = key(number(cols[0], r)?, "WEPP ID")?;
+                let k = (key(number(cols[1], r)?, "year")?, key(number(cols[2], r)?, "julian")?);
+                if !seen.insert((native, k)) { return Err(invalid("duplicate AshPost PASS observation")); }
+                let value = number(cols[3], r)?;
+                if cols[3].is_null(r) || value.is_nan() { total_unavailable.insert(k); }
+                total.entry(k).or_default().add(value);
+                if selected.contains(&native) {
                     let sum = runoff.entry(k).or_default();
-                    // SQL SUM ignores NULL, while a valid IEEE NaN propagates.
-                    if cols[3].is_null(r) || cols[4].is_null(r) {
-                        continue;
-                    }
-                    let value = (number(cols[3], r)? * 0.001) * number(cols[4], r)?;
-                    if value.is_nan() {
-                        runoff_nan.insert(k);
-                    }
+                    // Preserve SQL NULL omission and IEEE NaN propagation.
+                    if cols[3].is_null(r) { continue; }
+                    if value.is_nan() { runoff_nan.insert(k); }
                     sum.add(value);
                 }
-                Ok(())
-            })?;
+            }
+            Ok(())
+        })?;
+        for row in &table.rows {
+            let k = (row[1] as i64, row[2] as i64);
+            for native in &selected {
+                if !seen.contains(&(*native, k)) {
+                    return Err(invalid("missing selected AshPost PASS observation"));
+                }
+            }
+            if let Some(h) = hydro.get(&k) {
+                let baseline = h[1] * 0.001 * h[4];
+                let volume = total.get(&k).map(|s| s.value).unwrap_or(f64::NAN);
+                // An unverifiable full PASS total cannot certify a numeric correction.
+                if total_unavailable.contains(&k) || !volume.is_finite() {
+                    runoff_nan.insert(k);
+                }
+                if !total_unavailable.contains(&k) && baseline.is_finite() && volume.is_finite()
+                    && (baseline - volume).abs() > 1e-8 + 1e-10 * baseline.abs() {
+                    return Err(invalid("AshPost PASS runoff disagrees with watershed baseline"));
+                }
+            }
         }
     }
     if runoff.values().any(|s| !s.value.is_finite()) {
@@ -811,7 +822,7 @@ fn add_hydrology(
         "tot_seddep+ash (tonne/ha)",
     ];
     for row in &mut table.rows {
-        let mut values = vec![0.0; 4];
+        let mut values = vec![if hydrology.is_some() { f64::NAN } else { 0.0 }; 4];
         if !hydro.is_empty() {
             let k = (row[1] as i64, row[2] as i64);
             let h = hydro.get(&k).cloned().unwrap_or_else(|| vec![f64::NAN; 6]);
@@ -837,7 +848,7 @@ fn add_hydrology(
             let flow = if a > 0.0 {
                 ((nonash + ar) + (h[2] * 0.001 * a) + (h[3] * 0.001 * a)) / a * 1000.0
             } else {
-                0.0
+                f64::NAN
             };
             let solids = h[5] + row[mass];
             let perha = if a > 0.0 { solids / (a / 10000.0) } else { 0.0 };

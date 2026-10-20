@@ -32,7 +32,18 @@ def native():
 
 def assert_parity(oracle_path, actual_path):
     oracle, actual = pq.read_table(oracle_path), pq.read_table(actual_path)
-    assert actual.schema.equals(oracle.schema, check_metadata=True)
+    # Only these diagnostic descriptions changed; all values and other metadata
+    # remain the frozen compatibility oracle.
+    descriptions = {
+        'Q': 'All-OFE Q times local area diagnostic; not physical outlet runoff',
+        'QOFE': 'All-OFE QOFE times local area diagnostic; normalization is producer-version dependent',
+    }
+    expected = oracle.schema
+    for name, description in descriptions.items():
+        field = expected.field(name)
+        expected = expected.set(expected.get_field_index(name), field.with_metadata(
+            {**field.metadata, b'description': description.encode()}))
+    assert actual.schema.equals(expected, check_metadata=True)
     assert actual.num_rows == oracle.num_rows
     for name in oracle.column_names:
         a, o = actual[name], oracle[name]

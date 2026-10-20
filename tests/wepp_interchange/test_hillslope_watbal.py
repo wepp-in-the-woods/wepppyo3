@@ -22,8 +22,8 @@ def native():
 
 
 def source(tmp_path, **replace):
-    data = dict(wepp_id=[2, 1, 1, 1], ofe_id=[1, 1, 1, 2], water_year=[2001, 2000, 2000, 2001],
-                sim_day_index=[1, 1, 2, 1], Area=[20., 10., 99., 5.], P=[1., 2., None, 4.], Dp=[.1]*4, QOFE=[.2]*4,
+    data = dict(wepp_id=[2, 1, 1, 2], ofe_id=[1, 1, 2, 1], water_year=[2001, 2000, 2000, 2001],
+                sim_day_index=[1, 1, 1, 2], Area=[20., 10., 5., 20.], P=[1., 2., None, 4.], Dp=[.1]*4, Q=[.2]*4, QOFE=[.2]*4,
                 latqcc=[.3]*4, Ep=[.4]*4, Es=[.5]*4, Er=[.6]*4)
     data.update(replace)
     path = tmp_path/'H.wat.parquet'
@@ -45,8 +45,8 @@ def test_merged_topaz_first_ofe_area_and_separate_flux_sums(native, tmp_path):
         'Percolation (mm)', 'Surface Runoff (mm)', 'Lateral Flow (mm)', 'Transpiration + Evaporation (mm)']
     assert table['WaterYear'].to_pylist() == [2000, 2001]
     assert table['Area_m2'].to_pylist() == [35., 35.]
-    assert table['Precipitation (mm)'].to_pylist() == [2., 5.]
-    np.testing.assert_allclose(table['Transpiration + Evaporation (mm)'].to_numpy(), [3., 1.5])
+    np.testing.assert_allclose(table['Precipitation (mm)'].to_numpy(), [4/3, 5.])
+    np.testing.assert_allclose(table['Transpiration + Evaporation (mm)'].to_numpy(), [1.5, 3.])
     assert all(f.nullable for f in table.schema)
 
 
@@ -168,7 +168,7 @@ def test_unequal_area_daily_oracle_and_merged_ids(native, tmp_path):
     assert row['Area_m2'] == 1000.
     assert row['Transpiration + Evaporation (mm)'] == 10.
     assert row['Percolation (mm)'] == 14.
-    assert pq.read_schema(out).metadata[b'hillslope_watbal_aggregation'] == b'mofe-area-v1'
+    assert pq.read_schema(out).metadata[b'hillslope_watbal_aggregation'] == b'mofe-water-v2'
 
 
 def test_single_ofe_fast_path_matches_equal_state_subdivision(native, tmp_path):
@@ -191,8 +191,8 @@ def test_single_ofe_fast_path_matches_equal_state_subdivision(native, tmp_path):
 
 
 def test_sparse_day_is_normalized_before_annual_sum(native,tmp_path):
-    path = source(tmp_path,wepp_id=[1]*4,ofe_id=[1,2,1,1],water_year=[2001]*4,
-        sim_day_index=[1,1,2,3],Area=[250.,750.,250.,250.],
+    path = source(tmp_path,wepp_id=[1]*4,ofe_id=[1,2,2,2],water_year=[2001]*4,
+        sim_day_index=[1,1,2,3],Area=[250.,750.,750.,750.],
         Ep=[1.,4.,1.,1.],Es=[.5,1.,.5,.5],Er=[.5,1.,.5,.5],Dp=[4.,8.,4.,4.])
     out = tmp_path/'summary.parquet';invoke(native,path,out)
     row = pq.read_table(out).to_pylist()[0]
@@ -213,3 +213,45 @@ def test_row_group_geometry_proof_matches_scan(native,tmp_path,statistics,mappin
     pq.write_table(table,path,row_group_size=1,write_statistics=statistics)
     invoke(native,path,out,mapping)
     assert pq.read_table(out).equals(expected)
+
+
+def test_physical_water_outlets_not_internal_transfers(native, tmp_path):
+    data = dict(wepp_id=[1,1], ofe_id=[1,2], water_year=[2000,2000],
+                sim_day_index=[1,1], Area=[250.,750.], P=[10.,10.],
+                Q=[4.,8.], QOFE=[4.,8.*1000/750], latqcc=[4.,6.],
+                Ep=[1.,4.], Es=[.5,1.], Er=[.5,1.], Dp=[4.,8.])
+    path=tmp_path/'H.wat.parquet'; pq.write_table(pa.table(data),path)
+    out=tmp_path/'summary.parquet'; invoke(native,path,out,{1:101})
+    row=pq.read_table(out).to_pylist()[0]
+    assert row['Precipitation (mm)']==10.
+    assert row['Surface Runoff (mm)']==8.
+    assert row['Lateral Flow (mm)']==4.5
+    assert row['Transpiration + Evaporation (mm)']==5.
+    assert row['Percolation (mm)']==7.
+
+
+def test_missing_known_terminal_rejects_partial_publication(native,tmp_path):
+    data=dict(wepp_id=[1,1,1],ofe_id=[1,2,1],water_year=[2000]*3,
+              sim_day_index=[1,1,2],Area=[250.,750.,250.],P=[10.]*3,
+              Q=[4.,8.,4.],QOFE=[4.,8.,4.],latqcc=[4.,6.,4.],
+              Ep=[1.]*3,Es=[1.]*3,Er=[1.]*3,Dp=[1.]*3)
+    path=tmp_path/'H.wat.parquet';pq.write_table(pa.table(data),path)
+    out=tmp_path/'summary.parquet';out.write_bytes(b'prior')
+    with pytest.raises(ValueError,match='terminal'):
+        invoke(native,path,out,{1:101})
+    assert out.read_bytes()==b'prior'
+
+
+@pytest.mark.parametrize('native_id,ofe_id', [(2, 1), (1, 1), (1, 2)])
+def test_duplicate_daily_observation_preserves_cache(native, tmp_path, native_id, ofe_id):
+    path = source(tmp_path)
+    table = pq.read_table(path)
+    rows = table.to_pylist()
+    duplicate = next(row.copy() for row in rows if row['wepp_id'] == native_id and row['ofe_id'] == ofe_id)
+    duplicate['P'] = 99.
+    pq.write_table(pa.Table.from_pylist(rows + [duplicate], schema=table.schema), path)
+    out = tmp_path / 'summary.parquet'
+    out.write_bytes(b'prior')
+    with pytest.raises(ValueError, match='duplicate'):
+        invoke(native, path, out, {1: 101, 2: 202})
+    assert out.read_bytes() == b'prior'

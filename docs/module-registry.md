@@ -82,11 +82,11 @@ and immutable image publication are verified, including image-contained RQ at
 and a compact Topaz/year cache writer, consumed by WEPPpy's
 `wepppy/wepp/reports/hillslope_watbal.py`. It keeps first area per WEPP/OFE,
 compensated flux sums, nullable output types, and sorted keys. ET components
-and Dp use daily local OFE area weighting before annual summation, including
+P and Dp use daily local OFE area weighting before annual summation, including
 native IDs mapped to one Topaz ID. Single-OFE hills retain bounded annual state;
 exact integer row-group bounds can avoid the preliminary geometry scan.
 Other row-group layouts use a projected key scan. Summaries carry
-`hillslope_watbal_aggregation=mofe-area-v1`; invalid areas fail explicitly.
+`hillslope_watbal_aggregation=mofe-water-v2`; invalid areas fail explicitly.
 The required-native boundary has no full-source pandas fallback.
 
 Evidence: [package tracker](work-packages/20260908-hillslope-watbal-native-001/tracker.md),
@@ -135,3 +135,14 @@ maximum per-extreme movement. Unrepresentable diagnostic magnitudes fail with
 InvalidData (the Python wrapper retains OSError). Public signatures are unchanged.
 WEPPpy ADR-0092 and `docs/schemas/prism-spatialization-temperature-contract.md`
 own the numerical contract; its implementation package retains consumer evidence.
+
+## Physical MOFE water consumers (2026-10-20)
+
+`confirmed`: terminal native WAT Q is physical hillslope runoff; lateral volume
+uses terminal local area over the full native footprint. Native selection precedes
+feature mapping; missing terminals and duplicate native daily OFEs fail atomically.
+AshPost accepts additive `pass_path` for the PASS-based baseline subtraction;
+legacy `wat_path` is retained as a call argument but never used as a fallback.
+Full PASS totals reconcile to the supplied baseline; unavailable totals/baselines
+cannot publish numeric corrections. See [release manifest](mofe-water-release-20261020.json)
+and WEPPpy's current hillslope-water aggregation contract for consumer semantics.

@@ -56,7 +56,7 @@ use crate::errors::InterchangeError;
 use crate::schema::VersionInfo;
 
 #[pyfunction]
-#[pyo3(signature = (input_root, output_dir, manifest, recurrence, hydrology_path=None, wat_path=None, ash_wepp_ids=None, field_metadata=None))]
+#[pyo3(signature = (input_root, output_dir, manifest, recurrence, hydrology_path=None, wat_path=None, ash_wepp_ids=None, field_metadata=None, pass_path=None))]
 fn ashpost_to_parquet(
     py: Python<'_>,
     input_root: String,
@@ -67,7 +67,10 @@ fn ashpost_to_parquet(
     wat_path: Option<String>,
     ash_wepp_ids: Option<Vec<i64>>,
     field_metadata: Option<ashpost::Metadata>,
+    pass_path: Option<String>,
 ) -> PyResult<PyObject> {
+    // Retain the legacy keyword without interpreting WAT as PASS.
+    let _ = wat_path;
     let result = PyDict::new_bound(py);
     if manifest.is_empty() {
         result.set_item("input_rows", 0)?;
@@ -86,7 +89,7 @@ fn ashpost_to_parquet(
             std::path::Path::new(&input_root),
             &manifest,
             hydrology_path.as_deref(),
-            wat_path.as_deref(),
+            pass_path.as_deref(),
             &ash_wepp_ids.unwrap_or_default(),
         )?;
         let stats = ashpost_stats::calculate(&products, &recurrence)?;

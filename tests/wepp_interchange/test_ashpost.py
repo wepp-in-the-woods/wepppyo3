@@ -158,8 +158,12 @@ def hydrology(tmp_path, qofe=None, flow=1.):
         'Streamflow': [flow]*2, 'Runoff': [1.]*2, 'Lateral Flow': [0.]*2,
         'Baseflow': [0.]*2, 'Area': [10000.]*2}), tmp_path/'hydro.parquet')
     pq.write_table(pa.table({'wepp_id': [1]*2, 'year': [2000, 2001], 'julian': [300, 1],
-        'QOFE': pa.array([qofe]*2, type=pa.float64()), 'Area': [10000.]*2}), tmp_path/'wat.parquet')
-    return dict(hydrology_path='hydro.parquet', wat_path='wat.parquet', ash_wepp_ids=[1])
+        'runvol': pa.array([None if qofe is None else qofe*10]*2, type=pa.float64())}), tmp_path/'wat.parquet')
+    if qofe is not None and 0 <= qofe <= 1:
+        selected = pq.read_table(tmp_path/'wat.parquet')
+        other = pa.table({'wepp_id':[2,2], 'year':[2000,2001], 'julian':[300,1], 'runvol':[10-qofe*10]*2})
+        pq.write_table(pa.concat_tables([selected,other]), tmp_path/'wat.parquet')
+    return dict(hydrology_path='hydro.parquet', pass_path='wat.parquet', ash_wepp_ids=[1])
 
 
 def test_null_runoff_and_empty_hydrology(native, tmp_path):
@@ -169,7 +173,7 @@ def test_null_runoff_and_empty_hydrology(native, tmp_path):
     assert pq.read_table(tmp_path/'post/watershed_daily.parquet')['Streamflow_ash_corr (mm)'].to_pylist() == [None, None]
     pq.write_table(pa.table({'year': pa.array([], type=pa.uint16())}), tmp_path/'hydro.parquet')
     invoke(native, tmp_path, **kwargs)
-    assert pq.read_table(tmp_path/'post/watershed_daily.parquet')['Streamflow_ash_corr (mm)'].to_pylist() == [0., 0.]
+    assert pq.read_table(tmp_path/'post/watershed_daily.parquet')['Streamflow_ash_corr (mm)'].to_pylist() == [None, None]
     kwargs['hydrology_path'] = None
     (tmp_path/'wat.parquet').write_bytes(b'bad parquet')
     with pytest.raises(ValueError):
@@ -196,8 +200,8 @@ def test_unsupported_metrics_and_arithmetic_overflow(native, tmp_path, case):
 def test_valid_nan_runoff_propagates_beside_finite_row(native, tmp_path):
     source(tmp_path)
     kwargs = hydrology(tmp_path, qofe=0.1)
-    table = pa.table({'wepp_id': [1, 1, 1], 'year': [2000, 2000, 2001],
-        'julian': [300, 300, 1], 'QOFE': [float('nan'), 0.1, 0.1], 'Area': [10000.]*3})
+    table = pa.table({'wepp_id': [1, 2, 1, 2], 'year': [2000, 2000, 2001, 2001],
+        'julian': [300, 300, 1, 1], 'runvol': [float('nan'), 9., 1., 9.]})
     pq.write_table(table, tmp_path/'wat.parquet')
     invoke(native, tmp_path, **kwargs)
     values = pq.read_table(tmp_path/'post/watershed_daily.parquet')['Streamflow_ash_corr (mm)'].to_pylist()
@@ -241,3 +245,60 @@ def test_populated_cumulative_return_periods_match_frozen_python(native, tmp_pat
         for key,value in expected.items():
             assert type(row[key]) is type(value),(key,row[key],value)
             assert row[key] == pytest.approx(value,rel=1e-10,abs=1e-12)
+
+
+def test_pass_subtraction_preserves_nonash_on_subthreshold_wat_day(native,tmp_path):
+    source(tmp_path)
+    kwargs=hydrology(tmp_path,qofe=0.)
+    # Physical WAT is positive, but this ash hill exported no PASS runoff.
+    pq.write_table(pa.table(dict(wepp_id=[1,1],Q=[.9,.9],Area=[10000.,10000.])),tmp_path/'physical.wat.parquet')
+    kwargs['wat_path']='physical.wat.parquet'
+    invoke(native,tmp_path,**kwargs)
+    values=pq.read_table(tmp_path/'post/watershed_daily.parquet')['Streamflow_ash_corr (mm)'].to_pylist()
+    assert values==[1.,1.]
+
+
+def test_pass_baseline_mismatch_preserves_old_outputs(native,tmp_path):
+    source(tmp_path);kwargs=hydrology(tmp_path,qofe=.1)
+    invoke(native,tmp_path,**kwargs)
+    out=tmp_path/'post/watershed_daily.parquet';prior=out.read_bytes()
+    table=pq.read_table(tmp_path/'wat.parquet')
+    pq.write_table(table.set_column(table.schema.get_field_index('runvol'),'runvol',pa.array([2.,2.,9.,9.])),tmp_path/'wat.parquet')
+    with pytest.raises(ValueError,match='baseline'):
+        invoke(native,tmp_path,**kwargs)
+    assert out.read_bytes()==prior
+
+
+@pytest.mark.parametrize('unavailable', [None, float('nan'), float('inf')])
+def test_unselected_unavailable_pass_cannot_certify_numeric_correction(native, tmp_path, unavailable):
+    source(tmp_path)
+    kwargs = hydrology(tmp_path, qofe=0.1)
+    table = pa.table({'wepp_id': [1, 2, 1, 2], 'year': [2000, 2000, 2001, 2001],
+        'julian': [300, 300, 1, 1], 'runvol': [4., unavailable, 1., 9.]})
+    pq.write_table(table, tmp_path/'wat.parquet')
+    if unavailable == float('inf'):
+        with pytest.raises(ValueError, match='infinite'):
+            invoke(native, tmp_path, **kwargs)
+        assert not (tmp_path/'post/watershed_daily.parquet').exists()
+        return
+    invoke(native, tmp_path, **kwargs)
+    values = pq.read_table(tmp_path/'post/watershed_daily.parquet')['Streamflow_ash_corr (mm)'].to_pylist()
+    assert values[0] is None
+    assert values[1] == pytest.approx(0.9)
+
+
+@pytest.mark.parametrize('case', ['missing_date', 'zero_area'])
+def test_unusable_baseline_never_becomes_numeric_zero(native, tmp_path, case):
+    source(tmp_path)
+    kwargs = hydrology(tmp_path, qofe=0.1)
+    table = pq.read_table(tmp_path/'hydro.parquet')
+    if case == 'missing_date':
+        table = table.slice(0, 1)
+    else:
+        table = table.set_column(table.schema.get_field_index('Area'), 'Area', pa.array([0., 0.]))
+        passes = pq.read_table(tmp_path/'wat.parquet')
+        passes = passes.set_column(passes.schema.get_field_index('runvol'), 'runvol', pa.array([None]*passes.num_rows, type=pa.float64()))
+        pq.write_table(passes, tmp_path/'wat.parquet')
+    pq.write_table(table, tmp_path/'hydro.parquet')
+    invoke(native, tmp_path, **kwargs)
+    assert pq.read_table(tmp_path/'post/watershed_daily.parquet')['Streamflow_ash_corr (mm)'].to_pylist()[-1] is None

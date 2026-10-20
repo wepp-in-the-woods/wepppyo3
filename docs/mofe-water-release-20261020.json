@@ -1,17 +1,18 @@
 {
   "date": "2026-10-20",
-  "source_base": "5e42716230dd6f02d218bfbe10509d501edb93a8",
+  "source_base": "21d2d93af6d7da594db427d951d3551219c1158f",
   "contract_checkpoint_wepppy": "6e689a902",
   "source_sha256": {
     "wepp_interchange/src/ashpost.rs": "6452ecfeff0e6792f6bab9f13d3d267b074dae8db960261c2c7fe8dc9232f903",
-    "wepp_interchange/src/hillslope_watbal.rs": "487e63c18b00a50000e529748da1ed7c5ca072823afb3407d72e1f67e51c2f7b",
+    "wepp_interchange/src/hillslope_watbal.rs": "635eee4f2a7153f113430b196efbd1d1935c0383f05c2c931298183a65a9a6ca",
     "wepp_interchange/src/lib.rs": "17da69c7a9d13954a89cee194d948186bb3c01303d82db8dda9993a270662127",
     "wepp_interchange/src/totalwatsed_schema.rs": "9cae8d53731f8f750aa2885c0c020f48896b2ca93a0d5c1c084e5951eb294c47"
   },
   "binary": "release/linux/py312/wepppyo3/wepp_interchange/wepp_interchange_rust.so",
-  "binary_sha256": "9afdfe2ceac7bc98ca85573fdb3c80216f2379a37ae3b5a4a67e2f52d71b6138",
+  "binary_sha256": "60b8da3c77aa8465e262b8978ac173ba681d14745de7aec74392db9308c5c5eb",
   "build_command": "PYO3_PYTHON=/usr/bin/python3.12 cargo build --release -p wepp_interchange_rust",
   "publication": "sibling staging, mode0755, atomic rename; development only",
   "python_native_tests": 163,
-  "production_deployed": false
+  "production_deployed": false,
+  "performance": "3.57m-row complete report cold1.88s, settled mean12.67ms; compact sorted duplicate-day set and cached group mapping"
 }

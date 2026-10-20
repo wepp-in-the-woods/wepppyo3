@@ -1,5 +1,5 @@
 //! Bounded hillslope/year water-balance cache producer. WEPPpy owns mapping policy.
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs::File;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -332,8 +332,10 @@ pub fn produce(
     let geometry = geometry(path, mapping)?;
     let mut flux: HashMap<(i64, i64), [Sum; 7]> = HashMap::new();
     let mut current_observation_key = None;
-    let mut current_days = HashSet::new();
-    let mut observations: HashMap<(i64, i64, i64), HashSet<i64>> = HashMap::new();
+    let mut current_topaz = 0;
+    let mut current_single = false;
+    let mut current_days: Vec<i64> = Vec::new();
+    let mut observations: HashMap<(i64, i64, i64), Vec<i64>> = HashMap::new();
     let mut daily: HashMap<(i64, i64, i64), NativeDay> = HashMap::new();
     let mut input_rows = 0;
     for batch in reader(path, &INPUT)? {
@@ -366,18 +368,26 @@ pub fn produce(
                 }
                 current_days = observations.remove(&observation_key).unwrap_or_default();
                 current_observation_key = Some(observation_key);
+                current_topaz = *mapping.get(&wepp).ok_or_else(|| PyKeyError::new_err(wepp))?;
+                current_single = geometry.counts.get(&current_topaz) == Some(&1);
             }
-            if !current_days.insert(day) {
-                return Err(invalid("duplicate hillslope daily OFE observation"));
+            // Canonical rows are chronological. Keep a compact sorted day set;
+            // unordered callers retain the same duplicate check without hashing
+            // every observation on the normal path.
+            if current_days.last().map(|prior| *prior < day).unwrap_or(true) {
+                current_days.push(day);
+            } else {
+                match current_days.binary_search(&day) {
+                    Ok(_) => return Err(invalid("duplicate hillslope daily OFE observation")),
+                    Err(index) => current_days.insert(index, day),
+                }
             }
-            let topaz = *mapping
-                .get(&wepp)
-                .ok_or_else(|| PyKeyError::new_err(wepp))?;
+            let topaz = current_topaz;
             let area = number(columns[10].as_ref(), row)?;
             if !area.is_finite() || area <= 0.0 {
                 return Err(invalid("hillslope watbal Area must be finite and positive"));
             }
-            if geometry.counts.get(&topaz) == Some(&1) {
+            if current_single {
                 if !number(columns[5].as_ref(), row)?.is_finite()
                     || !number(columns[6].as_ref(), row)?.is_finite() {
                     return Err(invalid("nonfinite hillslope terminal flux"));

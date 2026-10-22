@@ -13,6 +13,7 @@ use crate::floats::parse_required_float;
 use crate::hill_pass::{hillslope_pass_to_columns, PassColumns};
 use crate::schema::VersionInfo;
 
+const ROADS_STRATEGY: &str = "roads_modeled_area_v1";
 const AG_FIELDS_STRATEGY: &str = "ag_fields_v1";
 const AG_FIELDS_SEMANTICS: &str = "ag_fields_pass_semantics_v1";
 const CLOSURE_NAMES: [&str; 12] = [
@@ -93,6 +94,7 @@ struct WeightedRunDiagnostic {
 
 #[derive(Debug)]
 pub struct WeightedPassDiagnostics {
+    strategy: String,
     target_area_m2: f64,
     serialized_target_area_m2: f64,
     target_area_residual_m2: f64,
@@ -105,9 +107,16 @@ pub struct WeightedPassDiagnostics {
 impl WeightedPassDiagnostics {
     pub fn into_pydict(self, py: Python<'_>) -> PyObject {
         let dict = PyDict::new_bound(py);
-        dict.set_item("algorithm", AG_FIELDS_STRATEGY).unwrap();
-        dict.set_item("semantic_contract", AG_FIELDS_SEMANTICS)
-            .unwrap();
+        dict.set_item("algorithm", &self.strategy).unwrap();
+        dict.set_item(
+            "semantic_contract",
+            if self.strategy == ROADS_STRATEGY {
+                ROADS_STRATEGY
+            } else {
+                AG_FIELDS_SEMANTICS
+            },
+        )
+        .unwrap();
         dict.set_item("target_area_m2", self.target_area_m2)
             .unwrap();
         dict.set_item("serialized_target_area_m2", self.serialized_target_area_m2)
@@ -401,7 +410,7 @@ pub fn combine_weighted_hillslope_pass_files(
         });
     }
 
-    validate_weighted_headers(&sources)?;
+    validate_weighted_headers(&sources, strategy)?;
     validate_weighted_calendars(&sources)?;
 
     let combined_rows = (0..sources[0].columns.len())
@@ -425,7 +434,7 @@ pub fn combine_weighted_hillslope_pass_files(
 
         let reparsed = hillslope_pass_to_columns(&temp_path, None, &version)?;
         let reparsed_header = read_weighted_pass_header(&temp_path)?;
-        let diagnostics = build_weighted_diagnostics(
+        let mut diagnostics = build_weighted_diagnostics(
             &sources,
             &reparsed,
             &reparsed_header,
@@ -433,6 +442,7 @@ pub fn combine_weighted_hillslope_pass_files(
             out_pass,
         )?;
 
+        diagnostics.strategy = strategy.to_string();
         fs::rename(&temp_path, out_pass).map_err(|err| InterchangeError::io(out_pass, err))?;
         Ok(diagnostics)
     })();
@@ -450,12 +460,12 @@ fn validate_weighted_call(
     output_climate_token: &str,
     strategy: &str,
 ) -> Result<(), InterchangeError> {
-    if strategy != AG_FIELDS_STRATEGY {
+    if strategy != AG_FIELDS_STRATEGY && strategy != ROADS_STRATEGY {
         return Err(InterchangeError::parse(
             out_pass,
             None,
             format!(
-                "Unsupported weighted PASS strategy '{strategy}'; expected '{AG_FIELDS_STRATEGY}'"
+                "Unsupported weighted PASS strategy '{strategy}'; expected '{AG_FIELDS_STRATEGY}' or '{ROADS_STRATEGY}'"
             ),
             None,
         ));
@@ -533,6 +543,11 @@ fn validate_weighted_call(
         ));
     }
     Ok(())
+}
+
+pub fn pass_modeled_area(path: &Path) -> Result<(f64, String), InterchangeError> {
+    let header = read_weighted_pass_header(path)?;
+    Ok((header.modeled_area_m2, header.climate_token))
 }
 
 fn read_weighted_pass_header(path: &Path) -> Result<WeightedPassHeader, InterchangeError> {
@@ -636,7 +651,10 @@ fn parse_header_float(
     })
 }
 
-fn validate_weighted_headers(sources: &[WeightedSourceData]) -> Result<(), InterchangeError> {
+fn validate_weighted_headers(
+    sources: &[WeightedSourceData],
+    strategy: &str,
+) -> Result<(), InterchangeError> {
     let base = &sources[0];
     for source in sources.iter().skip(1) {
         if (source.header.years, source.header.start_year)
@@ -656,7 +674,9 @@ fn validate_weighted_headers(sources: &[WeightedSourceData]) -> Result<(), Inter
                 )),
             ));
         }
-        if source.header.particle_diameters_m != base.header.particle_diameters_m {
+        if strategy != ROADS_STRATEGY
+            && source.header.particle_diameters_m != base.header.particle_diameters_m
+        {
             return Err(InterchangeError::parse(
                 &source.source.path,
                 Some(4),
@@ -1184,6 +1204,7 @@ fn build_weighted_diagnostics(
     }
 
     Ok(WeightedPassDiagnostics {
+        strategy: AG_FIELDS_STRATEGY.to_string(),
         target_area_m2,
         serialized_target_area_m2: reparsed_header.modeled_area_m2,
         target_area_residual_m2,
@@ -2946,6 +2967,57 @@ mod tests {
         assert!((columns.sbrunv[0] - 7.5).abs() < 1.0e-8);
         assert!((columns.gwbfv[1] - 4.5).abs() < 1.0e-8);
         assert!((columns.gwdsv[2] - 11.5).abs() < 1.0e-8);
+    }
+
+    #[test]
+    fn roads_weighted_admits_particle_headers_and_retains_full_contributors() {
+        let dir = make_temp_dir("roads_weighted_area");
+        let base = dir.join("H1.pass.dat");
+        let road = dir.join("H2.pass.dat");
+        let output = dir.join("H3.pass.dat");
+        write_pass(&base, &[event_line(2000, 1, representative_event_values())]);
+        write_pass(&road, &[event_line(2000, 1, representative_event_values())]);
+        let text = fs::read_to_string(&road).unwrap();
+        let mut lines: Vec<_> = text.lines().map(str::to_string).collect();
+        lines[3] = "5 0.000002 0.00001 0.0001 0.0004 0.001".into();
+        fs::write(&road, lines.join("\n") + "\n").unwrap();
+        for road_area in [2220.45, 4440.9, 8881.8] {
+            rewrite_header(&road, "road.cli", road_area);
+            let remainder = (4440.9_f64 - road_area).max(0.0);
+            let sources = [
+                weighted_source("baseline", &base, remainder),
+                weighted_source("road", &road, road_area),
+            ];
+            assert!(combine_weighted_hillslope_pass_files(
+                &sources,
+                &output,
+                remainder + road_area,
+                "base.cli",
+                AG_FIELDS_STRATEGY
+            )
+            .is_err());
+            let receipt = combine_weighted_hillslope_pass_files(
+                &sources,
+                &output,
+                remainder + road_area,
+                "base.cli",
+                ROADS_STRATEGY,
+            )
+            .unwrap();
+            assert_eq!(receipt.strategy, ROADS_STRATEGY);
+            assert_eq!(receipt.sources[1].scale, 1.0);
+            let parsed = hillslope_pass_to_columns(&output, None, &VersionInfo::new(1, 0)).unwrap();
+            assert!((parsed.runvol[0] - 100.0 * (1.0 + remainder / 4440.9)).abs() < 0.001);
+            assert_eq!(
+                read_weighted_pass_header(&output)
+                    .unwrap()
+                    .particle_diameters_m,
+                read_weighted_pass_header(&base)
+                    .unwrap()
+                    .particle_diameters_m
+            );
+        }
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]

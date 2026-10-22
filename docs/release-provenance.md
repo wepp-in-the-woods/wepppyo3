@@ -66,6 +66,18 @@ rebuild or replace shared objects implicitly.
 
 ## Latest Refresh Evidence (py312)
 
+### Roads modeled-area accounting, 2026-10-22
+
+The paired WEPPpy checkpoint is `83f7410e8`. The targeted interchange build adds
+Roads geometry, weighted PASS and source-qualified water APIs. See
+[API documentation](roads-modeled-area-accounting.md) and the exact
+[build receipt](roads-accounting-release-20261022.json).
+The receipt records the base revision, changed-source hashes and pre-existing
+calendar/HBP source edits included in the local binary. Those unrelated source
+edits are not part of the Roads task commit. This is a local paired release
+refresh, not production deployment.
+
+
 ### PASS components v3 and composition, 2026-10-09
 
 Source: c3d8481d1c7dcaf59dceb37d9ea2e860b89f4307 on main. Rebuilt only

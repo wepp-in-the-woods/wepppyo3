@@ -19,9 +19,11 @@ use parquet::schema::types::{SchemaDescriptor, Type};
 
 use crate::arrow_support::Chunk;
 use crate::errors::InterchangeError as Error;
-use crate::parquet::{ParquetSink, WriteSummary};
+use crate::parquet::{commit_staged, ParquetSink, StagedParquet, WriteSummary};
 use crate::schema::VersionInfo;
 use crate::totalwatsed_schema::{output_schema, NAMES};
+
+pub mod roads;
 
 const BATCH_ROWS: usize = 8192;
 const DATE: [&str; 6] = [
@@ -1105,6 +1107,31 @@ pub fn produce(
             dest.weights.merge(src.weights);
         }
     }
+    let staged = stage_days(
+        days,
+        output,
+        gwstorage,
+        bfcoeff,
+        dscoeff,
+        version,
+        ash_inputs,
+        pandas_metadata,
+        None,
+    )?;
+    Ok(commit_staged(vec![staged])?.remove(0))
+}
+
+fn stage_days(
+    days: HashMap<Key, Box<Daily>>,
+    output: &Path,
+    gwstorage: f64,
+    bfcoeff: f64,
+    dscoeff: f64,
+    version: &VersionInfo,
+    ash_inputs: &[AshInput],
+    pandas_metadata: Option<&str>,
+    policy: Option<&str>,
+) -> Result<StagedParquet, Error> {
     let mut days: Vec<_> = days.into_iter().filter(|(_, d)| d.has_wat).collect();
     days.sort_by_key(|(k, _)| (k[0], k[2], k[1]));
     let ash = if days.is_empty() {
@@ -1112,7 +1139,7 @@ pub fn produce(
     } else {
         aggregate_ash(ash_inputs)?
     };
-    let schema = output_schema(
+    let mut schema = output_schema(
         version,
         if days.is_empty() {
             None
@@ -1120,6 +1147,11 @@ pub fn produce(
             pandas_metadata
         },
     );
+    if let Some(policy) = policy {
+        let mut metadata = schema.metadata().clone();
+        metadata.insert("roads_accounting_policy".into(), policy.into());
+        schema = schema.with_metadata(metadata);
+    }
     let mut sink = ParquetSink::try_new(output, schema.clone())?;
     let mut columns: Vec<Vec<Option<f64>>> = vec![Vec::with_capacity(BATCH_ROWS); NAMES.len()];
     let optional_present: [bool; 7] =
@@ -1157,6 +1189,13 @@ pub fn produce(
                 }
             }
         }
+        if policy.is_some()
+            && (row.iter().any(|v| v.is_infinite())
+                || !reservoir.is_finite()
+                || !baseflow.is_finite())
+        {
+            return Err(err("Roads derived water arithmetic is nonfinite"));
+        }
         for (col, v) in columns.iter_mut().zip(row) {
             col.push(if v.is_nan() { None } else { Some(v) });
         }
@@ -1192,7 +1231,7 @@ pub fn produce(
             sink.write_chunk(Chunk::new(arrays))?;
         }
     }
-    sink.finish()
+    sink.finish_staged()
 }
 
 #[cfg(test)]

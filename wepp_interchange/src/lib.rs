@@ -162,6 +162,53 @@ fn hillslope_watbal_to_parquet(
 }
 
 #[pyfunction]
+fn roads_pass_geometry(path: String) -> PyResult<(f64, String)> {
+    hill_pass_combine::pass_modeled_area(PathBuf::from(path).as_path()).map_err(to_py_err)
+}
+
+#[pyfunction]
+fn roads_wat_geometry(
+    py: Python<'_>,
+    path: String,
+    ids: Vec<i64>,
+) -> PyResult<Vec<(i64, Vec<(i64, f64)>)>> {
+    py.allow_threads(|| totalwatsed::roads::areas(PathBuf::from(path).as_path(), ids))
+        .map_err(to_py_err)
+}
+
+#[pyfunction]
+#[pyo3(signature = (pass_path, sources, output_path, accounting_path, gwstorage, bfcoeff, dscoeff, version_major, version_minor, pandas_metadata=None))]
+fn roads_water_to_parquet(
+    py: Python<'_>,
+    pass_path: String,
+    sources: Vec<totalwatsed::roads::WaterSource>,
+    output_path: String,
+    accounting_path: String,
+    gwstorage: f64,
+    bfcoeff: f64,
+    dscoeff: f64,
+    version_major: u32,
+    version_minor: u32,
+    pandas_metadata: Option<String>,
+) -> PyResult<usize> {
+    py.allow_threads(|| {
+        totalwatsed::roads::produce(
+            PathBuf::from(pass_path).as_path(),
+            &sources,
+            PathBuf::from(output_path).as_path(),
+            PathBuf::from(accounting_path).as_path(),
+            gwstorage,
+            bfcoeff,
+            dscoeff,
+            &VersionInfo::new(version_major, version_minor),
+            pandas_metadata.as_deref(),
+        )
+    })
+    .map(|s| s.rows_written)
+    .map_err(to_py_err)
+}
+
+#[pyfunction]
 #[pyo3(signature = (pass_path, wat_path, output_path, gwstorage, bfcoeff, dscoeff, version_major, version_minor, soil_path=None, element_path=None, wepp_ids=None, ash_inputs=None, pandas_metadata=None))]
 fn totalwatsed3_to_parquet(
     py: Python<'_>,
@@ -1231,11 +1278,17 @@ fn segment_single_ofe_slope_at_breakpoints(
 
 #[pymodule]
 fn wepp_interchange_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(soil_anisotropy::soil_anisotropy_values, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        soil_anisotropy::soil_anisotropy_values,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(ashpost_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_watbal_wepp_ids, m)?)?;
     m.add_function(wrap_pyfunction!(hillslope_watbal_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(totalwatsed3_to_parquet, m)?)?;
+    m.add_function(wrap_pyfunction!(roads_pass_geometry, m)?)?;
+    m.add_function(wrap_pyfunction!(roads_wat_geometry, m)?)?;
+    m.add_function(wrap_pyfunction!(roads_water_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_pass_to_parquet, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_pass_cli_hint, m)?)?;
     m.add_function(wrap_pyfunction!(watershed_soil_to_parquet, m)?)?;

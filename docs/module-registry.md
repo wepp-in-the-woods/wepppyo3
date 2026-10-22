@@ -155,3 +155,10 @@ unit labels remain unchanged; descriptions flag inherited sediment-fraction
 label defects. No numerical behavior or API changes. Rebuilt py312 interchange
 SHA-256 `1cb2cec6ecba762362d117982d448b397c900b9c3a1be742a0c3bbea16e3e62b`; 163 native Python tests passed.
 See [release evidence](water-documentation-release-20261020.json). No production deployment.
+
+## Roads modeled-area accounting (2026-10-22)
+
+`confirmed`: additive Roads geometry, weighted PASS and source-qualified water
+APIs retain full contributor MOFEs and publish a separate marked accounting WAT.
+Existing TotalWatSed and AgFields entry points preserve their contracts.
+See [API and evidence](roads-modeled-area-accounting.md).

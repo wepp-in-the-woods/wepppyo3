@@ -1,3 +1,4 @@
+from .wepp_interchange_rust import roads_pass_geometry, roads_wat_geometry, roads_water_to_parquet
 from .wepp_interchange_rust import soil_anisotropy_values
 from .wepp_interchange_rust import ashpost_to_parquet
 from .wepp_interchange_rust import hillslope_watbal_wepp_ids, hillslope_watbal_to_parquet
@@ -36,6 +37,9 @@ from .wepp_interchange_rust import segment_single_ofe_slope
 from .wepp_interchange_rust import segment_single_ofe_slope_at_breakpoints
 
 __all__ = [
+    "roads_pass_geometry",
+    "roads_wat_geometry",
+    "roads_water_to_parquet",
     "soil_anisotropy_values",
     "ashpost_to_parquet",
     "hillslope_watbal_wepp_ids",

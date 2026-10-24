@@ -66,6 +66,17 @@ rebuild or replace shared objects implicitly.
 
 ## Latest Refresh Evidence (py312)
 
+### Query catalog refresh, 2026-10-23
+
+Paired WEPPpy contract checkpoint: `dc2b2ddbe`. The targeted interchange build
+releases the GIL during catalog traversal and excludes refresh maintenance
+records from query datasets. The public Python signature and dataset schemas
+are preserved. The [build receipt](query-catalog-refresh-release-20261023.json)
+records source hashes, existing calendar/HBP edits included in the build,
+commands and binary hash. Shared-object publication uses same-directory staging
+and atomic rename; no production service is restarted or deployed.
+
+
 ### Roads modeled-area accounting, 2026-10-22
 
 The paired WEPPpy checkpoint is `83f7410e8`. The targeted interchange build adds

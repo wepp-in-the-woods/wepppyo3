@@ -1230,10 +1230,10 @@ fn ag_fields_hillslope_wat_files_to_parquet(
 
 #[pyfunction]
 #[pyo3(signature = (base_path))]
-fn catalog_scan(base_path: String) -> PyResult<PyObject> {
+fn catalog_scan(py: Python<'_>, base_path: String) -> PyResult<PyObject> {
     let base_path = PathBuf::from(base_path);
-    let entries = catalog::catalog_scan(&base_path).map_err(to_py_err)?;
-    Ok(Python::with_gil(|py| entries.into_py(py)))
+    let entries = catalog::catalog_scan(py, &base_path);
+    Ok(entries.into_py(py))
 }
 
 #[pyfunction]

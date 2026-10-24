@@ -8,21 +8,18 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use time::OffsetDateTime;
 
-use crate::errors::InterchangeError;
-
 const SUPPORTED_EXTENSIONS: [&str; 7] = [
     ".nodb", ".tsv", ".csv", ".tif", ".parquet", ".json", ".geojson",
 ];
 
-pub fn catalog_scan(base: &Path) -> Result<Vec<PyObject>, InterchangeError> {
-    let entries = build_catalog(base);
-    Python::with_gil(|py| {
-        let mut out: Vec<PyObject> = Vec::new();
-        for entry in entries {
-            out.push(entry.into_pydict(py));
-        }
-        Ok(out)
-    })
+pub fn catalog_scan(py: Python<'_>, base: &Path) -> Vec<PyObject> {
+    // Filesystem traversal and Parquet metadata reads can block on NFS. Keep
+    // the interpreter available to serving-process heartbeat threads.
+    let entries = py.allow_threads(|| build_catalog(base));
+    entries
+        .into_iter()
+        .map(|entry| entry.into_pydict(py))
+        .collect()
 }
 
 fn build_catalog(base: &Path) -> Vec<CatalogEntry> {
@@ -232,7 +229,10 @@ fn iter_catalog_files(base: &Path, directory: Option<&Path>) -> Vec<PathBuf> {
         }
         visited_paths.insert(current.clone());
 
-        if !is_allowed_target(base, &resolved_current) {
+        if is_refresh_record(base, &current)
+            || is_refresh_record(base, &resolved_current)
+            || !is_allowed_target(base, &resolved_current)
+        {
             continue;
         }
 
@@ -253,10 +253,17 @@ fn iter_catalog_files(base: &Path, directory: Option<&Path>) -> Vec<PathBuf> {
         };
         for entry in read_dir.flatten() {
             let entry_path = entry.path();
+            if is_refresh_record(base, &entry_path) {
+                continue;
+            }
             let resolved_entry = match entry_path.canonicalize() {
                 Ok(path) => path,
                 Err(_) => continue,
             };
+
+            if is_refresh_record(base, &resolved_entry) {
+                continue;
+            }
 
             let file_type = match entry.file_type() {
                 Ok(ft) => ft,
@@ -291,6 +298,19 @@ fn iter_catalog_files(base: &Path, directory: Option<&Path>) -> Vec<PathBuf> {
     }
 
     files
+}
+
+fn is_refresh_record(base: &Path, path: &Path) -> bool {
+    // Nested project records and parent-backed aliases are also maintenance,
+    // while similarly named ordinary assets remain queryable.
+    let owner = find_parent_run_root(base).unwrap_or_else(|| base.to_path_buf());
+    let Ok(relative) = path.strip_prefix(owner) else {
+        return false;
+    };
+    let parts: Vec<_> = relative.components().collect();
+    parts
+        .windows(2)
+        .any(|pair| pair[0].as_os_str() == "_query_engine" && pair[1].as_os_str() == "refresh")
 }
 
 fn is_allowed_target(base: &Path, target: &Path) -> bool {
@@ -340,6 +360,51 @@ mod tests {
             .as_nanos();
         path.push(format!("wepp_interchange_catalog_{stem}_{nanos}.parquet"));
         path
+    }
+
+    #[test]
+    fn refresh_records_are_not_query_datasets() {
+        let base = temp_path("refresh");
+        let paths = [
+            "_query_engine/refresh/status.json",
+            "_query_engine/refresh/requests/request.json",
+            "_pups/omni/scenarios/test/_query_engine/refresh/status.json",
+            "_query_engine/refresh_other/keep.json",
+            "soils/refresh/keep.json",
+            "soils/data.json",
+        ];
+        for name in paths {
+            let path = base.join(name);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, "{}").unwrap();
+        }
+        #[cfg(unix)]
+        {
+            std::os::unix::fs::symlink(
+                base.join("_query_engine/refresh/status.json"),
+                base.join("aliased-status.json"),
+            )
+            .unwrap();
+            std::os::unix::fs::symlink(
+                base.join("_query_engine/refresh"),
+                base.join("aliased-refresh"),
+            )
+            .unwrap();
+        }
+        let entries = build_catalog(&base);
+        assert_eq!(
+            entries
+                .iter()
+                .map(|entry| entry.path.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "_query_engine/refresh_other/keep.json",
+                "soils/data.json",
+                "soils/refresh/keep.json",
+            ]
+        );
+        assert!(base.join("_query_engine/refresh/status.json").exists());
+        fs::remove_dir_all(base).unwrap();
     }
 
     #[test]

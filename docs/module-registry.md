@@ -162,3 +162,9 @@ See [release evidence](water-documentation-release-20261020.json). No production
 APIs retain full contributor MOFEs and publish a separate marked accounting WAT.
 Existing TotalWatSed and AgFields entry points preserve their contracts.
 See [API and evidence](roads-modeled-area-accounting.md).
+
+## Roads Whitebox direction input (2026-10-26)
+
+The existing Roads tracer gains explicit keyword-only `wbt=False`; WEPPpy Roads
+passes true. Native conversion reuses Peridot and preserves default TOPAZ API
+behavior. See [input contract](roads-flow-direction.md) and release provenance.

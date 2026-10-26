@@ -66,6 +66,19 @@ rebuild or replace shared objects implicitly.
 
 ## Latest Refresh Evidence (py312)
 
+### Roads WBT flow direction, 2026-10-26
+
+Paired WEPPpy contract checkpoint: `3a542d939`. Built only roads_flowpath_rust
+with Python 3.12 and atomically refreshed its canonical shared object. The
+[build receipt](roads-flow-direction-release-20261026.json) records source,
+Peridot and binary identities. [Input contract](roads-flow-direction.md) preserves
+TOPAZ default callers and adds explicit WBT normalization used by WEPPpy Roads.
+All 23 native Python tests pass on the host, including CLI parity; 22 non-CLI
+tests also pass in the WEPPpy container (cargo is not installed there). Cargo
+crate test compilation passes; the crate contains no Rust unit tests. Local
+release refresh only; production deployment and service restarts are excluded.
+
+
 ### Query catalog refresh, 2026-10-23
 
 Paired WEPPpy contract checkpoint: `dc2b2ddbe`. The targeted interchange build

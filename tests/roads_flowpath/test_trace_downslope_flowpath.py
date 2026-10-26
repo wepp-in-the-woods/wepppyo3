@@ -178,3 +178,68 @@ def test_trace_downslope_flowpath_rejects_negative_seed_row(tmp_path: Path) -> N
             channel_path=str(channel_path),
             max_steps=100,
         )
+
+
+@pytest.mark.parametrize('direction,neighbor', [
+    (1, (0, 2)), (2, (1, 2)), (4, (2, 2)), (8, (2, 1)),
+    (16, (2, 0)), (32, (1, 0)), (64, (0, 0)), (128, (0, 1)),
+])
+def test_whitebox_directions_reach_independent_neighbors(tmp_path, direction, neighbor):
+    """Oracle is the Whitebox compass layout, not the conversion helper."""
+    subwta = np.full((3, 3), 11, dtype=np.int32)
+    subwta[neighbor] = 14
+    flow = np.zeros((3, 3), dtype=np.uint8)
+    flow[1, 1] = direction
+    relief = np.full((3, 3), 99., dtype=np.float32)
+    relief[1, 1] = 100.
+    for name, values, dtype in [('subwta', subwta, 'int32'), ('flovec', flow, 'uint8'),
+                                 ('relief', relief, 'float32')]:
+        _write_raster(tmp_path / f'{name}.tif', values, dtype)
+    flow_path = tmp_path / 'flovec.tif'
+    original = flow_path.read_bytes()
+    result = trace_downslope_flowpath(str(tmp_path / 'subwta.tif'), str(flow_path),
+        str(tmp_path / 'relief.tif'), 1, 1, wbt=True)
+    assert result['reaches_channel'] is True
+    assert (result['channel_row'], result['channel_col']) == neighbor
+    assert result['rows'] == [1, neighbor[0]]
+    assert result['cols'] == [1, neighbor[1]]
+    assert result['drop_m'] == pytest.approx(1.)
+    distance = 2 ** .5 if neighbor[0] != 1 and neighbor[1] != 1 else 1.
+    assert result['path_length_m'] == pytest.approx(distance)
+    assert result['mean_slope'] == pytest.approx(1. / distance)
+    assert flow_path.read_bytes() == original
+
+
+@pytest.mark.parametrize('flow,max_steps,expected', [
+    ([0, 0, 0, 0], 100, 'invalid_flow_direction'),
+    ([5, 0, 0, 0], 100, 'invalid_flow_direction'),
+    ([255, 0, 0, 0], 100, 'invalid_flow_direction'),
+    ([2, 32, 0, 0], 100, 'loop_detected'),
+    ([32, 0, 0, 0], 100, 'raster_edge'),
+    ([2, 2, 2, 0], 1, 'max_steps_exceeded'),
+])
+def test_whitebox_retains_termination_guards(tmp_path, flow, max_steps, expected):
+    subwta, flovec, relief, channel = _build_fixture_rasters(tmp_path)
+    _write_raster(flovec, np.array([flow], dtype=np.uint8), 'uint8')
+    result = trace_downslope_flowpath(str(subwta), str(flovec), str(relief), 0, 0,
+        channel_path=str(channel), max_steps=max_steps, wbt=True)
+    assert not result['reaches_channel']
+    assert result['termination_reason'] == expected
+
+
+@pytest.mark.parametrize('seed_row,seed_col,max_steps', [(-1,0,100), (0,-1,100), (1,0,100), (0,4,100), (0,0,0)])
+def test_whitebox_rejects_invalid_seed_or_limit(tmp_path, seed_row, seed_col, max_steps):
+    subwta, flovec, relief, channel = _build_fixture_rasters(tmp_path)
+    with pytest.raises(ValueError):
+        trace_downslope_flowpath(str(subwta), str(flovec), str(relief), seed_row, seed_col,
+            channel_path=str(channel), max_steps=max_steps, wbt=True)
+
+
+def test_whitebox_rejects_shape_mismatch_and_missing_raster(tmp_path):
+    subwta, flovec, relief, channel = _build_fixture_rasters(tmp_path)
+    _write_raster(flovec, np.array([[2, 2]], dtype=np.uint8), 'uint8')
+    with pytest.raises(ValueError, match='shape'):
+        trace_downslope_flowpath(str(subwta), str(flovec), str(relief), 0, 0, wbt=True)
+    flovec.unlink()
+    with pytest.raises(RuntimeError, match='failed reading flovec'):
+        trace_downslope_flowpath(str(subwta), str(flovec), str(relief), 0, 0, wbt=True)

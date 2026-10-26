@@ -7,13 +7,14 @@ use pyo3::types::PyDict;
 use pyo3::wrap_pyfunction;
 
 use peridot::raster::Raster;
+use peridot::rasters::remap_whitebox_d8_to_topaz_in_place;
 use peridot::roads_trace::{
     trace_downslope_flowpath as trace_core, TraceDownslopeResult, TraceError,
     TraceTerminationReason,
 };
 
 #[pyfunction]
-#[pyo3(signature = (subwta_path, flovec_path, relief_path, seed_row, seed_col, channel_path=None, max_steps=20000))]
+#[pyo3(signature = (subwta_path, flovec_path, relief_path, seed_row, seed_col, channel_path=None, max_steps=20000, *, wbt=false))]
 fn trace_downslope_flowpath(
     py: Python<'_>,
     subwta_path: &str,
@@ -23,6 +24,7 @@ fn trace_downslope_flowpath(
     seed_col: i64,
     channel_path: Option<&str>,
     max_steps: i64,
+    wbt: bool,
 ) -> PyResult<PyObject> {
     let seed_row = parse_non_negative("seed_row", seed_row)?;
     let seed_col = parse_non_negative("seed_col", seed_col)?;
@@ -36,8 +38,12 @@ fn trace_downslope_flowpath(
 
     let subwta = Raster::<i32>::read(subwta_path)
         .map_err(|err| PyRuntimeError::new_err(format!("failed reading subwta: {}", err)))?;
-    let flovec = Raster::<u8>::read(flovec_path)
+    let mut flovec = Raster::<u8>::read(flovec_path)
         .map_err(|err| PyRuntimeError::new_err(format!("failed reading flovec: {}", err)))?;
+    // Roads supplies Whitebox pointers; preserve TOPAZ for existing callers.
+    if wbt {
+        remap_whitebox_d8_to_topaz_in_place(&mut flovec);
+    }
     let relief = Raster::<f32>::read(relief_path)
         .map_err(|err| PyRuntimeError::new_err(format!("failed reading relief: {}", err)))?;
 

@@ -164,6 +164,14 @@ command and failure in the handoff.
 
 ## Git and Workspace Rules
 
+- Standing operator instruction (2026-10-27): push every completed `wepppyo3`
+  commit to its upstream immediately, unless the user explicitly requests local-only
+  work. Commit completion includes a successful push and verification that the
+  remote branch contains the commit; do not leave it ahead of upstream at handoff.
+  Production builds clone GitHub, so a local native-library commit cannot satisfy
+  a deployed WEPPpy caller. Publish paired native changes before the caller is
+  declared deployment-ready. If a push fails, report the blocker explicitly;
+  never force-push or include unrelated dirty work to resolve it.
 - Do not create or switch branches unless the user explicitly asks.
 - Do not revert user changes or unrelated dirty work.
 - Do not run destructive commands such as `git reset --hard` or `git checkout --` unless explicitly requested.

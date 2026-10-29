@@ -6,10 +6,16 @@ fn apply(
     ofes: Vec<Vec<(f64, Option<f64>)>>,
     upper: Option<f64>,
     lower: Option<f64>,
+    developer_mode: bool,
 ) -> Result<Vec<Vec<Option<f64>>>, String> {
     for (name, value, maximum) in [("upper", upper, 100.0), ("lower", lower, 10.0)] {
         if let Some(value) = value {
-            if !value.is_finite() || !(1.0..=maximum).contains(&value) {
+            if !value.is_finite() || value < 1.0 || (!developer_mode && value > maximum) {
+                if developer_mode {
+                    return Err(format!(
+                        "soil_anisotropy_{name} must be finite and at least 1"
+                    ));
+                }
                 return Err(format!(
                     "soil_anisotropy_{name} must be finite and between 1 and {maximum}"
                 ));
@@ -45,18 +51,38 @@ fn apply(
 
 /// Return ratios for each OFE/horizon without mutating inputs or opening files.
 #[pyfunction]
-#[pyo3(signature = (ofes, upper=None, lower=None))]
+#[pyo3(signature = (ofes, upper=None, lower=None, *, developer_mode=false))]
 pub fn soil_anisotropy_values(
     ofes: Vec<Vec<(f64, Option<f64>)>>,
     upper: Option<f64>,
     lower: Option<f64>,
+    developer_mode: bool,
 ) -> PyResult<Vec<Vec<Option<f64>>>> {
-    apply(ofes, upper, lower).map_err(PyValueError::new_err)
+    apply(ofes, upper, lower, developer_mode).map_err(PyValueError::new_err)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::apply;
+    fn apply(
+        ofes: Vec<Vec<(f64, Option<f64>)>>,
+        upper: Option<f64>,
+        lower: Option<f64>,
+    ) -> Result<Vec<Vec<Option<f64>>>, String> {
+        super::apply(ofes, upper, lower, false)
+    }
+
+    #[test]
+    fn developer_overrides_keep_minimum_and_finite_checks() {
+        let ofes = vec![vec![(500.0, Some(1.0)), (800.0, Some(2.0))]];
+        assert_eq!(
+            super::apply(ofes.clone(), Some(101.0), Some(11.0), true).unwrap(),
+            vec![vec![Some(101.0), Some(11.0)]]
+        );
+        for value in [0.0, f64::NAN, f64::INFINITY] {
+            assert!(super::apply(ofes.clone(), Some(value), None, true).is_err());
+            assert!(super::apply(ofes.clone(), None, Some(value), true).is_err());
+        }
+    }
 
     #[test]
     fn boundaries_and_multiple_ofes() {

@@ -242,9 +242,9 @@ fn validate_distance_fractions(d_fractions: &[f64]) -> Result<(), String> {
     }
 
     for idx in 0..(d_fractions.len() - 1) {
-        if d_fractions[idx + 1] < d_fractions[idx] {
+        if d_fractions[idx + 1] <= d_fractions[idx] {
             return Err(format!(
-                "d_fractions must be non-decreasing; received {d_fractions:?}"
+                "d_fractions must be strictly increasing; received {d_fractions:?}"
             ));
         }
     }
@@ -315,6 +315,7 @@ fn compute_mofe_segment_cell_counts(
     d_fractions: &[f64],
     n_cells: usize,
 ) -> Result<Vec<i32>, String> {
+    validate_distance_fractions(d_fractions)?;
     if n_cells == 0 {
         return Err(format!("n_cells must be positive; received {n_cells}"));
     }
@@ -338,9 +339,9 @@ fn compute_mofe_segment_cell_counts(
 
     for idx in 0..n_ofe {
         let length = d_fractions[idx + 1] - d_fractions[idx];
-        if length < 0.0 {
+        if length <= 0.0 {
             return Err(format!(
-                "d_fractions must be non-decreasing; received {d_fractions:?}"
+                "d_fractions must be strictly increasing; received {d_fractions:?}"
             ));
         }
 
@@ -447,5 +448,11 @@ mod tests {
         let sorted_values = vec![0, 10];
         let pct = percentile_sorted(&sorted_values, 25.0).unwrap();
         assert!((pct - 2.5).abs() < f64::EPSILON);
+    }
+    #[test]
+    fn equal_boundaries_must_not_gain_cells() {
+        let fractions = [0.0, 0.5, 0.5, 1.0];
+        assert!(assign_hillslope_labels(171, &[5, 5, 5, 5], &fractions).is_err());
+        assert!(compute_mofe_segment_cell_counts(&fractions, 4).is_err());
     }
 }

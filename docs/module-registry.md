@@ -168,3 +168,11 @@ See [API and evidence](roads-modeled-area-accounting.md).
 The existing Roads tracer gains explicit keyword-only `wbt=False`; WEPPpy Roads
 passes true. Native conversion reuses Peridot and preserves default TOPAZ API
 behavior. See [input contract](roads-flow-direction.md) and release provenance.
+
+## MOFE producer validation (candidate source, 2026-11-02)
+
+`confirmed`: `wepp_interchange` rejects invalid enabled buffers and zero serialized
+segment lengths before opening outputs; `watershed_abstraction` rejects equal
+fraction boundaries in mapping and counting. Public APIs remain unchanged.
+See [validation and release limits](mofe-input-validation.md). Installed shared
+objects are unchanged; this source repair is not native-model acceptance.

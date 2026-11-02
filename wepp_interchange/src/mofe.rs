@@ -34,17 +34,7 @@ pub fn segment_single_ofe_slope(
     }
 
     let slope = parse_single_ofe_slope(src_fn)?;
-    if !slope.length.is_finite() || slope.length <= 0.0 {
-        return Err(InterchangeError::parse(
-            src_fn,
-            None,
-            format!(
-                "slope length must be finite and > 0; received {}",
-                slope.length
-            ),
-            None,
-        ));
-    }
+    validate_source_profile(src_fn, &slope)?;
 
     if max_ofes < 1 {
         return Err(InterchangeError::parse(
@@ -58,11 +48,23 @@ pub fn segment_single_ofe_slope(
     let mut d_d = vec![0.0f64];
     let mut n_mofes: i64;
     let mut n_buffer = 0i64;
-    let mut effective_buffer_length = if buffer_length.is_finite() {
-        buffer_length
-    } else {
-        0.0
-    };
+    if apply_buffer && (!buffer_length.is_finite() || buffer_length <= 0.0) {
+        return Err(InterchangeError::parse(
+            src_fn,
+            None,
+            "enabled buffer length must be finite and > 0",
+            None,
+        ));
+    }
+    if apply_buffer && buffer_length < slope.length && max_ofes < 2 {
+        return Err(InterchangeError::parse(
+            src_fn,
+            None,
+            "max_ofes must allow both the buffer and remaining hillslope",
+            None,
+        ));
+    }
+    let mut effective_buffer_length = buffer_length;
 
     if apply_buffer {
         if slope.length <= effective_buffer_length {
@@ -275,7 +277,7 @@ fn validate_source_profile(src_fn: &str, slope: &SingleOfeSlope) -> Result<(), I
             ));
         }
     }
-    if slope.slopes.iter().any(|value| !value.is_finite()) {
+    if !slope.azm.is_finite() || slope.slopes.iter().any(|value| !value.is_finite()) {
         return Err(InterchangeError::parse(
             src_fn,
             None,
@@ -310,12 +312,25 @@ fn write_segmented_slope(
             }
         }
 
-        let last_distance = *distance_p.last().unwrap_or(&d0);
-        if round_ndigits_half_even(last_distance, 4) < round_ndigits_half_even(dend, 4) {
-            distance_p.push(dend);
-        }
-
+        // Always retain the exact endpoint before normalization; rounding the
+        // absolute distances first can erase a short but representable segment.
+        distance_p.push(dend);
         let segment_length = (dend - d0) * slope.length;
+        let serialized_length = format!("{segment_length:.2}");
+        if !segment_length.is_finite()
+            || segment_length <= 0.0
+            || serialized_length
+                .parse::<f64>()
+                .expect("formatted finite length")
+                <= 0.0
+        {
+            return Err(InterchangeError::parse(
+                src_fn,
+                None,
+                "OFE length must remain positive at serialized precision",
+                None,
+            ));
+        }
         let mut profile: Vec<(String, String)> = Vec::new();
         for d in distance_p.iter().copied() {
             let slope_value = interp_slope(&slope.distances, &slope.slopes, d);
@@ -608,5 +623,77 @@ mod tests {
         );
 
         std::fs::remove_file(source).expect("remove source");
+    }
+    #[test]
+    fn invalid_buffers_and_tiny_segments_preserve_destination() {
+        let source = temp_path("source-invalid.slp");
+        let output = temp_path("existing.slp");
+        write_source(&source);
+        std::fs::write(&output, "previous valid artifact").unwrap();
+        for length in [0.0, -1.0, f64::NAN, f64::INFINITY] {
+            assert!(segment_single_ofe_slope(
+                source.to_str().unwrap(),
+                Some(output.to_str().unwrap()),
+                40.0,
+                true,
+                length,
+                5.0,
+                20
+            )
+            .is_err());
+            assert_eq!(
+                std::fs::read_to_string(&output).unwrap(),
+                "previous valid artifact"
+            );
+        }
+        assert!(segment_single_ofe_slope_at_breakpoints(
+            source.to_str().unwrap(),
+            &[0.0, 0.00001, 1.0],
+            Some(output.to_str().unwrap()),
+            None
+        )
+        .is_err());
+        assert_eq!(
+            std::fs::read_to_string(&output).unwrap(),
+            "previous valid artifact"
+        );
+        for length in [100.0, 101.0] {
+            assert_eq!(
+                segment_single_ofe_slope(
+                    source.to_str().unwrap(),
+                    Some(output.to_str().unwrap()),
+                    40.0,
+                    true,
+                    length,
+                    5.0,
+                    20
+                )
+                .unwrap(),
+                1
+            );
+            assert!(std::fs::read_to_string(&output).unwrap().contains("100.00"));
+        }
+        std::fs::remove_file(source).unwrap();
+        std::fs::remove_file(output).unwrap();
+    }
+
+    #[test]
+    fn short_representable_segment_keeps_normalized_endpoints() {
+        let source = temp_path("long-source.slp");
+        let output = temp_path("short-segment.slp");
+        std::fs::write(&source, "97.5\n1\n100 10\n2 10000\n0, 0.1 1, 0.1\n").unwrap();
+        segment_single_ofe_slope_at_breakpoints(
+            source.to_str().unwrap(),
+            &[0.0, 0.00001, 1.0],
+            Some(output.to_str().unwrap()),
+            None,
+        )
+        .unwrap();
+        let result = std::fs::read_to_string(&output).unwrap();
+        let lines: Vec<_> = result.lines().collect();
+        assert_eq!(lines[3], "2 0.10");
+        assert!(lines[4].contains("0.0000, 0.1000 1.0000, 0.1000"));
+        std::fs::remove_file(source).unwrap();
+        std::fs::remove_file(output).unwrap();
     }
 }

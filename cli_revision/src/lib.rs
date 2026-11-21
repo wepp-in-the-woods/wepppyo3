@@ -1235,12 +1235,6 @@ fn revise_daily_cli(
     hill_tmins: [f64; 12],
     raw_tdmean_c: Option<(&[i32], &[f64])>,
 ) -> Result<()> {
-    let mut diagnostic = File::create(format!("{}.temperature-ordering.log", dst_fn))?;
-    writeln!(
-        diagnostic,
-        "status=working source={:?} output={:?}",
-        src_fn, dst_fn
-    )?;
     if ws_tmaxs
         .iter()
         .chain(ws_tmins.iter())
@@ -1254,7 +1248,7 @@ fn revise_daily_cli(
         ));
     }
     let mut floor = raw_tdmean_c
-        .map(|(dates, values)| dewpoint::Floor::new(dst_fn, dates, values))
+        .map(|(dates, values)| dewpoint::Floor::new(dates, values))
         .transpose()?;
     let mut corrected_days: usize = 0;
     let mut maximum_inversion_c: f64 = 0.0;
@@ -1364,13 +1358,10 @@ fn revise_daily_cli(
         line.clear();
     }
     dst_w.flush()?;
-    let mut summary = format!("status=complete method=midpoint_if_inverted corrected_days={} maximum_inversion_c={} maximum_adjustment_c={}", corrected_days, maximum_inversion_c, maximum_adjustment_c);
-    if let Some(mut floor) = floor {
+    let summary = format!("status=complete method=midpoint_if_inverted corrected_days={} maximum_inversion_c={} maximum_adjustment_c={}", corrected_days, maximum_inversion_c, maximum_adjustment_c);
+    if let Some(floor) = floor {
         floor.finish(dst_fn)?;
-        summary.push_str(&format!(" dewpoint_changed_days={}", floor.changed_days));
     }
-    writeln!(diagnostic, "{}", summary)?;
-    diagnostic.flush()?;
     println!("{} source={:?} output={:?}", summary, src_fn, dst_fn);
     Ok(())
 }

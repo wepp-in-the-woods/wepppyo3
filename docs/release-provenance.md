@@ -1041,3 +1041,7 @@ See [release evidence](water-documentation-release-20261020.json). No production
 ## PRISM hillslope dew-point revision (2026-11-21)
 
 Confirmed Linux py312 climate artifact SHA-256 `3c2bde80c363f6e216b4a14dc8365cb6cc165f13619937dc9c4f074dec7cc03a`. Built with Rust 1.92.0 and `PYO3_PYTHON=/usr/bin/python3.12 cargo build --locked --release -p cli_revision_rust` using the existing development workspace lockfile. The climate crate passed 23 tests. WEPPpy package `20261121_prism_native_dewpoint` records paired writer/NoDb tests. Consumers using the optional keyword require this extension. Existing positional callers remain compatible.
+
+## PRISM analysis output retirement (2026-11-21)
+
+Linux py312 climate artifact SHA-256 `813b8fe82de37d90860c768daac7dcf836f1ea03337820360006f760e3480e68`, rebuilt with `PYO3_PYTHON=/usr/bin/python3.12 cargo build --locked --release -p cli_revision_rust`. The daily revision writes the CLI and validates the opt-in dew-point floor. The separate CSV and temperature-ordering file were retired. The 23 crate tests passed. A local replay of diagonal-intersection hillslope 142702 produced only the CLI, byte-identical to the original over 16,436 days.

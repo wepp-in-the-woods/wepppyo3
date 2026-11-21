@@ -88,7 +88,7 @@ release artifact paths.
 - `calculate_monthlies(src_fn)`
 - `build_hyetograph_non_breakpoint(...)`
 - `build_hyetograph_breakpoint(...)`
-- `cli_revision(..., *, raw_tdmean_c=None)` revises daily weather. Supply a pair of contiguous NumPy arrays (int32 YYYYMMDD dates and float64 raw dew points in Celsius) to floor dew point at the revised, serialized Tmin. The opt-in writer validates the final CLI and emits its dated dew-point CSV and changed-day count.
+- `cli_revision(..., *, raw_tdmean_c=None)` revises daily weather. Supply a pair of contiguous NumPy arrays (int32 YYYYMMDD dates and float64 raw dew points in Celsius) to floor dew point at the revised, serialized Tmin. The opt-in writer validates the final CLI.
 - `compute_peak_intensities_from_hyetograph(...)`
 - `compute_peak_intensities_non_breakpoint(...)`
 - `compute_peak_intensities_breakpoint(...)`

@@ -1,7 +1,7 @@
-//! Dated forcing and retained evidence for the opt-in daily PRISM revision.
+//! Dated forcing and final CLI validation for the opt-in daily PRISM revision.
 use super::{EXPECTED_TOKENS, HEADER_LINES};
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Error, ErrorKind, Result, Write};
+use std::io::{BufRead, BufReader, Error, ErrorKind, Result};
 
 pub(super) fn invalid(message: &str) -> Error {
     Error::new(ErrorKind::InvalidData, message)
@@ -19,27 +19,17 @@ pub(super) struct Floor<'a> {
     dates: &'a [i32],
     raw: &'a [f64],
     row: usize,
-    csv: BufWriter<File>,
-    pub changed_days: usize,
 }
 
 impl<'a> Floor<'a> {
-    pub fn new(dst: &str, dates: &'a [i32], raw: &'a [f64]) -> Result<Self> {
+    pub fn new(dates: &'a [i32], raw: &'a [f64]) -> Result<Self> {
         if dates.is_empty() || dates.len() != raw.len() || dates.windows(2).any(|w| w[0] >= w[1]) {
             return Err(invalid("PRISM dewpoint calendar mismatch"));
         }
-        let mut csv = BufWriter::new(File::create(format!("{dst}-dewpoint.csv"))?);
-        writeln!(csv, "date,raw_tdmean_C,final_tmin_C,derived_tdmean_C")?;
-        Ok(Self {
-            dates,
-            raw,
-            row: 0,
-            csv,
-            changed_days: 0,
-        })
+        Ok(Self { dates, raw, row: 0 })
     }
 
-    fn check_date(&self, row: usize, tokens: &[&str]) -> Result<(i32, i32, i32)> {
+    fn check_date(&self, row: usize, tokens: &[&str]) -> Result<()> {
         let mismatch = || invalid("PRISM dewpoint calendar mismatch");
         let parse = |s: &str| s.parse::<i32>().map_err(|_| mismatch());
         let (day, month, year) = (parse(tokens[0])?, parse(tokens[1])?, parse(tokens[2])?);
@@ -57,7 +47,7 @@ impl<'a> Floor<'a> {
         {
             return Err(mismatch());
         }
-        Ok((year, month, day))
+        Ok(())
     }
 
     pub fn check_source(&self, tokens: &[&str]) -> Result<()> {
@@ -76,24 +66,14 @@ impl<'a> Floor<'a> {
         let tmin = number(serialized_tmin)?;
         // NumPy maximum selects its second operand on ties, including signed zero.
         let derived = if raw > tmin { raw } else { tmin };
-        self.changed_days += usize::from(raw < tmin);
-        let date = self.dates[self.row];
-        writeln!(
-            self.csv,
-            "{:04}-{:02}-{:02},{raw:?},{tmin:?},{derived:?}",
-            date / 10000,
-            date / 100 % 100,
-            date % 100
-        )?;
         self.row += 1;
         Ok(format!("{derived:.1}"))
     }
 
-    pub fn finish(&mut self, dst: &str) -> Result<()> {
+    pub fn finish(&self, dst: &str) -> Result<()> {
         if self.row != self.dates.len() {
             return Err(invalid("PRISM dewpoint calendar mismatch"));
         }
-        self.csv.flush()?;
         let mut count = 0;
         for line in BufReader::new(File::open(dst)?).lines().skip(HEADER_LINES) {
             let line = line?;

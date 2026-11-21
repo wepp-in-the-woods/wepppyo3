@@ -1037,3 +1037,7 @@ unit labels remain unchanged; descriptions flag inherited sediment-fraction
 label defects. No numerical behavior or API changes. Rebuilt py312 interchange
 SHA-256 `1cb2cec6ecba762362d117982d448b397c900b9c3a1be742a0c3bbea16e3e62b`; 163 native Python tests passed.
 See [release evidence](water-documentation-release-20261020.json). No production deployment.
+
+## PRISM hillslope dew-point revision (2026-11-21)
+
+Confirmed Linux py312 climate artifact SHA-256 `3c2bde80c363f6e216b4a14dc8365cb6cc165f13619937dc9c4f074dec7cc03a`. Built with Rust 1.92.0 and `PYO3_PYTHON=/usr/bin/python3.12 cargo build --locked --release -p cli_revision_rust` using the existing development workspace lockfile. The climate crate passed 23 tests. WEPPpy package `20261121_prism_native_dewpoint` records paired writer/NoDb tests. Consumers using the optional keyword require this extension. Existing positional callers remain compatible.

@@ -13,6 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Error, ErrorKind, Result, Write};
 
+mod dewpoint;
 mod geneva;
 
 // ------------------ HELPER FUNCTIONS (unchanged) ------------------ //
@@ -1208,8 +1209,22 @@ fn ordered_spatial_temperatures(tmax: f64, tmin: f64) -> Result<(f64, f64)> {
     }
 }
 
-#[pyfunction]
 pub fn rust_cli_revision(
+    src_fn: &str,
+    dst_fn: &str,
+    ws_ppts: [f64; 12],
+    ws_tmaxs: [f64; 12],
+    ws_tmins: [f64; 12],
+    hill_ppts: [f64; 12],
+    hill_tmaxs: [f64; 12],
+    hill_tmins: [f64; 12],
+) -> Result<()> {
+    revise_daily_cli(
+        src_fn, dst_fn, ws_ppts, ws_tmaxs, ws_tmins, hill_ppts, hill_tmaxs, hill_tmins, None,
+    )
+}
+
+fn revise_daily_cli(
     src_fn: &str,
     dst_fn: &str,
     mut ws_ppts: [f64; 12],
@@ -1218,6 +1233,7 @@ pub fn rust_cli_revision(
     mut hill_ppts: [f64; 12],
     hill_tmaxs: [f64; 12],
     hill_tmins: [f64; 12],
+    raw_tdmean_c: Option<(&[i32], &[f64])>,
 ) -> Result<()> {
     let mut diagnostic = File::create(format!("{}.temperature-ordering.log", dst_fn))?;
     writeln!(
@@ -1237,6 +1253,9 @@ pub fn rust_cli_revision(
             "PRISM temperature normals must be finite",
         ));
     }
+    let mut floor = raw_tdmean_c
+        .map(|(dates, values)| dewpoint::Floor::new(dst_fn, dates, values))
+        .transpose()?;
     let mut corrected_days: usize = 0;
     let mut maximum_inversion_c: f64 = 0.0;
     let mut maximum_adjustment_c: f64 = 0.0;
@@ -1262,6 +1281,9 @@ pub fn rust_cli_revision(
     while src_r.read_line(&mut line)? > 0 {
         let tokens: Vec<&str> = line.split_whitespace().collect();
         if tokens.len() == EXPECTED_TOKENS {
+            if let Some(floor) = &floor {
+                floor.check_source(&tokens)?;
+            }
             let da = tokens[0];
             let mo: i32 = tokens[1].parse().unwrap();
             let year = tokens[2];
@@ -1307,10 +1329,28 @@ pub fn rust_cli_revision(
             }
 
             let prcp = format!("{:.1}", prcp_f);
-            let dur = format!("{:.2}", dur_f);
+            let mut dur = format!("{:.2}", dur_f);
             let tmax = format!("{:.1}", tmax_f);
             let tmin = format!("{:.1}", tmin_f);
 
+            // The former ClimateFile.replace_var writer normalized the entire record.
+            let revised_fields;
+            let (tp, ip, rad, w_vl, w_dir, tdew) = if let Some(floor) = &mut floor {
+                dur = format!("{:.1}", dewpoint::number(&dur)?);
+                revised_fields = [
+                    format!("{:.1}", dewpoint::number(tp)?),
+                    format!("{:.1}", dewpoint::number(ip)?),
+                    format!("{:.0}", dewpoint::number(rad)?.round_ties_even() + 0.0),
+                    format!("{:.1}", dewpoint::number(w_vl)?),
+                    format!("{:.0}", dewpoint::number(w_dir)?.round_ties_even() + 0.0),
+                    floor.derive(&tmin)?,
+                ];
+                let [tp, ip, rad, w_vl, w_dir, tdew] =
+                    revised_fields.each_ref().map(String::as_str);
+                (tp, ip, rad, w_vl, w_dir, tdew)
+            } else {
+                (tp, ip, rad, w_vl, w_dir, tdew)
+            };
             dst_w.write_all(
                 format!(
                     "{:>3}{:>3}{:>5}{:>6}{:>6}{:>5}{:>7}{:>6}{:>6}{:>5}{:>5}{:>6}{:>6}\n",
@@ -1318,11 +1358,17 @@ pub fn rust_cli_revision(
                 )
                 .as_bytes(),
             )?;
+        } else if floor.is_some() && !tokens.is_empty() {
+            return Err(dewpoint::invalid("Malformed PRISM CLI row"));
         }
         line.clear();
     }
     dst_w.flush()?;
-    let summary = format!("status=complete method=midpoint_if_inverted corrected_days={} maximum_inversion_c={} maximum_adjustment_c={}", corrected_days, maximum_inversion_c, maximum_adjustment_c);
+    let mut summary = format!("status=complete method=midpoint_if_inverted corrected_days={} maximum_inversion_c={} maximum_adjustment_c={}", corrected_days, maximum_inversion_c, maximum_adjustment_c);
+    if let Some(mut floor) = floor {
+        floor.finish(dst_fn)?;
+        summary.push_str(&format!(" dewpoint_changed_days={}", floor.changed_days));
+    }
     writeln!(diagnostic, "{}", summary)?;
     diagnostic.flush()?;
     println!("{} source={:?} output={:?}", summary, src_fn, dst_fn);
@@ -1671,8 +1717,9 @@ pub fn rust_cli_p_scale_annual_monthlies(
 ///
 /// returns:
 ///  None
-#[pyfunction]
+#[pyfunction(signature = (src_fn, dst_fn, ws_ppts, ws_tmaxs, ws_tmins, hill_ppts, hill_tmaxs, hill_tmins, *, raw_tdmean_c=None))]
 fn cli_revision(
+    py: Python<'_>,
     src_fn: &str,
     dst_fn: &str,
     ws_ppts: Vec<f64>,
@@ -1681,6 +1728,7 @@ fn cli_revision(
     hill_ppts: Vec<f64>,
     hill_tmaxs: Vec<f64>,
     hill_tmins: Vec<f64>,
+    raw_tdmean_c: Option<(PyReadonlyArray1<'_, i32>, PyReadonlyArray1<'_, f64>)>,
 ) -> PyResult<()> {
     println!("{}", src_fn);
     println!("{}", dst_fn);
@@ -1700,20 +1748,35 @@ fn cli_revision(
         }
     };
 
-    // Call the original Rust function
-    rust_cli_revision(
-        src_fn,
-        dst_fn,
-        convert_array(ws_ppts)?,
-        convert_array(ws_tmaxs)?,
-        convert_array(ws_tmins)?,
-        convert_array(hill_ppts)?,
-        convert_array(hill_tmaxs)?,
-        convert_array(hill_tmins)?,
-    )
-    .map_err(|e| pyo3::exceptions::PyOSError::new_err(format!("{}", e)))?;
-
-    Ok(())
+    let ws_ppts = convert_array(ws_ppts)?;
+    let ws_tmaxs = convert_array(ws_tmaxs)?;
+    let ws_tmins = convert_array(ws_tmins)?;
+    let hill_ppts = convert_array(hill_ppts)?;
+    let hill_tmaxs = convert_array(hill_tmaxs)?;
+    let hill_tmins = convert_array(hill_tmins)?;
+    // Own the buffers while worker threads run outside the Python interpreter lock.
+    let result = if let Some((dates, values)) = raw_tdmean_c {
+        let dates = dates.as_slice()?.to_vec();
+        let values = values.as_slice()?.to_vec();
+        py.allow_threads(|| {
+            revise_daily_cli(
+                src_fn,
+                dst_fn,
+                ws_ppts,
+                ws_tmaxs,
+                ws_tmins,
+                hill_ppts,
+                hill_tmaxs,
+                hill_tmins,
+                Some((&dates, &values)),
+            )
+        })
+    } else {
+        rust_cli_revision(
+            src_fn, dst_fn, ws_ppts, ws_tmaxs, ws_tmins, hill_ppts, hill_tmaxs, hill_tmins,
+        )
+    };
+    result.map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))
 }
 
 /// A PyO3 module

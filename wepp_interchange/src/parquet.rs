@@ -27,7 +27,8 @@ pub struct ParquetSink {
     tmp_path: Option<PathBuf>,
     final_path: PathBuf,
     rows_written: usize,
-    row_groups: usize,
+    chunks_per_group: usize,
+    pending_chunks: usize,
 }
 
 pub(crate) struct StagedParquet {
@@ -45,6 +46,16 @@ static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 impl ParquetSink {
     pub fn try_new(path: &Path, schema: Schema) -> Result<Self, InterchangeError> {
         Self::try_new_with_mode(path, schema, None)
+    }
+
+    pub fn for_sources(path: &Path, schema: Schema, count: usize) -> Result<Self, InterchangeError> {
+        let mut sink = Self::try_new(path, schema)?;
+        // Keep mixed groups small for per-hillslope readers. Leave half the
+        // physical budget available for Arrow splits on unusually large sources.
+        if count > i16::MAX as usize {
+            sink.chunks_per_group = count.div_ceil(1 << 14);
+        }
+        Ok(sink)
     }
 
     /// A cache caller may preserve restrictive access bits on the stage itself.
@@ -77,7 +88,8 @@ impl ParquetSink {
             tmp_path: Some(tmp_path),
             final_path: path.to_path_buf(),
             rows_written: 0,
-            row_groups: 0,
+            chunks_per_group: 1,
+            pending_chunks: 0,
         })
     }
 
@@ -95,10 +107,20 @@ impl ParquetSink {
                 InterchangeError::Parquet("Parquet sink is already closed".to_string())
             })?;
             writer.write(&batch)?;
-            // Each caller-provided chunk is an intentional row-group boundary. The
-            // ordered multi-file APIs use one chunk per source file.
-            writer.flush()?;
-            self.row_groups += 1;
+            self.pending_chunks += 1;
+            // Streams with unknown length and oversized sources also need
+            // headroom. Increase packing as actual physical groups accumulate.
+            let min_chunks = match writer.flushed_row_groups().len() {
+                0..=16383 => 1,
+                16384..=24575 => 2,
+                24576..=28671 => 4,
+                28672..=30719 => 8,
+                _ => usize::MAX, // only Arrow's bounded full groups from here
+            };
+            if self.pending_chunks >= self.chunks_per_group.max(min_chunks) {
+                writer.flush()?;
+                self.pending_chunks = 0;
+            }
         }
 
         self.rows_written += rows;
@@ -109,7 +131,7 @@ impl ParquetSink {
         let writer = self.writer.take().ok_or_else(|| {
             InterchangeError::Parquet("Parquet sink is already closed".to_string())
         })?;
-        writer.close()?;
+        let footer = writer.close()?;
         let tmp_path = self.tmp_path.take().ok_or_else(|| {
             InterchangeError::Parquet("Parquet sink has no staged path".to_string())
         })?;
@@ -118,7 +140,7 @@ impl ParquetSink {
             final_path: self.final_path.clone(),
             summary: WriteSummary {
                 rows_written: self.rows_written,
-                row_groups: self.row_groups,
+                row_groups: footer.row_groups.len(),
             },
         })
     }
@@ -616,6 +638,47 @@ mod tests {
         assert_eq!(builder.metadata().num_row_groups(), 2);
 
         std::fs::remove_file(path).expect("cleanup parquet");
+    }
+
+    #[test]
+    fn stream_survives_more_than_i16_max_chunks() {
+        let schema = Schema::new(vec![Field::new("value", DataType::Int32, true)]);
+        let path = temp_path("many_chunks");
+        let mut sink = ParquetSink::try_new(&path, schema).unwrap();
+        let count = i32::from(i16::MAX) + 1;
+        for id in 0..count {
+            sink.write_chunk(one_col_chunk(vec![Some(id)])).unwrap();
+        }
+        let summary = sink.finish().unwrap();
+        let reader = ParquetRecordBatchReaderBuilder::try_new(File::open(&path).unwrap()).unwrap();
+        assert_eq!(reader.metadata().num_row_groups(), summary.row_groups);
+        assert!(summary.row_groups < count as usize);
+        let mut expected = 0;
+        for batch in reader.build().unwrap() {
+            let batch = batch.unwrap();
+            let values = batch.column(0).as_any().downcast_ref::<Int32Array>().unwrap();
+            for id in values.values() {
+                assert_eq!(*id, expected);
+                expected += 1;
+            }
+        }
+        assert_eq!(expected, count);
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn summary_counts_physical_splits_within_a_chunk() {
+        let path = temp_path("split_chunk");
+        let schema = Schema::new(vec![Field::new("value", DataType::Int32, true)]);
+        let mut sink = ParquetSink::try_new(&path, schema).unwrap();
+        let rows = parquet::file::properties::DEFAULT_MAX_ROW_GROUP_SIZE + 1;
+        sink.write_chunk(one_col_chunk(vec![Some(4); rows])).unwrap();
+        let summary = sink.finish().unwrap();
+        let reader = ParquetRecordBatchReaderBuilder::try_new(File::open(&path).unwrap()).unwrap();
+        assert_eq!(summary.rows_written, rows);
+        assert_eq!(reader.metadata().num_row_groups(), 2);
+        assert_eq!(summary.row_groups, 2);
+        std::fs::remove_file(path).unwrap();
     }
 
     #[test]

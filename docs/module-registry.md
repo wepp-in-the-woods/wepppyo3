@@ -174,3 +174,5 @@ segment lengths before opening outputs; `watershed_abstraction` rejects equal
 fraction boundaries in mapping and counting. Public APIs remain unchanged.
 See [validation and release limits](mofe-input-validation.md). Installed shared
 objects are unchanged; this source repair is not native-model acceptance.
+
+The WEPP interchange bulk writers pack consecutive sources at large counts and report physical footer groups. The totalwatsed3 baseline and Roads readers index mixed groups by hillslope and preserve row-level identity filtering. Old single-source groups use their existing statistics fast path.

@@ -1045,3 +1045,7 @@ Confirmed Linux py312 climate artifact SHA-256 `3c2bde80c363f6e216b4a14dc8365cb6
 ## PRISM analysis output retirement (2026-11-21)
 
 Linux py312 climate artifact SHA-256 `813b8fe82de37d90860c768daac7dcf836f1ea03337820360006f760e3480e68`, rebuilt with `PYO3_PYTHON=/usr/bin/python3.12 cargo build --locked --release -p cli_revision_rust`. The daily revision writes the CLI and validates the opt-in dew-point floor. The separate CSV and temperature-ordering file were retired. The 23 crate tests passed. A local replay of diagonal-intersection hillslope 142702 produced only the CLI, byte-identical to the original over 16,436 days.
+
+## Large-watershed interchange, 2026-11-22
+
+Built the Linux py312 interchange extension from the task worktree with the existing workspace lockfile and `PYO3_PYTHON=/usr/bin/python3.12 cargo build --locked --release -p wepp_interchange_rust`. SHA-256 is `1769c18b5fb0454026d3ea6dee7192f082a3eabf41f0b33d710af891458443fd`. The WEPPpy work package 20261122_interchange_row_groups records generated PASS and daily output comparisons and the paired startup pin.

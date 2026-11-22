@@ -184,7 +184,7 @@ pub fn hillslope_loss_files_to_parquet(
     version: &VersionInfo,
 ) -> Result<WriteSummary, InterchangeError> {
     let schema = hill_loss_schema(version);
-    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    let mut sink = ParquetSink::for_sources(output_path, schema.clone(), paths.len())?;
     if paths.is_empty() {
         sink.write_chunk(empty_chunk(&schema))?;
     } else {

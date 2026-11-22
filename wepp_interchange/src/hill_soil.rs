@@ -519,7 +519,7 @@ pub fn hillslope_soil_files_to_parquet(
         None => None,
     };
     let schema = hill_soil_schema(version);
-    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    let mut sink = ParquetSink::for_sources(output_path, schema.clone(), paths.len())?;
     if paths.is_empty() {
         sink.write_chunk(empty_chunk(&schema))?;
     } else {

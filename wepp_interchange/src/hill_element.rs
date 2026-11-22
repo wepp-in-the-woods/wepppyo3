@@ -284,7 +284,7 @@ pub fn hillslope_element_files_to_parquet(
     start_year: Option<i32>,
 ) -> Result<WriteSummary, InterchangeError> {
     let schema = hill_element_schema(version);
-    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    let mut sink = ParquetSink::for_sources(output_path, schema.clone(), paths.len())?;
     if paths.is_empty() {
         sink.write_chunk(empty_chunk(&schema))?;
     } else {

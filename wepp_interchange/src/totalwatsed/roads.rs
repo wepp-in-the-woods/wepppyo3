@@ -36,7 +36,7 @@ fn geometry(source: &Source, hill: i64) -> Result<Geometry, Error> {
     names.extend(WAT.iter().filter(|n| source.has(n)).map(|n| n.to_string()));
     let mut ofes = BTreeMap::new();
     let mut rows: BTreeMap<Key, BTreeMap<i64, (Option<f64>, Option<f64>)>> = BTreeMap::new();
-    source.scan(groups, &names, |b| {
+    source.scan(groups, Some(hill), &names, |b| {
         for r in 0..b.rows {
             if b.int(0, r)? != hill {
                 continue;
@@ -229,7 +229,7 @@ pub fn produce(
     metadata.insert("roads_accounting_policy".into(), POLICY.into());
     metadata.insert("derived_accounting".into(), "true".into());
     schema = schema.with_metadata(metadata);
-    let mut accounting_sink = ParquetSink::try_new(accounting, schema.clone())?;
+    let mut accounting_sink = ParquetSink::for_sources(accounting, schema.clone(), sources.len())?;
     let mut ordered: Vec<_> = sources.iter().collect();
     ordered.sort_by_key(|s| s.2);
     let targets: BTreeSet<_> = sources.iter().map(|s| s.2).collect();
@@ -302,7 +302,7 @@ pub fn produce(
         let mut names = pass.dates()?;
         names.extend(PASS.map(str::to_string));
         let mut dates = BTreeSet::new();
-        pass.scan(&pass.hills[id], &names, |b| {
+        pass.scan(&pass.hills[id], Some(*id), &names, |b| {
             for r in 0..b.rows {
                 if b.int(0, r)? != *id {
                     continue;

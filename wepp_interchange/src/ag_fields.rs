@@ -60,7 +60,7 @@ where
 {
     validate_sources(sources)?;
 
-    let mut sink = ParquetSink::try_new(output_path, schema.clone())?;
+    let mut sink = ParquetSink::for_sources(output_path, schema.clone(), sources.len())?;
     if sources.is_empty() {
         sink.write_chunk(empty_chunk(&schema))?;
     } else {

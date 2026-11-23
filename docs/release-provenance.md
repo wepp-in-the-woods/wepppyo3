@@ -1049,3 +1049,9 @@ Linux py312 climate artifact SHA-256 `813b8fe82de37d90860c768daac7dcf836f1ea0333
 ## Large-watershed interchange, 2026-11-22
 
 Built the Linux py312 interchange extension from the task worktree with the existing workspace lockfile and `PYO3_PYTHON=/usr/bin/python3.12 cargo build --locked --release -p wepp_interchange_rust`. SHA-256 is `1769c18b5fb0454026d3ea6dee7192f082a3eabf41f0b33d710af891458443fd`. The WEPPpy work package 20261122_interchange_row_groups records generated PASS and daily output comparisons and the paired startup pin.
+
+### Final release built from the shipped slope implementation
+
+The preceding `1769c18b` build was superseded before integration. Native source commit `5e3540f` included candidate-only MOFE endpoint behavior absent from the deployed binary. The broad WEPPpy slope artifact regression detected an endpoint gradient of 0.7 where the released behavior gives 0.1. The candidate source remains available for its own work package.
+
+Build the shipped interchange extension from exact source `250243df5b40d72266247fa9308334b80bd93c26` on branch `fix/interchange-row-groups-release-source`. That commit applies the interchange change to the prior released crate at `4d4c075`. Use the workspace lockfile and release command above, then install the result by sibling temporary file and rename. The paired py312 extension SHA-256 is `9c16555afa70595c3a4031eb8bab94a1cdc6a7ea23637f40aff6120ab83520f9`. The other py312 modules retain their existing releases.

@@ -231,6 +231,7 @@ def _mutate_footer_integer(path, field_path, replacement):
 @pytest.mark.parametrize('field_path,replacement', [
     pytest.param((3,), -1, id='negative-file-rows'),
     pytest.param((4, 0, 3), -1, id='negative-group-rows'),
+    pytest.param((4, 0, 3), 2, id='group-rows-exceed-decoded-identities'),
     pytest.param((4, 0, 2), -1, id='negative-group-bytes'),
     pytest.param((4, 0, 1, 0, 3, 5), -1, id='negative-column-values'),
     pytest.param((4, 0, 1, 0, 3, 6), -1, id='negative-column-uncompressed-size'),

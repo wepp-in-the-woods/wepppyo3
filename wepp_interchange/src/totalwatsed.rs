@@ -7,7 +7,7 @@ use std::sync::Arc;
 use arrow_array::*;
 use arrow_schema::DataType;
 use parquet::arrow::arrow_reader::{
-    ArrowReaderMetadata, ArrowReaderOptions, ParquetRecordBatchReaderBuilder,
+    ArrowReaderMetadata, ArrowReaderOptions, ParquetRecordBatchReaderBuilder, RowSelection,
 };
 use parquet::arrow::ProjectionMask;
 use parquet::basic::{Compression, Encoding};
@@ -355,6 +355,7 @@ struct Source {
     metadata: ArrowReaderMetadata,
     hills: BTreeMap<i64, Vec<usize>>,
     groups: Vec<GroupLocation>,
+    mixed_ranges: HashMap<(usize, i64), std::ops::Range<usize>>,
 }
 impl Source {
     fn open(path: &Path, metrics: Option<&[&str]>) -> Result<Self, Error> {
@@ -413,6 +414,7 @@ impl Source {
             metadata,
             groups,
             hills: BTreeMap::new(),
+            mixed_ranges: HashMap::new(),
         })
     }
     fn has(&self, name: &str) -> bool {
@@ -457,6 +459,7 @@ impl Source {
     fn scan(
         &self,
         groups: &[usize],
+        hill: Option<i64>,
         names: &[String],
         mut f: impl FnMut(Batch) -> Result<(), Error>,
     ) -> Result<(), Error> {
@@ -474,6 +477,34 @@ impl Source {
                 .map(|n| builder.schema().index_of(n).map_err(Error::from))
                 .collect::<Result<Vec<_>, _>>()?;
             let mask = ProjectionMask::roots(builder.parquet_schema(), indices);
+            // Mixed groups contain adjacent sources in native output. Restrict
+            // decoding to this hill's first..last row; the per-row identity
+            // check still handles interleaved legacy inputs within that span.
+            let builder = if let Some(hill) =
+                hill.filter(|_| groups.iter().any(|&g| self.groups[g].single_hill.is_none()))
+            {
+                let mut offset = 0usize;
+                let mut ranges = Vec::with_capacity(groups.len());
+                for &group in groups {
+                    let rows = self.groups[group].rows as usize;
+                    let end = offset
+                        .checked_add(rows)
+                        .ok_or_else(|| err("row count overflow"))?;
+                    let range = self
+                        .mixed_ranges
+                        .get(&(group, hill))
+                        .cloned()
+                        .unwrap_or(0..rows);
+                    ranges.push(offset + range.start..offset + range.end);
+                    offset = end;
+                }
+                builder.with_row_selection(RowSelection::from_consecutive_ranges(
+                    ranges.into_iter(),
+                    offset,
+                ))
+            } else {
+                builder
+            };
             let reader = builder
                 .with_row_groups((0..groups.len()).collect())
                 .with_projection(mask)
@@ -543,23 +574,35 @@ impl Source {
         self.metadata.schema().index_of("wepp_id")?;
         for group in self.all() {
             let single = self.groups[group].single_hill;
-            let mut ids = BTreeSet::new();
             if let Some(id) = single {
-                ids.insert(id);
-            } else {
-                self.scan(&[group], &["wepp_id".into()], |b| {
-                    for r in 0..b.rows {
-                        if let Some(v) = b.val(0, r) {
-                            ids.insert(v as i64);
-                        }
-                    }
-                    Ok(())
-                })?;
-            }
-            for id in ids {
                 if selected.as_ref().is_none_or(|s| s.contains(&id)) {
                     self.hills.entry(id).or_default().push(group);
                 }
+                continue;
+            }
+            let mut ranges: HashMap<i64, std::ops::Range<usize>> = HashMap::new();
+            let mut offset = 0;
+            self.scan(&[group], None, &["wepp_id".into()], |b| {
+                for r in 0..b.rows {
+                    if let Some(v) = b.val(0, r) {
+                        let id = v as i64;
+                        if selected.as_ref().is_none_or(|s| s.contains(&id)) {
+                            let pos = offset + r;
+                            ranges.entry(id).or_insert(pos..pos).end = pos + 1;
+                        }
+                    }
+                }
+                offset += b.rows;
+                Ok(())
+            })?;
+            if offset != self.groups[group].rows as usize {
+                return Err(err(
+                    "totalwatsed3 identity rows disagree with Parquet group row count",
+                ));
+            }
+            for (id, range) in ranges {
+                self.hills.entry(id).or_default().push(group);
+                self.mixed_ranges.insert((group, id), range);
             }
         }
         Ok(())
@@ -602,7 +645,7 @@ fn aggregate_pass(
 ) -> Result<(), Error> {
     let mut names = source.dates()?;
     names.extend(PASS.map(str::to_string));
-    source.scan(groups, &names, |b| {
+    source.scan(groups, None, &names, |b| {
         for row in 0..b.rows {
             if selected
                 .as_ref()
@@ -669,7 +712,7 @@ fn aggregate_hill(
     let mut element_areas: ElementAreas = HashMap::new();
     let mut lateral: HashMap<(i64, Key), Sum> = HashMap::new();
     let mut max_ofe = None;
-    wat.scan(&wat.hills[&hill], &names, |b| {
+    wat.scan(&wat.hills[&hill], Some(hill), &names, |b| {
         for row in 0..b.rows {
             if b.val(0, row) != Some(hill as f64) {
                 continue;
@@ -735,7 +778,7 @@ fn aggregate_hill(
             let mut names = s.dates()?;
             names.push(s.ofe().ok_or_else(|| err("missing soil OFE"))?.into());
             names.push("TSMF".into());
-            s.scan(groups, &names, |b| {
+            s.scan(groups, Some(hill), &names, |b| {
                 for row in 0..b.rows {
                     if b.val(0, row) != Some(hill as f64) {
                         continue;
@@ -778,7 +821,7 @@ fn aggregate_hill(
                     }
                 })
                 .collect();
-            s.scan(groups, &names, |b| {
+            s.scan(groups, Some(hill), &names, |b| {
                 for row in 0..b.rows {
                     if b.val(0, row) != Some(hill as f64) {
                         continue;
@@ -841,7 +884,7 @@ fn aggregate_ash(inputs: &[AshInput]) -> Result<HashMap<[i64; 4], AshDaily>, Err
         };
         type HillAsh = ([Sum; 4], Option<f64>, Option<f64>);
         let mut hill: BTreeMap<(i64, i64), HillAsh> = BTreeMap::new();
-        s.scan(&s.all(), &names, |b| {
+        s.scan(&s.all(), None, &names, |b| {
             for r in 0..b.rows {
                 let entry = hill.entry((b.int(0, r)?, b.int(1, r)?)).or_default();
                 for i in 0..4 {
